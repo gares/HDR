@@ -1,0 +1,126 @@
+\documentclass[a4paper, 11pt]{book}
+\usepackage{minted}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+\usepackage[style=authoryear]{biblatex}
+\addbibresource{hdr.bib}
+\addbibresource{other.bib}
+
+\DeclareSourcemap{
+  \maps[datatype=bibtex, overwrite]{
+    \map{
+      \perdatasource{hdr.bib}
+      \step[fieldset=keywords, fieldvalue={, }, appendstrict]
+      \step[fieldset=keywords, fieldvalue=me, append]
+    }
+    \map{
+      \perdatasource{other.bib}
+      \step[fieldset=keywords, fieldvalue={, }, appendstrict]
+      \step[fieldset=keywords, fieldvalue=they, append]
+    }
+  }
+}
+
+\newminted{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\title{title}
+\begin{document}
+
+\setcounter{tocdepth}{4}
+\tableofcontents
+
+\chapter{Introduction}
+
+\section{Beyond the odd order theorem}
+\section{The beginning: a snowy day}
+
+\chapter{Elpi the language: from A to Z}
+
+\begin{elpicode}
+pred age o:string, o:int.
+pred older o:string, o:string.
+
+\end{elpicode}
+    
+
+\section{Prolog}
+
+\section{$\lambda$Prolog}
+
+\begin{elpicode}
+pred copy i:term, o:term.
+copy (lam F) (lam G) :- pi x\ copy x x => copy (F x) (G x).
+\end{elpicode}
+
+\section{Constraint Handling Rules}
+
+
+\section{Elpi = $\lambda$Prolog + CHR}
+
+\subsection{Syntactic sugar}
+
+\subsubsection{Namespaces}
+\subsubsection{Spilling}
+
+\section{Example: Milner's $\mathcal{W}$ algorithm in Elpi}
+
+\section{Pitfalls}
+
+\chapter{Elpi the software: from A to Z}
+
+\section{The runtime}
+
+\cite{dunchev15lpar}
+
+\subsection{The $L_{\lambda}$ fragment}
+\subsection{The $L_{\lambda}^{\beta}$ fragment}
+\cite{Michaylov1993HigherOrderLP}
+
+\subsection{Indexing}
+\subsubsection{Patricial tree}
+\subsubsection{Discrimination tree}
+\subsubsection{Hash map}
+
+\section{The API}
+
+\subsection{Quotations}
+\subsection{FFI}
+\subsection{Code generation}
+
+\chapter{Embedding in Coq: Coq-Elpi}
+
+\section{HOAS of terms and contexts}
+
+\section{HOAS of holes (missing terms)}
+
+
+
+\chapter{Coq applications}
+
+\section{Derive}
+\subsection{Natural equality tests}
+\subsection{Fast equality tests}
+\subsection{Parametricity at work}
+
+\section{Hierarchy Builder}
+\subsection{Mathematical Components 2.0}
+
+\section{Other applications / uses}
+\subsection{Algebra Tactics}
+\subsection{Tackt and TRocq: proof transfer tool}
+\subsection{EIris: ???}
+\subsection{BedRock's BRICK}
+\subsubsection{N.E.S.}
+\subsubsection{Derive plugins}
+
+
+\chapter{Conclusions}
+\section{Future work}
+\nocite{*}
+\printbibliography[title={Our Bibliography}, keyword=me]
+\printbibliography[title={Bibliography}, keyword=they]
+\end{document}
