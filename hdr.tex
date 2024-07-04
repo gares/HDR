@@ -40,8 +40,8 @@
 \section{Beyond the odd order theorem}
 \section{The beginning: a snowy day}
 
-\chapter{Elpi the language: \emph{du A a Z}}
-\cite{duaz}
+\chapter{Elpi the language: \emph{de A \`a Z}}
+\cite{ridoux1998lambda}
 
 \section{Prolog}
 
@@ -152,7 +152,7 @@ LP forces one to name intermediate results, as in the ANF
 in FP.
 
 \begin{elpicode}
-rapp L1 L2 L :- L = {rev {append L1 L2}}.
+rapp L1 L2 L :- L = {rev {append L1 L2} }.
 rapp L1 L2 L :- append L1 L2 L3, rev L3 L4, L = L4.
 \end{elpicode}
 
@@ -344,20 +344,27 @@ assert T TY ETY :-
 \caption[monodirectional]{Monodirectional typing\label{hm:mono}}
 \end{figure}
 
+\section{Homoiconicity and rule based languages}
+
 \section{Pitfalls}
 
 \begin{enumerate}
-  \item \elpiinline{xx}
+  \item precedence of \elpiinline{=>}
+  \item \elpiinline{sigma} considered harmful
+  \item restriction should be fatal
 \end{enumerate}
 
-\chapter{Elpi the software: from A to Z}
+\chapter{Elpi the software: \emph{de A \`a Z}}
 
-\section{The runtime}
+\section{The prototype}
+
+\section{The second runtime}
 
 \cite{dunchev15lpar}
 
 \subsection{The $L_{\lambda}$ fragment}
 \subsection{The $L_{\lambda}^{\beta}$ fragment}
+
 \cite{Michaylov1993HigherOrderLP}
 
 \subsection{Indexing}
@@ -369,9 +376,17 @@ assert T TY ETY :-
 
 \subsection{Quotations}
 \subsection{FFI}
-\subsection{Code generation}
+\section{The tools}
+
+\subsubsection{Trace browser}
 
 \chapter{Embedding in Coq: Coq-Elpi}
+
+\section{Objectives and design}
+
+Very high level, no binders no evars.
+API easy to add, curate, call.
+Influence from Lua \cite{10.5555/1200583}
 
 \section{HOAS of terms and contexts}
 
@@ -382,19 +397,43 @@ assert T TY ETY :-
 \chapter{Coq applications}
 
 \section{Derive}
+
+metaprograms and boilerplate
+
 \subsection{Natural equality tests}
+
+\cite{tassi:hal-01897468}
+
 \subsection{Fast equality tests}
+
+\cite{gregoire:hal-03800154}
+
 \subsection{Parametricity at work}
 
 \section{Hierarchy Builder}
+
+\cite{cohen_et_al:LIPIcs.FSCD.2020.34}
+
 \subsection{Mathematical Components 2.0}
+
+\cite{affeldt:hal-03463762}
 
 \section{Other applications / uses}
 \subsection{Algebra Tactics}
+
+\cite{sakaguchi:LIPIcs.ITP.2022.29}
+
 \subsection{Tackt and TRocq: proof transfer tool}
+
+\cite{DBLP:conf/cpp/Blot0CPKMV23}
+\cite{10.1007/978-3-031-57262-3_10}
+
 \subsection{EIris: ???}
+
+https://github.com/lukovdm/MasterThesisIrisElpi/blob/e7c9f2a835a523fa8937b24f06bac061e5f50ab9/latex/thesis/thesis.pdf
+
 \subsection{BedRock's BRICK}
-\subsubsection{N.E.S.}
+\subsubsection{N.E.S. -- Namespace Emulation System}
 \subsubsection{Derive plugins}
 
 
