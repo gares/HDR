@@ -1,5 +1,7 @@
 \documentclass[a4paper, 11pt]{book}
+\usepackage[utf8]{inputenc}
 \usepackage{minted}
+\usepackage{graphicx}
 \usepackage{hyperref}
 \hypersetup{
     colorlinks,
@@ -7,7 +9,8 @@
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
 }
-\usepackage[style=authoryear]{biblatex}
+\usepackage[backend=biber,style=alphabetic]{biblatex}
+\DeclareUnicodeCharacter{2200}{$\forall$}
 \addbibresource{hdr.bib}
 \addbibresource{other.bib}
 
@@ -25,20 +28,120 @@
     }
   }
 }
-
-\newminted{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+%'theorem.py:CoqLexer -x'
+\newminted[elpicode]{elpi.py:ElpiLexer -x}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-
+\newminted[coqcode]{theorem.py:XCoqLexer -x}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+ 
 \title{title}
 \begin{document}
 
 \setcounter{tocdepth}{4}
 \tableofcontents
+  
+ \chapter{Introduction}
 
-\chapter{Introduction}
 
-\section{Beyond the odd order theorem}
-\section{The beginning: a snowy day}
+\section{Prologue}
+
+\subsection{Beyond the odd order theorem}
+
+I had the luck to be part of this project.
+After its completion the good question was what it made it possible
+other than having Georges Gonthier lead the project. How to make
+it possible for others to build such an impressive machine checked
+proof. I've always been interested into building tools, since I believe
+a tool can democratize...
+
+3 points 1) engineering practices, not new but too often
+ignored by the community; 2) formalization technique known as boolean
+reflection (or small scale reflection) that carves a light weight
+``classical math'' framework in Coq (EM, UIP, FUNEXT) in Coq when
+constructivism allows for it; 3) ``creative'' programming of the
+Coq elaborator.
+
+We focused on 3. These programs make Coq behave as an informed readers,
+that is a reader that knows some base facts and that is expected to
+be able to combine them using some well known rules. It was customary,
+at that time, to see Coq as a ``dumb reader'': you have to explain
+every single detail to him. These programs changed the game  for the
+oothm and made it possible to use notations as in math, that is convoy
+a lot of information implicitly, by convention.
+
+The objective was to help users craft these programs. Programming
+the elaborator as we did was hard. Structuring the library to that
+knowledge could be organized by the author an retrieved by these
+programs was even harder. The programming mechanism is called CS,
+and is strictly related to the UH I studied during my PhD.
+Independently, about at the same time,
+Coq got extended with type classes, which happened to be usd for similar
+purposes, and immediately raised similar programming issues.
+
+To my eyes, these programs were strikingly related to Prolog.
+Our programs were organized in rules and driven by unification.
+At that time I had barely heard about Prolog.
+It happened that the Parsifal team
+at Inria Saclay worked on a language or that family
+and thanks to Assia Mahboubi and Stephane Legrand I could give a talk
+at a STTT workshop they were hosting.
+
+In my talk I did explain some of the programs we wrote and why they
+were helping us writing math in Coq. Dale Miller, asked a few questions
+and suggested that his $\lambda$Prolog language was probably what I
+was looking for, but since I did not know anything about it I could
+just nod and ask to continue to the discussion offline.
+
+not just the rules but also their animation and maybe also the entire
+elab algorithm.
+
+Dale was kind
+to set up a meeting with Claudio Sacerdoti and myself. 
+
+\subsection{The beginning: a snowy day}
+
+On that day ``Paris'' was frozen, in the sense that a supposedly
+``show storm'' convinced authorities to close buildings and other facilities,
+reduce public transportations to the bare minimum. For some reasons
+the XXX building was not closed, so the 3 of us agreed to buy a sandwich,
+walk up the hill (with boots) and meet in a desert building.
+
+After two hours of gentle introduction, after having savoured the
+elegance of \elpiinline{copy}, I clearly remember I say ``sold...'',
+but I also completed the sentence with ``how do I do evars?''.
+
+$\lambda$Prolog could easily describe the rules my programs were
+made of and elegantly manipulate the data type of Coq terms that
+notably contains many binders. But also holes, evars in Coq slang,
+that are the other beast one has to tame in order to implement an
+elaborator and, in general, the outern layers of a toll like Coq.
+
+It was the beginning.
+
+Teyjus in bologna, we could write a toy elaborator in one day
+but we could not find a good solution. Reification is ugly, one has
+to pass a subst and reimplement unif. At the same time reusing unif
+variables seemed possible, but extremely hard since the pure core
+of LP, and Teyjus, don't really give you systems to control their
+assignment and an elaborator takes in input a term with holes
+and returns a term where only some holes are assigned...
+
+It was worth trying but using teyjus in Matita or Coq was too hard.
+I write a POC interpreter of LP in OCaml for embedding it into
+Matita and Coq, elpi. It was easy to add hacks and experiment with
+it, and that ... Elab in matita was kind of working, we could run
+it on the arithmetic library. It was clear that:
+the perf were bad, very bad, like 22K times bad.
+the hacks could be explained in terms of constraints and rules to
+suspend, resume, combined them.
+
+
+\section{Elpi}
+Elpi is both a language and an implementation of that language.
+
+With CSC we rewrote the runtime, first the FO part then the HO part
+and 
+
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 \cite{ridoux1998lambda}
@@ -64,6 +167,20 @@ copy (app A B) (app C D) :- copy A C, copy B D.
 \end{elpicode}
 
 \section{Constraint Handling Rules}
+
+\cite{chr}
+\cite{10.1007/978-3-540-27775-0_7}
+
+\begin{verbatim}
+- 1 for each active constraint (just declared via declare_constraint)
+ - 2 for each rule
+  - 3 for each position j of the active constraint (from 0 to n)
+    - 4 for each permutation of constraints having the active at j
+      - 5 try apply the rule
+        - 6 remove constraints to be removed from
+            the current set of permutations and the set of
+            active or passive constraints
+\end{verbatim}
 
 \begin{figure}
 \begin{elpicode}
@@ -380,43 +497,410 @@ assert T TY ETY :-
 
 \subsubsection{Trace browser}
 
-\chapter{Embedding in Coq: Coq-Elpi}
+\chapter{Coq-Elpi}
 
-\section{Objectives and design}
+While Elpi is a standalone language and software project, it was designed to
+play the role of an \emph{extension language} for Coq. The glue between Elpi and
+Coq is called Coq-Elpi.
 
-Very high level, no binders no evars.
-API easy to add, curate, call.
-Influence from Lua \cite{10.5555/1200583}
+My definition of this role, \emph{extension language}, is largely influenced
+by the Lua programming language~\cite{10.5555/1200583}. Lua is an extension
+language for applications written in C and is widely used in the Opens Source
+world and in the gaming industry.
+Its purpose is to provide an easy way to extend the host application.
+It is easy to host Lua since its FFI is well curated, and thanks to that
+exposing the internals of the application to the extension language requires a
+limited effort to the application developer. It is easier to program in Lua,
+rather than C, because the language is higher level, e.g. is features automatic
+memory management and provides dictionaries as a builtin data structure.
+Finally, it is easy for a user to get started with Lua because he does not need
+to set up a proper development environment, the host application is sufficient
+since Lua is an interpreter.\\
+Elpi tries to do the same for OCaml, and Coq is the host application of interest.
 
+Even if I'm not a big fan of it, in academia the same role is often called
+meta-programming framework. Coq's main data type, terms, are programs and Elpi
+programs do manipulate Coq programs. In this sense Elpi programs live at the
+meta level.
+
+\section{Why extending Coq in OCaml is hard}
+
+Luckily OCaml features automatic memory management, types and algebraic data.
+It is much, much higher level than C. Why it is hard to extend Coq then?
+
+The first difficulty is that the complexity of the main Coq data type, terms,
+is not completely hidden by the algebraic data types provided by the programming
+language. The missing features are encoded and it is hard to completely hide
+it to the programer (via curated APIs). In particular Coq terms feature binders
+and holes. 
+
+Binders pose two problems of their own and interact badly with holes.
+The first problem is that they are typically encoded with numbers, De Bruijn
+indexes, and it is just too easy to forget to shift a term.  The second program
+is that when a binder is crossed on must always remember something about it,
+typically the type of the bound variable. Hence the programs have to pass around
+typing contexts (aka environment). It is tempting to not do it upfront, but
+then one has to be disciplined. find mantra mc bride.
+
+Holes are missing subterms and they come with metadata, a sequent.
+Since the same hole can occur non linearly a single sequent is stored.
+Moreover since binders may be reduced away each occurrence has an explicit
+substitution. So there is a state that accompanies the terms, a state to be
+threaded in a functional setting. This state also gathers univ constraints.
+Assignment also part of this state, see also ``evar sensitive''. This is
+a reified heap, we are back at memory management, pointer dereferencing (with no
+types), no gc. The only thing that is easy is backracking, since the map is
+purely functional.
+
+The second difficulty is no inherent in OCaml, but rather an artifact of the
+history of Coq. The API are not curated. Exposing the API in a manual, althought
+not very demanding, way is key to rationalize them.
+
+
+Last setting up the dev environment. I believe that can be eased with doc, but
+there is another advantage in a interpreter, that you can iterate faster. Eg
+in OCaml loading code is possible, but not unloading. This is even better in
+a rule based language where far from the place where a code is writtne one
+can add a rule to mask/improve/debug a piece of code.
+
+\section{Vernacular language integration}
+
+While the language of Coq terms, gallina, is central to Coq-Elpi, there is another
+language we have to describe first, the vernacular. That ``outern'' language
+lets one organize the formalized knowledge, in particular give names to terms
+and attach to them meta data.
+
+Coq-Elpi extends the vernacular language with a few commands to declare, run
+and modify Elpi programs.
+
+
+
+\begin{figure}
+\begin{coqcode}
+Elpi Command hello.
+Elpi Accumulate lp:{{
+  main [str X] :- coq.say "Hello" X.
+}}.
+Elpi hello "reader".
+
+Fail Elpi hello 46.
+
+Elpi Accumulate lp:{{
+  main [int X] :- coq.say "Hello" X.
+}}.
+
+Elpi hello 46.
+\end{coqcode}
+\caption[Vernacular]{Vernacular\label{vernac}}
+\end{figure}
+
+\subsection{Database and homoiconicity}
+
+share data between programs, and programmatically add data.
+
+\begin{figure}
+  \begin{coqcode}
+
+
+    Elpi Db age.db lp:{{
+
+    % A typical Db is made of one main predicate
+    pred age o:string, o:int.
+  
+    % the Db is empty for now, we put a rule giving a
+    % descriptive error and we name that rule "age.fail".
+    :name "age.fail"
+    age Name _ :- coq.error "I don't know who" Name "is!".
+  
+  }}.
+  Elpi Command age. 
+  Elpi Accumulate Db age.db.  (* we accumulate the Db *)
+  Elpi Accumulate lp:{{
+  
+    main [str Name] :-
+      age Name A,
+      coq.say Name "is" A "years old".
+  
+  }}.
+  Elpi Typecheck. 
+  
+  Elpi age bob.
+    
+  Elpi Accumulate age.db lp:{{
+  
+    :before "age.fail"     % we place this rule before the catch all
+    age "bob" 24.
+  
+  }}.
+  
+  Elpi age bob.
+  
+  
+  Elpi Command set_age.
+  Elpi Accumulate Db age.db.
+  Elpi Accumulate lp:{{
+    main [str Name, int Age] :-
+      TheNewRule = age Name Age,
+      coq.elpi.accumulate _ "age.db"
+        (clause _ (before "age.fail") TheNewRule).
+
+  }}.
+  
+  Elpi set_age "alice" 21. 
+  Elpi age "alice".
+  \end{coqcode}
+  \caption[Databases]{Databases\label{databases}}
+  \end{figure}
+
+  
 \section{HOAS of terms and contexts}
+
+\begin{figure}
+\begin{elpicode}
+% Global objects: inductive types, inductive constructors, definitions
+kind gref type.
+type const constant -> gref. % Nat.add, List.append, ...
+type indt inductive -> gref. % nat, list, ...
+type indc constructor -> gref. % O, S, nil, cons, ...
+
+kind term type.
+
+type sort  sort -> term. % Prop, Type@{i}
+
+% constants: inductive types, inductive constructors, definitions
+type global gref -> term.
+type pglobal gref -> univ-instance -> term.
+
+% binders: to form functions, arities and local definitions
+type fun  name -> term -> (term -> term) -> term.         % fun x : t =>
+type prod name -> term -> (term -> term) -> term.         % forall x : t,
+type let  name -> term -> term -> (term -> term) -> term. % let x : T := v in
+
+% other term formers: function application, pattern matching and recursion
+type app   list term -> term.                   % app [hd|args]
+type match term -> term -> list term -> term.   % match t p [branch])
+type fix   name -> int -> term -> (term -> term) -> term. % fix name rno ty bo
+
+type primitive primitive-value -> term.
+\end{elpicode}
+\caption[terms]{Terms\label{hoas:term}}
+\end{figure}
+  
+\begin{figure}
+\begin{elpicode}
+pred decl i:term, o:name, o:term. % Var Name Ty
+pred def  i:term, o:name, o:term, o:term. % Var Name Ty Bo
+\end{elpicode}
+\caption[context]{Context\label{hoas:context}}
+\end{figure}
 
 \section{HOAS of holes (missing terms)}
 
+holes come with data expressing an invariant
+invariant checked when the hole materializes
 
+
+\begin{figure}
+\begin{elpicode}
+pred evar i:term, i:term, o:term. % Evar Ty RefinedSolution
+evar X Ty R :- not(var R), !, coq.typecheck R Ty ok, X = R.
+ 
+constraint declare-evar evar def decl {
+
+% Override the actual context
+rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
+   
+}
+\end{elpicode}
+\caption[holes]{Holes\label{hoas:holes}}
+\end{figure}
 
 \chapter{Coq applications}
 
+In this chapter we survey the main applications developed on top of Coq-Elpi.
+
 \section{Derive}
 
-metaprograms and boilerplate
+The ``derive'' application is a framework to register automatic
+code generation, typically in response to the declaration of a new inductive
+data type.
+
+Coq itself is know to generate induction principles and equality tests.
+Unfortunately it is also known to generate bad induction principles when
+containers (e.g. lists) are involved and often fail to generate useful
+equality tests.
+
+I saw the opportunity to improve on that starting with the L3 internship of
+Luc Chabassier that wrote the first prototype in the summer of 2017.
+He succeeded in generating
+equality tests and their proofs in two months. While most of the credit goes to
+his learning skills, the experience confirmed that Coq-Elpi was to support
+research in this domain. Indeed the solution implemented by Luc, although
+correct, was not very satisfactory since it was not very modular. Improving
+on that lead to \cite{tassi:hal-01897468}, but before that I need to introduce
+the swiss army knife of boilerplate code generation: parametricity.
+
+\subsection{Parametricity}
+
+The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
+is a family of procedures that given \emph{any} Coq term $t$ of type $r$
+give both a predicate $R$ and a proof $T$ that $R$ holds for $t$, that is $T : R~t$
+in the unary case. For example the unary parametricity translation of
+\coqinline{nat : U} is \coqinline{is_nat : nat → U} and
+the translation of \coqinline{3} if a proof that \coqinline{is_nat 3} (we write
+\coqinline{U} for the universe, e.g. \coqinline{Prop}).
+
+The translation becomes interesting when the type has parameters such as
+\coqinline{A} in \coqinline{list A}. In that case the translation builds
+terms and type parametric in \coqinline{A} and in its translation. For example
+the translation of \coqinline{list A} is a predicate
+\coqinline{is_list : ∀A, (A → U) → (list A → U)},
+and the translation of \coqinline{cons : ∀A, A → list A → list A} is
+\begin{coqcode}
+is_cons : ∀A (isA : A → U),
+  ∀(a : A), isA a →
+  ∀l, is_list A isA l →
+    is_list A isA l
+\end{coqcode}
+
+The unary parametric of a container type is a predicate that
+asserts that each term contained has a given property, \coqinline{isA}
+in the example above. The unary parametricity translation is key to express in a
+systematic way that a property holds deep inside a container.
+
+The parametricity translation is meta, it cannot be implemented in Gallina
+itself hence one needs a meta language to implement it. Its implementation
+in Coq-Elpi was done by Cohen Cyril in the fall of 2017, as he was interested
+in exploiting the binary version of the translation to transfer properties
+automatically, possibly in the context of the Coq-EAL project.
+
+
+\subsection{Deep induction}
+
+Deep induction principles are said ``deep'' in contrast to the ones generated
+by Coq that, in the presence of containers, are shallow (and proof theoretically
+weak). As an example we can take the data type of rose trees.
+
+\begin{coqcode}
+Inductive rtree A : U :=
+| Leaf (a : A)
+| Node (l : list (rtree A)).
+\end{coqcode}
+
+The induction principle generated by Coq is
+
+\begin{coqcode}
+Lemma rtree_ind : ∀A (P : rtree A → U),
+  (∀a : A, P (Leaf A a)) →
+  (∀l : list (rtree A), P (Node A l)) →
+  ∀t : rtree A, P t.
+\end{coqcode}
+
+That is weak since no element of \coqinline{l} in \coqinline{Node A l}
+verifies \coqinline{P}. In \cite{tassi:hal-01897468} I study the synthesis
+for a stronger principle where \coqinline{P} holds ``deep'' inside \coqinline{l}.
+
+\begin{coqcode}
+Lemma rtree_induction A is_A (P : rtree A → U) :
+  (∀a, is_A a → P (Leaf A a)) →
+  (∀l, is_list (rtree A) P l → P (Node A l)) →
+     ∀t, is_rtree A is_A t → P t.
+\end{coqcode}
+
+There are two characteristics of this principle worth analyzing.
+
+First and foremost it is deep since the assumption
+\coqinline{is_list (rtree A) P l} gives access to \coqinline{P} on all
+elements of \coqinline{l}.
+In order to access \coqinline{P} one can combine lemmas such as
+\begin{coqcode}
+Lemma is_list_funct A P Q : (∀ a, P a → Q a) → ∀ l, is_list A P l → is_list A Q l.
+\end{coqcode}
+
+with the induction principle of the container
+\begin{coqcode}
+Lemma list_induction A (is_A: A → U) (P: list A → U):
+  P nil →
+  (∀ a (pa : is_A a) l, P l → P (a :: l)) →
+  ∀ l, is_list A is_A l → P l.
+\end{coqcode}
+
+Note how the former works under \coqinline{is_list} while the latter eliminates it.
+
+\begin{coqcode}
+Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
+  (His_Leaf : ∀a : A, PA a → P (Leaf A a))
+  (His_Node : ∀l : list (rtree A), is_list (rtree A) P l → P (Node A l)) :=
+  fix IH (s1 : rtree A) (x : is_rtree A PA s1) {struct x} : P s1 :=
+  match x in (is_rtree _ _ s2) return (P s2) with
+  | is_Leaf _ _ a Pa => His_Leaf a Pa
+  | is_Node _ _ l Pl => His_Node l (is_list_functor (rtree A) (is_rtree A PA) P IH l Pl)
+  end.
+\end{coqcode}
+
+
+In a way the induction principle states that ``if a term is of type t then it validates P''
+
 
 \subsection{Natural equality tests}
+
+Once one has induction principles he can prove properties about recursive programs.
+The first is equality test.
+
+\begin{coqcode}
+Definition rtree_eq A (A_eq : A → A → bool) :=
+  fix rec (t1 t2 : rtree A) {struct t1} : bool :=
+  match t1, t2 with
+  | Leaf a, Leaf b => A_eq a b
+  | Node l, Node s => list_eq (rtree A) rec l s
+  | _, _ => false
+  end.
+\end{coqcode}
+
+
 
 \cite{tassi:hal-01897468}
 
 \subsection{Fast equality tests}
 
+This is OK but terms are quadratic
+
 \cite{gregoire:hal-03800154}
 
-\subsection{Parametricity at work}
 
 \section{Hierarchy Builder}
+
+The math comp library has many good points and a few bad ones. Among these
+the most endangering ons is that the barrier to entry is high. Documentation
+a in \cite{assia_mahboubi_2022_7118596} helps, but any motivated learner
+can only read so much. In particular the last chapters of the book above
+quickly grow in complexity and technicality. The problem is that, prior to
+HB, defining a hierarchy of algebraics structure à la mathcomp was terribly
+hard. So hard that I myself would have not get it right at the first try.
+
+In Spring 2019 Cohen Cyril came back from a Dagstuhl seminar with ``a language for
+describing the math-comp hierarchy''. He needed a way to implement his language and
+Coq-Elpi had almost all the features he needed: APIs to declare records and
+canonical structure instances.
+
+To be honest, at that time Coq-Elpi lacked so many features, but the objective
+at stake was both a strong motivation for adding them and also a good test
+bench for their implementation.
+
+
 
 \cite{cohen_et_al:LIPIcs.FSCD.2020.34}
 
 \subsection{Mathematical Components 2.0}
 
 \cite{affeldt:hal-03463762}
+
+\includegraphics[width=\textwidth]{hb\_intf.png}
+
+% mathcomp-1.6.1 mathcomp-1.7.0 mathcomp-1.8.0 mathcomp-1.9.0 mathcomp-1.10.0 mathcomp-1.11.0 mathcomp-1.12.0 mathcomp-1.13.0 mathcomp-1.14.0 mathcomp-1.15.0 mathcomp-1.16.0 mathcomp-1.17.0 mathcomp-1.18.0 mathcomp-1.19.0 mathcomp-2.0.0 mathcomp-2.1.0 mathcomp-2.2.0
+
+% for t in mathcomp-1.6.1 mathcomp-1.7.0 mathcomp-1.8.0 mathcomp-1.9.0 mathcomp-1.10.0 mathcomp-1.11.0 mathcomp-1.12.0 mathcomp-1.13.0 mathcomp-1.14.0 mathcomp-1.15.0 mathcomp-1.16.0 mathcomp-1.17.0 mathcomp-1.18.0 mathcomp-1.19.0 mathcomp-2.0.0 mathcomp-2.1.0 mathcomp-2.2.0 `git describe --tags`; do printf "$t,%d,%d\n" "`git grep ^Structure $t|wc -l`" "`git grep HB.structure $t|wc -l`"; done
+% for t in mathcomp-1.6.1 mathcomp-1.7.0 mathcomp-1.8.0 mathcomp-1.9.0 mathcomp-1.10.0 mathcomp-1.11.0 mathcomp-1.12.0 mathcomp-1.13.0 mathcomp-1.14.0 mathcomp-1.15.0 mathcomp-1.16.0 mathcomp-1.17.0 mathcomp-1.18.0 mathcomp-1.19.0 mathcomp-2.0.0 mathcomp-2.1.0 mathcomp-2.2.0 `git describe --tags`; do printf "$t,%s,%d,%d\n" "`git log -1 --format=%as $t`" "`git grep ^Structure $t|wc -l`" "`git grep HB.structure $t|wc -l`"; done
 
 \section{Other applications / uses}
 \subsection{Algebra Tactics}
