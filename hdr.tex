@@ -475,27 +475,81 @@ assert T TY ETY :-
 
 \section{The prototype}
 
+The first elpi was written by Tassi in about 3 months, with the objective
+of understanding the $\lambda$Prolog language and some of the techniques
+adopted to implement it, like the suspension calculus. This was elpi-POC
+
+Terms were purely functional, to ease backtracking. This feature comes
+with a reputation of making things hard, so we played conservative.
+
+Suspension calculus did look similar to exp-substitutions, but until the very
+last last paper in the pile on my desk it was not clear is was actually isomorphic
+to $\lambda_\rho$. While explicit substitutions are often presented as a way to
+obtain better performances, in practice they fail to deliver. In Coq two
+people tried. In elpi-POC, in our limited tests, disabling them resulted in
+a faster runtime.  bla bla about lazyness.
+
+Elpi-POC was an easy playground to understand which features were needed in
+order to manipulate terms with holes: a safeguard against instantiating them by
+mistake (modes) and a was to attach metadata to holes (constraints).
+
+Elpi-POC was functional enough to let us write an elaborator for CIC
+and plug it into Matita. It was working, but it was too slow. Line 20K times
+slower than reasonable.
+
+Reason number one was the purely functional heap, with no GC. Introducing 
+instructions to clear memory (in an unsafe way) was enough to see order of
+magnitude fade.
+
 \section{The second runtime}
 
-\cite{dunchev15lpar}
+imperative terms with a trail did not cause bugs, but a sensible speedup.
+DBL made HO code sensibly faster \cite{dunchev15lpar}.
 
 \subsection{The $L_{\lambda}$ fragment}
 \subsection{The $L_{\lambda}^{\beta}$ fragment}
 
 \cite{Michaylov1993HigherOrderLP}
 
+built in lists.
+
+CHR is still naive.
+
+The compiler performs very little optimizations. In recent years its speed
+in extending existing programs became relevant, since state is encoded as rules.
+
 \subsection{Indexing}
-\subsubsection{Patricial tree}
-\subsubsection{Discrimination tree}
+\subsubsection{Patricial tree (over bits)}
+
+predicate to index
+symbol to clauses
+
+special bucket for flex arg or flex input arg
+
 \subsubsection{Hash map}
+
+multiple arg, variable depth. similar perf
+
+\subsubsection{Discrimination tree}
+
+deep, helps with terms encoding, eg ...
+like 2 times slower on simple code with a few rules.
+optimizations for flattening list as in the app.
 
 \section{The API}
 
 \subsection{Quotations}
+
+the one rule.
+
 \subsection{FFI}
+gadt everywhere.
+
+the future is ppx.
+
 \section{The tools}
 
-\subsubsection{Trace browser}
+\subsection{Trace browser}
 
 \chapter{Coq-Elpi}
 
