@@ -34,12 +34,28 @@
 \newminted[coqcode]{theorem.py:XCoqLexer -x}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
+\newenvironment{dedication}
+  {%\clearpage           % we want a new page          %% I commented this
+   \thispagestyle{empty}% no header and footer
+   \vspace*{\stretch{1}}% some space at the top
+   \itshape             % the text is in italics
+   \raggedleft          % flush to the right margin
+  }
+  {\par % end the paragraph
+   \vspace{\stretch{3}} % space at bottom is three times that at the top
+   \clearpage           % finish off the page
+  }
 \title{title}
 \begin{document}
+  
+\chapter{Dedication}
+\begin{dedication}
+To Cinzia and Anna
+\end{dedication}
 
 \setcounter{tocdepth}{4}
 \tableofcontents
-  
+
  \chapter{Introduction}
 
 
@@ -142,19 +158,70 @@ Elpi is both a language and an implementation of that language.
 With CSC we rewrote the runtime, first the FO part then the HO part
 and 
 
+line stats
+
+I perceived many times, in academic circles, some mistrust in logic programming.
+
+
+We organize this document in four parts. The first two describe Elpi from
+A to Z, both as a language and as an implementation of that language (we credit
+\cite{ridoux1998lambda}). The third describes the integration of Elpi in Coq
+and the fourth one surveys the application developed for Coq using Elpi.
+
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
-\cite{ridoux1998lambda}
+
 
 \section{Prolog}
+
+here we talk about bindings, unification and backtracking
 
 \begin{elpicode}
 pred age o:string, o:int.
 pred older o:string, o:string.
 \end{elpicode}
     
+we introduce cut and adt
+
+\subsection{Rules vs \ldots}
+
+It is undeniable that logic programming and backtracking are linked by a strong
+bond and that the ability to ``compute relations'' is a typical selling point.
+
+In spite of that I believe that the most interesting characteristic of logic programming is
+of being a rule based language. It trades the elaborate syntax offered by most
+programming languages with the notion of a smaller code unit.
+A code unit has a meaning per se and the operation of adding or removing it
+to/from a program is well defined.
+
+An assignment, a while loop, or a function definition do not
+constitute a code unit. An assignment is meaningless without a variable
+declaration, similarly a while loop: they only get a meaning, even a formal 
+one, in a larger context. Even the definition of a self contained function fails to be a unit in
+this sense: while adding it to a program makes some sense (although, since nobody
+calls it, serves little purpose),
+removing a used function just results in a non functional program.
+
+A rule has a meaning given by its logical interpretation. Adding it or removing
+it from a logic program simply results in a different logic program. Typically
+by adding a rule the resulting program is able to handle one more case,
+a bit like a proof system lets you prove more statements if one poses
+more axioms, or becomes more and more incomplete as axioms are removed.
+From the parallel with proof systems it is obvious that adding ``bad'' rules
+can result in a program that gives unexpected answers, but the operation
+of adding or removing them is still meaningful, even if one admits non logical
+constructs and departs for the ideal world of logic.
+If we admit non logical
+constructs then the order of rules becomes relevant and the insertion of a
+rule may be accompanied by a grafting directive, e.g. before/after another
+rule.
+
+It it thanks to this rule-based nature that logic programming scales so
+naturally to the domain of syntax trees with binders.
 
 \section{$\lambda$Prolog}
+
+what if an adt has binders
 
 \begin{elpicode}
 kind term type.
@@ -166,7 +233,18 @@ copy (lam F) (lam G) :- pi x\ copy x x => copy (F x) (G x).
 copy (app A B) (app C D) :- copy A C, copy B D.
 \end{elpicode}
 
+hypothetical rules
+
+proof theory, horn vs harrop, cite reasoning logic
+
+\subsection{(bound) variables and unification variables}
+
+what if the ast contains holes. the operations we need. sigma, metadata.
+input mode.
+
 \section{Constraint Handling Rules}
+
+clp is well known extension to lp. delay. eg add.
 
 \cite{chr}
 \cite{10.1007/978-3-540-27775-0_7}
@@ -463,6 +541,8 @@ assert T TY ETY :-
 
 \section{Homoiconicity and rule based languages}
 
+lisp 
+
 \section{Pitfalls}
 
 \begin{enumerate}
@@ -473,7 +553,7 @@ assert T TY ETY :-
 
 \chapter{Elpi the software: \emph{de A \`a Z}}
 
-\section{The prototype}
+\section{The first prototype}
 
 The first elpi was written by Tassi in about 3 months, with the objective
 of understanding the $\lambda$Prolog language and some of the techniques
@@ -501,7 +581,7 @@ Reason number one was the purely functional heap, with no GC. Introducing
 instructions to clear memory (in an unsafe way) was enough to see order of
 magnitude fade.
 
-\section{The second runtime}
+\section{Second attempt: a runtime for $L_{\lambda}^{\beta}$}
 
 imperative terms with a trail did not cause bugs, but a sensible speedup.
 DBL made HO code sensibly faster \cite{dunchev15lpar}.
@@ -530,11 +610,6 @@ special bucket for flex arg or flex input arg
 
 multiple arg, variable depth. similar perf
 
-\subsubsection{Discrimination tree}
-
-deep, helps with terms encoding, eg ...
-like 2 times slower on simple code with a few rules.
-optimizations for flattening list as in the app.
 
 \section{The API}
 
@@ -597,7 +672,7 @@ typing contexts (aka environment). It is tempting to not do it upfront, but
 then one has to be disciplined. find mantra mc bride.
 
 Holes are missing subterms and they come with metadata, a sequent.
-Since the same hole can occur non linearly a single sequent is stored.
+Since the same hole can occur non linearly a single sequent is stored on the side of terms.
 Moreover since binders may be reduced away each occurrence has an explicit
 substitution. So there is a state that accompanies the terms, a state to be
 threaded in a functional setting. This state also gathers univ constraints.
@@ -614,7 +689,7 @@ not very demanding, way is key to rationalize them.
 Last setting up the dev environment. I believe that can be eased with doc, but
 there is another advantage in a interpreter, that you can iterate faster. Eg
 in OCaml loading code is possible, but not unloading. This is even better in
-a rule based language where far from the place where a code is writtne one
+a rule based language where far from the place where a code is written one
 can add a rule to mask/improve/debug a piece of code.
 
 \section{Vernacular language integration}
@@ -769,6 +844,9 @@ rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
 \caption[holes]{Holes\label{hoas:holes}}
 \end{figure}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Coq applications}
 
 In this chapter we survey the main applications developed on top of Coq-Elpi.
@@ -779,7 +857,7 @@ The ``derive'' application is a framework to register automatic
 code generation, typically in response to the declaration of a new inductive
 data type.
 
-Coq itself is know to generate induction principles and equality tests.
+Coq itself is known to generate induction principles and equality tests.
 Unfortunately it is also known to generate bad induction principles when
 containers (e.g. lists) are involved and often fail to generate useful
 equality tests.
@@ -1005,12 +1083,86 @@ https://github.com/lukovdm/MasterThesisIrisElpi/blob/e7c9f2a835a523fa8937b24f06b
 \subsection{BedRock's BRICK}
 \subsubsection{N.E.S. -- Namespace Emulation System}
 
+An experiment with Cyril Cohen that uses modules to emulate name spaces.
+The characteristic of name spapces is that their content can esily be extended
+a posteriori. In some way they mitigate the practical need to organize contents in
+files and in an order that is imposed by logic.
+eg in MC prime comes after lists since its natural definition uses the prime
+decomposition operation that builds a list, so unless one makes a single file
+of 10K lines he can't possibly put nat, div and prime in the same place.
+NS allows you to do that.
 
+The basic features of NES can be seen here
+
+\begin{coqcode}
+NES.Begin This.Is.A.Long.Namespace.
+  Definition stuff := 1.
+NES.End This.Is.A.Long.Namespace.
+
+NES.Begin This.Is.A.Long.Namespace.
+  Definition more_stuff := stuff. (* stuff in the namespace is visible *)
+NES.End This.Is.A.Long.Namespace.
+
+Print This.Is.A.Long.Namespace.stuff. (* = 1 *)
+
+NES.Open This.Is.A.Long.Namespace.
+Print stuff.
+\end{coqcode}
 
 \subsubsection{Derive plugins}
 
+EqDecision, Countable, Finite, Inhabited, Lens, ToBit
+
 \chapter{Conclusions}
-\section{Future work}
+
+impossible without an inria position.
+
+\section{Current and future work}
+
+If only I had a century.
+
+\subsection{type class solver}
+
+Fissore's PhD: HO unif, compilation, indexing
+
+deep, helps with terms encoding, eg ...
+like 2 times slower on simple code with a few rules.
+optimizations for flattening list as in the app.
+
+
+\subsection{static analysis}
+
+determinacy
+
+\subsection{Automation}
+
+code specialization (a la mixtus)
+
+\subsection{Tabling}
+
+\cite{selsam2020tabledtypeclassresolution}
+
+\subsection{Integration in Coq}
+
+immediate uses of derive
+
+\subsection{Runtime}
+
+unification/runtime proved correct
+
+\subsection{Compiler}
+
+spilling fully studied
+
+\subsection{Reasoning logic}
+
+This is the part where 100 would not suffice to me, but there are smarter people out there.
+Abella small step, understand input mode (renounce to the ground terms model),
+understand green cut.
+
+
+
+
 \nocite{*}
 \printbibliography[title={Our Bibliography}, keyword=me]
 \printbibliography[title={Bibliography}, keyword=they]
