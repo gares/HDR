@@ -3,6 +3,13 @@
 \usepackage{minted}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage[linguistics]{forest}
+\usepackage{bussproofs}
+
+\newenvironment{bprooftree}
+  {\leavevmode\hbox\bgroup}
+  {\DisplayProof\egroup}
+  
 \hypersetup{
     colorlinks,
     linkcolor={red!50!black},
@@ -29,9 +36,9 @@
   }
 }
 %'theorem.py:CoqLexer -x'
-\newminted[elpicode]{elpi.py:ElpiLexer -x}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[elpicode]{'elpi.py:ElpiLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newminted[coqcode]{theorem.py:XCoqLexer -x}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[coqcode]{'theorem.py:XCoqLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
 \newenvironment{dedication}
@@ -45,15 +52,15 @@
    \vspace{\stretch{3}} % space at bottom is three times that at the top
    \clearpage           % finish off the page
   }
-\title{title}
+\title{Elpi: rule-based extension language}
 \begin{document}
   
-\chapter{Dedication}
+\chapter*{Dedication}
 \begin{dedication}
 To Cinzia and Anna
 \end{dedication}
 
-\setcounter{tocdepth}{4}
+\setcounter{tocdepth}{5}
 \tableofcontents
 
  \chapter{Introduction}
@@ -138,7 +145,7 @@ Teyjus in bologna, we could write a toy elaborator in one day
 but we could not find a good solution. Reification is ugly, one has
 to pass a subst and reimplement unif. At the same time reusing unif
 variables seemed possible, but extremely hard since the pure core
-of LP, and Teyjus, don't really give you systems to control their
+of LP, and Teyjus, do not really give you systems to control their
 assignment and an elaborator takes in input a term with holes
 and returns a term where only some holes are assigned...
 
@@ -171,25 +178,157 @@ and the fourth one surveys the application developed for Coq using Elpi.
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 
+Elpi is a mix of two languages: $\lambda$Prolog and Contraint Handling Rules.
+The former is a higher order variant of Prolog based on
+Hereditary Harrop Formulas, a generalization of Horn Clauses.
+The latter is language to manipulate a store of constraints that,
+in the case of Elpi, is made of suspended goals, i.e. sequents
+made of heigenvariables, dynamic rules and a conjecture.
 
-\section{Prolog}
+We briefly introduce all the ingredients that constitute Elpi.
+Most of the syntax of Elpi is inherited from $\lambda$Prolog, as well
+as the type discipline~\cite{Miller_Nadathur_2012}; similarly most of
+its dynamic semantics is inherited from Prolog.
+We state this upfront with no claim of novelty and but we just say Elpi in what
+follows. We shall still highlight the novelties or simply differences from
+$\lambda$Prolog or Prolog as they appear.
 
-here we talk about bindings, unification and backtracking
+\section{Elpi v.s. Prolog}
+
+Regarding an introduction to Prolog, the reader is spoiled for choice.
+Here, we limit ourselves to establishing the terminology and highlighting
+the key characteristics of Elpi and differences from standard Prolog from the
+perspective of the programmer. We identify three of them: data types, rules
+and search.
+
+The first feature worth pointing out is algebraic data types, such as
+list and trees. Here the declaration of binary tress in Elpi syntax:
 
 \begin{elpicode}
-pred age o:string, o:int.
-pred older o:string, o:string.
+kind tree type.
+type leaf tree.
+type node int -> tree -> tree -> tree. 
 \end{elpicode}
-    
-we introduce cut and adt
 
-\subsection{Rules vs \ldots}
+The \elpiinline{leaf} and \elpiinline{node} function symbols can be used to
+build ``compound terms'' and have arity 0 and 3 respectively. Elpi
+follows the tradition of typed functional languages by prescribing not only
+an arity but a more precise type to \elpiinline{leaf} and \elpiinline{node}.
+In this document we refer to them as term constructors, or simply constructors.
+Types play no role at run time but grately contribute to the static analysis
+of the code, allowing to report typos and sometime even true errors early.
 
-It is undeniable that logic programming and backtracking are linked by a strong
-bond and that the ability to ``compute relations'' is a typical selling point.
+Here an example of the three
 
-In spite of that I believe that the most interesting characteristic of logic programming is
-of being a rule based language. It trades the elaborate syntax offered by most
+\begin{forest}
+  [46 [93 [-] [-]] [-]]
+\end{forest}
+
+\begin{elpicode}
+T = (tree 46 (tree 93 leaf leaf) leaf)
+\end{elpicode}
+  
+To the reader familiar with
+Prolog we point out that Elpi adopts the syntactic convention
+of $\lambda$-calculus for function calls, namely $(f~ x~ y)$ rather than the
+mathematical convention $f(x,y)$ adopted by Prolog.
+
+The second feature we discuss is that the code is organized into
+rules, that constitue the smallest code unit\footnote{In this document we prefer the
+word rule to clause.}. A rule is made of two parts, the head and the premises.
+Intuitively the head drives the selection of a rule, reducing the current
+problem, that we goal, to simpler ones. Operationally the head is unified with the
+goal, possibly assigning value to the rule parameters that are embodied by
+unification variables. For example code computing the size of a tree, together
+with its signature:
+
+\begin{elpicode}
+type size tree -> int -> prop.
+size leaf 0.
+size (node _ L R) N :- size L N1, size R N2, N is 1 + N1 + N2.
+\end{elpicode}
+
+Again we favor a type assignment to a simple arity. \elpiinline{prop} is the
+type of executable code, meaning that \elpiinline{size}, when applied to two
+arguments, becomes a goal and a program can be run to solve it.
+On the contrary \elpiinline{node}, applied to any number of arguments,
+is just a piece of data, it is not a goal.
+
+\begin{elpicode}
+goal> size T N.
+
+Success
+  N = 2
+\end{elpicode}
+
+Operations on built-in data types, such as integers, are provided via
+the built-in \elpiinline{is} operator that evaluates its right hand side
+and unifies the result with the left hand side.
+
+It is worth pointing out that variables do not need to be used linearly
+in the head of a rule: since the head is unified with the goal, it makes sense to
+write there any therm, not just terms that happen to be patterns in
+the sense of functional programming languages. For example the following
+piece of code succeeds only if the tree is empty or made of two
+identical subtrees.
+
+\begin{elpicode}
+type symmetric tree -> prop.
+symmetric leaf.
+symmetric (node _ T T).
+\end{elpicode}
+
+The third characteristic is that Elpi internalizes a form of search called
+backtracking: all rules are potentially applied and there is no committment to
+the first rule whose head unifies with the goal.
+Here an example of code relying on backtracking to test
+the membership of an element ot a tree.
+
+\begin{elpicode}
+type mem tree -> int -> prop.
+mem (node N _ _) N.
+mem (node _ L _) N :- mem L N.
+mem (node _ _ R) N :- mem R N.
+\end{elpicode}
+
+Backtracking is a very powerful feature but without control leads to
+unnecessarily bad computational complexity. The one contruct to control
+backtracking is the cut operator.
+
+\begin{elpicode}
+mem (node N _ _) N :- !.
+mem (node _ L _) N :- mem L N, !.
+mem (node _ _ R) N :- mem R N.
+\end{elpicode}  
+
+Operationally the cut is not a premise to be solved, but rather telling
+the runtime the intention to commit to the current rule and solution.
+The former cut indicates that if the number is found in the current node
+we commit to this rule and discard the following ones: we do not care
+if the number also occurs deeped in the tree. The second cut indicates
+that if the number was found in the left sub tree we shall not look in
+the right sub tree so we discard the last rule\footnote{To be precise
+the second cut also discard any alternative solution (yet to be computed)
+to the preceeding premises. Technically speaking, Elpi implements a hard cut.}.
+
+\subsection{What really matters (to us)}
+
+Algebraic data types are an essential tool to write succint code
+to describe and process syntax trees. They are available in languages
+from the Prolog family, but also in most functional languages. Hence they do
+not constitute the feature that tips the balance in favor of a logic
+programming language.
+
+On the contrary functional languages do not usually come with backtracking
+while it is undeniable that logic programming and backtracking are linked by
+a strong bond and that the ability to ``compute relations'' is a typical
+selling point. Still, according to our experience, the vast majority of code
+written in Elpi does not need this feature.
+
+So, in conclusion, I believe that the most interesting
+characteristic of logic programming is of being a rule based language.
+
+It trades the elaborate syntax offered by most
 programming languages with the notion of a smaller code unit.
 A code unit has a meaning per se and the operation of adding or removing it
 to/from a program is well defined.
@@ -213,81 +352,236 @@ of adding or removing them is still meaningful, even if one admits non logical
 constructs and departs for the ideal world of logic.
 If we admit non logical
 constructs then the order of rules becomes relevant and the insertion of a
-rule may be accompanied by a grafting directive, e.g. before/after another
-rule.
+rule better be accompanied by a grafting directive, like begin added before
+or after another rule.
 
 It it thanks to this rule-based nature that logic programming scales so
-naturally to the domain of syntax trees with binders.
+naturally to the domain of syntax trees with binders (next section)
+and that it integrates so well with interactive provers (see~\ref{sec:rocq}).
 
-\section{$\lambda$Prolog}
+\section{Elpi v.s. $\lambda$Prolog}
 
-what if an adt has binders
+The syntax trees we are interested in are the ones that constitute
+the foundational language of interactive provers like Coq. A characteristic common
+to all of the them is the presence of binders, as forall and exists in
+the world of specification or (lambda) abstraction in the world of terms.
+
+The ``hello world'' example in this domain is simply typed lambda calculus,
+a formalism now almost a century old. The syntax of terms and types
+is declared as follows:
 
 \begin{elpicode}
 kind term type.
 type lam (term -> term) -> term.
 type app term -> term -> term.
 
-pred copy i:term, o:term.
-copy (lam F) (lam G) :- pi x\ copy x x => copy (F x) (G x).
-copy (app A B) (app C D) :- copy A C, copy B D.
+kind ty.
+type arr ty -> ty -> ty.
 \end{elpicode}
 
-hypothetical rules
+The type declaration for terms introduces a pairing constructor \elpiinline{app},
+putting together a function and its argument, and a function former
+\elpiinline{lam} that abstracts a term over a (bound) variable representing the
+formal argument. The declaration uses the function space of
+the programming language in order to represent the abstraction:
+the function carried by \elpiinline{lam} can be applied to an actual argument in order
+to recoved the body of the expression where the formal argument is
+replaced by the actual argument.
 
-proof theory, horn vs harrop, cite reasoning logic
+In this syntax the fst function is written as follows:
 
-\subsection{(bound) variables and unification variables}
+\begin{elpicode}
+Fst = (lam x\ lam y\ x)
+\end{elpicode}
 
-what if the ast contains holes. the operations we need. sigma, metadata.
-input mode.
+Note that \elpiinline{(x\ lam y\ x)} is a function of \elpiinline{x} (a
+variable of the Elpi programming language)
+and that the syntax tree of our object language, $\lambda$-calculus, does not
+feature a term constructor for variables since one can reuse the variables
+of Elpi.
+As sketched above the body of the first abstraction
+can be recovered by applying the function: \elpiinline{((x\ lam y\ x) c)}
+gives \elpiinline{(lam y\ c)}.
 
-\section{Constraint Handling Rules}
+
+% \begin{elpicode}
+% type copy term -> term -> prop.
+% copy (lam F) (lam G) :- pi x\ copy x x => copy (F x) (G x).
+% copy (app A B) (app C D) :- copy A C, copy B D.
+% \end{elpicode}
+
+The type checker for the simply typed $\lambda$-calculus can be implemented by
+the following two rules:
+
+\begin{elpicode}
+type of term -> ty -> prop.
+of (app H A) T :- of H (arr S T), of A S.
+of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
+\end{elpicode}
+
+The rule for application reads: in order to assign type \elpiinline{T} to
+the application of \elpiinline{H} to \elpiinline{A} we need to assign
+the type \elpiinline{S} arrow \elpiinline{T} to \elpiinline{H} and
+the type \elpiinline{S} to \elpiinline{A}. The one for abstraction
+assigns the type \elpiinline{S} arrow \elpiinline{T} if, given any
+fresh symbol \elpiinline{c} of type \elpiinline{S} the body of
+the function \elpiinline{F} has type \elpiinline{T} when the bound variable
+is substituted by \elpiinline{c}.
+
+
+The two rules above closely match the ``inference rules'' commonly used in
+by the logic or programming language communities:
+$$
+\begin{bprooftree}
+  \AxiomC{$\Gamma \vdash H : S \to T$}
+  \AxiomC{$\Gamma \vdash A : S$}
+  \BinaryInfC{$\Gamma \vdash H~A : T$}
+\end{bprooftree}
+\qquad
+\begin{bprooftree}
+  \AxiomC{$\Gamma, c : S \vdash F[x/c] : T \quad c~\mathrm{fresh~in}~\Gamma$}
+  \UnaryInfC{$\Gamma \vdash \lambda x.F : S \to T$}
+\end{bprooftree}
+$$
+
+The main difference is that $\Gamma$ is managed by Elpi: the \elpiinline{pi}
+operator guarantees the freshness of $c$, while \elpiinline{=>} augments
+the current program with an instance of the rule:
+
+$$
+\begin{bprooftree}
+  \AxiomC{$x : T \in \Gamma$}
+  \UnaryInfC{$\Gamma \vdash x : T$}
+\end{bprooftree}
+$$
+
+While Prolog finds it roots on Horn clauses, $\lambda$Prolog and hence
+Elpi are based on Hereditary Harrop formulas~\cite{}. While the rule for application
+can be seen as a formula in the Horn fragment:
+
+$$
+\mathrm{of}~ H~(\mathrm{arr}~S~T) \land \mathrm{of}~A~S \Rightarrow \mathrm{of}~(\mathrm{app}~H~A)~T
+$$
+
+\noindent the rule for lambd aabstraction truly needs the $\forall$ quantifier
+and the use of (nested) implication:
+
+$$
+(\forall c, \mathrm{of}~c~S \Rightarrow  \mathrm{of}~(F~c)~T) \Rightarrow \mathrm{of}~(\mathrm{lam}~F)~(\mathrm{arr}~S~T)
+$$
+
+The reading of the rule for abstraction as an Hereditary Harrop formula
+makes it clear that the scope of $c$ and the so called hypothetical rule
+assigning it a type are limited to the subgoal $\mathrm{of}~(F~c)~T$,
+unlike the \texttt{assert/1} and \texttt{retract/1} Prolog builtins\footnote{
+  although some Prolog implementation provide the notion of ``transation''
+that can be used to simulate scoping.}.
+
+As previously announced, we want to use Elpi in the contet of an
+interactive prover like Coq where syntax trees are often incomplete, i.e.
+they contain holes. For example we would like to run the
+type checker of this goal: \elpiinline{of (app F A) T}.
+
+This is where $\lambda$Prolog falls short, by lack of a way to avoid
+divergence by suspending search on certain goals and lack of a sub language
+to manipulate suspended goals.
+
+
+\subsection{Incomplete terms}
+
+$\lambda$Prolog provides native support for syntax trees with bound
+variables via the re-use of the function space of the programming language
+to represent binders. This technique is called Higher Order Abstract Syntax,
+or $\lambda$-tree syntax. The language also provides another kind
+of variables, meta-variables actually, that we call unification variables.
+These unification variables are equipped with a scope, a list of bound
+variables that can be used in their assignment. This is essential to
+avoid capturing variables by mistake, and it is well studiend in~\ref{}.
+
+The natural question is: can we reuse the unification variables of
+the programming language to represent holes in the syntax trees we manipulate?
+In other words, the runtime of of our Logic programming language is already
+carrying a substitution for these variables, undoing its application upon
+backtracking, avoiding the generation of circular terms (i.e. not trees)
+by performing occur check, and avoiding captures: can we reuse all that?
+
+Elpi tries to give a positive answer to this question. Moreover it provides
+support to attach data to holes ``on the side'', similarly to what
+hypothetical rules are used for in the type checker above: attach a type
+to fresh constants.
+
+From a programming perspective, the needs are the following ones:
+
+\begin{description}
+  \item[control instantiation of holes]
+  \item[attach data to holes] 
+  \item[manipualte attached data] 
+\end{description}
+
+
+\section{Constraints}
+
+$\lambda$Prolog and HOAS let one use the variables of the PL for OL.
+Can we reuse UF?
+
+Scope is there, but one lacks control over instantiation and metadata.
+
+\elpiinline{of (app F A) T}
+
+avoid instantiation
+
+order rules make var impractical
+
+delay directive too constrained, suspended data becomes metadata
+
+\begin{elpicode}
+pred of i:term, o:term.
+of (app H A) :- of H (arr S T), of A S.
+of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
+of (uvar as E) T :- declare_constraint (of E T) [E].
+\end{elpicode} 
+
+this works
+
+\elpiinline{of (app D D) T}
+
+constraint language
+
+\section{Constraints Handling Rules}
 
 clp is well known extension to lp. delay. eg add.
 
 \cite{chr}
 \cite{10.1007/978-3-540-27775-0_7}
 
-\begin{verbatim}
-- 1 for each active constraint (just declared via declare_constraint)
- - 2 for each rule
-  - 3 for each position j of the active constraint (from 0 to n)
-    - 4 for each permutation of constraints having the active at j
-      - 5 try apply the rule
-        - 6 remove constraints to be removed from
-            the current set of permutations and the set of
-            active or passive constraints
-\end{verbatim}
 
 \begin{figure}
 \begin{elpicode}
-kind nat type.
-type zero nat.
-type succ nat -> nat.
-
-pred odd i:nat.
-pred even i:nat.
-even zero.
-odd (succ X) :- even X.
-even (succ X) :- odd X.
-even X :- var X, new_constraint (even X) [X].
-odd X :- var X, new_constraint (odd X) [X].
-
-pred double i:nat, o:nat.
-double zero zero.
-double (succ X) (succ (succ Y)) :- double X Y.
-double X Y :- var X, new_constraint (double X Y) [X].
-
-constraint even odd double {
-  rule (even X) (odd X) <=> fail.
-  rule (double _ X) <=> (even X).
+constraint of {
+  rule (E1 :> G1 ?- of X T1) / (E2 :> G2 ?- of X T2)
+    | (relocate G1 G2 T2 T2')
+    <=> (E1 :> G1 => T1 = T2)
 }
 \end{elpicode}
-\caption[even odd]{Even and odd}
+\caption[UT]{Uniqueness of typing}
 \end{figure}
 
+We document the precise semantics
+
+\begin{verbatim}
+  - 1 for each active constraint (just declared via declare_constraint)
+   - 2 for each rule
+    - 3 for each position j of the active constraint (from 0 to n)
+      - 4 for each permutation of constraints having the active at j
+        - 5 try apply the rule
+          - 6 remove constraints to be removed from
+              the current set of permutations and the set of
+              active or passive constraints
+\end{verbatim}
+
 \section{Elpi = $\lambda$Prolog + CHR}
+
+
 
 constraints can be suspended goals or just data attached to variables.
 
@@ -299,6 +593,10 @@ rules can also be non-logical, eg manage a state that is not part of
 the proof, e.g. one could fails when a rule is used more than 2 times.
 sure, constraints are backtracked, CHR cannot see OR branches.
 
+\begin{figure}
+  \includegraphics[width=0.8\textwidth]{chr.png}
+  \caption{\label{chr:fig}Elpi runtime (TODO clause/rule)}
+\end{figure}
  
 Constraints and CHR serve many purposes:
 \begin{itemize}
@@ -315,17 +613,40 @@ to assign a PL type to them, and means to avoid multiple type declarations for t
 uvar, or read the type.
 
 
-\subsection{Syntactic sugar}
+\section{Syntactic sugar}
 
-\subsubsection{Namespaces}
+Elpi features some simple syntactic sugar that is elimated by
+the ``compiler'' before running programs.
 
-accumulate and no confusion.
+\subsection{Namespaces}
+
+Elpi code is obtained by accumulating together files, that is
+``concatenating'' lists of rules, possibly written by different
+authors. It is not impossible that
+two files, file1 and file2, contain declarations for a predicate with same name p.
+
+When the types for p do not match, Elpi fails immediately
+and the programmer is warned. But when the types match, it may
+happen that the predicate changes meaning or complexity,
+especially in case of failure.
+
+A simple man solution could be to simply put the file name
+as part of predicate names, eg file1.p and file2.p.
+
+To paliate the syntactic overhead Elpi provides two syntactic
+facilities: namespace and shorten. The former prefixes all
+names of the predicates contained in a block, the latter makes
+predicates accessible via a short name inside a file or a block
 
 \begin{elpicode}
 namespace n1 {
   pred p.
 }
-q :- n1.p
+\end{elpicode}
+
+elsewhere
+
+\begin{elpicode}
 shorten n1.{ p }.
 q :- p.
 \end{elpicode}
@@ -340,16 +661,116 @@ namespace n2 {
 }
 \end{elpicode}
 
-\subsubsection{Spilling}
+\subsection{Spilling}
 
-names are the most important form of documentation.
-LP forces one to name intermediate results, as in the ANF
-in FP.
+We argue that the names we give to the objects we manipulate
+are the most important form of documentation and badly chosen
+name are the primary cause of unreadable code.
+
+The time a sloppy programmer saves by using \elpiinline{TMP}, \elpiinline{AUX}
+or \elpiinline{X'} instead of thinking at an appropriate name is
+demanded, with interests, to any reader of code, including himself.
+
+Logic programming, even in its Higher Order flavor, distinguishes
+commands from expressions (predicates from data). This characteristic
+is the primary contributor to the proliferation of temporary
+variables, a phenomenon that functional programming languages
+reduce by putting in the same syntactic category function calls an
+data. 
+
+For example the OCaml code \texttt{List.rev (List.append l1 l2)}
+or its equivalent \texttt{List.append l1 l2 |> List.rev} enables
+to programmer to avoid naming the result of append, while in logic
+programming one often reads
 
 \begin{elpicode}
-rapp L1 L2 L :- L = {rev {append L1 L2} }.
-rapp L1 L2 L :- append L1 L2 L3, rev L3 L4, L = L4.
+code L1 L2 Result :- append L1 L2 TMP, rev TMP Result.
 \end{elpicode}
+
+Elpi provides a syntatic facility to let one use
+``partially applied'' predicates as ``function calls''.
+By partially applied we mean ``applied to all the arguments flagged as input''.
+For example the code above can be written as follows
+
+\begin{elpicode}
+code L1 L2 Result :- rev {append L1 L2} Result.
+\end{elpicode}
+
+The curly braces identify a term to be \emph{spilled} to the closest
+\emph{execution point}, identified by walking the terms outside in and
+identifying the first expression of type \elpiinline{prop}.
+
+Spilling can be nested. Its elaboration is akin to the generation
+of the administrative normal form that is commonly used in functional
+programming languages.
+
+\subsubsection{Spilling under a binder}
+
+When the spilled expression needs to cross a binder in order to
+reach the execution point, the elaboration is more sophisticated.
+For example: 
+
+\begin{elpicode}
+code Result :- Result = (lam x\ {mk-app f [x]}).
+code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
+\end{elpicode}
+  
+
+In order to run the spilled code in a context with the bound variable
+x, the expression must be put under a \elpiinline{pi y\\ }. Similarly
+the temporary variable needs to be abstracted over the variable, so
+that we can identify the original one x with the one abstracted by
+\elpiinline{pi} y.
+
+Note that spilling does not need to cross a \elpiinline{pi}, but
+needs to make the quantified variable visible to the result of
+the spilled computation, for example explicilty quantifying it
+with a sigma. For example:
+
+\begin{elpicode}
+  code L1 L2 Result :- pi x\ rev {append [x|L1] L2} (Result x).
+  code L1 L2 Result :- pi x\ sigma TMP\ append [x|L1] L2 TMP, rev TMP (Result x).
+\end{elpicode}
+
+\subsubsection{Spilling and impliction}
+
+When the object language features a sophisticated HOAS for the context
+(as in \ref{GALLINA}) it may be necessary to augment the context with
+the implication operator. For example imagine the \elpiinline{lam}
+term constructor carries the type of the bound variable
+
+\begin{elpicode}
+  code Ty Result :- Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+  code Ty Result :-
+    (pi x\ of x Ty => of (app g x) (TMP x))
+    Result = (lam Ty x\ lam (TMP x) y\ ...)
+\end{elpicode}
+
+This is frequent when spilling combined with quotations, for example
+
+\begin{elpicode}
+  T = {{ fun x : nat => lp:{{ app f {api x}  }}  }}
+\end{elpicode}
+
+where the api needs the context of the object language, see \ref{FFI}
+
+\paragraph{Spilling ambiguities}
+
+Not all that glitter is gold. Sometimes the closest execution
+point may not be what the programmer wants.
+
+\begin{elpicode}
+  code D TodoForLater  :-
+    TodoForLater [ this, that {rev D} ].
+\end{elpicode}
+
+If this and that are predicated, the latter becomes
+\elpiinline{(rev D TMP, that TMP)} meaning that
+D is reversed when TodoForLater will be executed, and
+not when the todo list is generated, as one may have wanted.
+
+According to our experience the closes execution point
+is more often than not what the programmer expects.
 
 \section{Example: Hindley Milner type inference}
 
@@ -539,17 +960,48 @@ assert T TY ETY :-
 \caption[monodirectional]{Monodirectional typing\label{hm:mono}}
 \end{figure}
 
-\section{Homoiconicity and rule based languages}
-
-lisp 
 
 \section{Pitfalls}
 
-\begin{enumerate}
-  \item precedence of \elpiinline{=>}
-  \item \elpiinline{sigma} considered harmful
-  \item restriction should be fatal
-\end{enumerate}
+During these years we gave Elpi in the hands of a
+good number of users. Here the pitfalls that tricked everybody.
+
+\subsection{precedence of \elpiinline{=>}}
+
+When one write \elpiinline{A, B => C, D} means
+\elpiinline{A, B => (C, D)}. This is clear when
+one has a program \elpiinline{A, B => D} and wants
+to sneak in a print to debug before D.
+
+So we argue that => should bind stronger than ,
+on the left but not on the right, something parsing
+technology does not support out of the box. We introduced
+==> that parses with these precedences and add a warning
+whenever \elpiinline{A, B => C, D} that can be silenced
+by writing \elpiinline{A, (B => C), D}.
+
+\subsection{anonymous clauses}
+
+HO lets one write \elpiinline{map L (x\r\p x A, q A r) L'}
+where A is quantified (allocated) in the wrong place.
+The correct way is \elpiinline{map L (x\r\sigma A\p x A, q A r) L'},
+but we believe it would be way safer to only allow (partially
+applied) predicates as HO arguments.
+
+The syntactic overhead is often compensated by the extra
+reading clarity a (well) named predicate provides.
+
+\subsection{restriction failure as failure}
+
+While \elpiinline{pi x\ F = x} clearly fails because x is
+out of scope, its practical, legit, use cases are rare.
+Most of the times when a unification fails because of
+a scope problem, it is dues to a user mistake.
+
+Although we have not tries to implement any measure to help
+newcomers, we wonder if making this cause of unification failure
+fatal (as is aborting the program) would help newcomers.
+
 
 \chapter{Elpi the software: \emph{de A \`a Z}}
 
@@ -613,18 +1065,62 @@ multiple arg, variable depth. similar perf
 
 \section{The API}
 
+The APIs to drive the interpreter essentially lets one parse code, comile into
+unit, assemble units and run it.
+
+In addition to that and FFI and quotations
+
 \subsection{Quotations}
 
-the one rule.
+the one rule is that a variable is bound in one language and only
+one.
 
-\subsection{FFI}
-gadt everywhere.
+example from the tutorial
 
-the future is ppx.
+\subsection{FFI}\label{FFI}
 
-\section{The tools}
+FFI is akin to printf, given a first class description of
+the types of the arguments it performs the conversion
+back and forth.
+
+The peculiarity is that the context and constraint store
+is given too to the conversion functions. In particular
+this enables a tight integration see \ref{GALLINA}.
+
+the FFI makes extensive use of GADTs.
+
+contextual conversion
+
+\section{Debugging}
+
+The first debug tool is print, and spy.
+
+\begin{elpicode}
+pred std.spy i:pred.
+std.spy P :- print "enter" P, P, "exit" P.
+std.spy P :- print "fail" P.
+\end{elpicode}
+
+This is simple, but very often sufficient.
+The main downside of requiring altering the code, hence has impedence
+of debugging distant code.
+
+The runtime of elpi has a debuggin facility based on conditional compilation,
+the runtime is compiled twice, once with instrumentation.
+The instrumentation was important to debug the runtime itself
+but while it became more correct we added entry points for the user.
+
+A post processing tool analyzes the trace reconstructung the
+stack and generating data suitable to display an interactive navigation
 
 \subsection{Trace browser}
+
+screenshot
+
+developed by Julien Wintz, it displays a trace as a mailbox of events
+each events has pointers forward, backward and at a distance.
+Each goal displays it full success or failure letting one
+peek. The trace is searchable.
 
 \chapter{Coq-Elpi}
 
@@ -692,97 +1188,7 @@ in OCaml loading code is possible, but not unloading. This is even better in
 a rule based language where far from the place where a code is written one
 can add a rule to mask/improve/debug a piece of code.
 
-\section{Vernacular language integration}
-
-While the language of Coq terms, gallina, is central to Coq-Elpi, there is another
-language we have to describe first, the vernacular. That ``outern'' language
-lets one organize the formalized knowledge, in particular give names to terms
-and attach to them meta data.
-
-Coq-Elpi extends the vernacular language with a few commands to declare, run
-and modify Elpi programs.
-
-
-
-\begin{figure}
-\begin{coqcode}
-Elpi Command hello.
-Elpi Accumulate lp:{{
-  main [str X] :- coq.say "Hello" X.
-}}.
-Elpi hello "reader".
-
-Fail Elpi hello 46.
-
-Elpi Accumulate lp:{{
-  main [int X] :- coq.say "Hello" X.
-}}.
-
-Elpi hello 46.
-\end{coqcode}
-\caption[Vernacular]{Vernacular\label{vernac}}
-\end{figure}
-
-\subsection{Database and homoiconicity}
-
-share data between programs, and programmatically add data.
-
-\begin{figure}
-  \begin{coqcode}
-
-
-    Elpi Db age.db lp:{{
-
-    % A typical Db is made of one main predicate
-    pred age o:string, o:int.
-  
-    % the Db is empty for now, we put a rule giving a
-    % descriptive error and we name that rule "age.fail".
-    :name "age.fail"
-    age Name _ :- coq.error "I don't know who" Name "is!".
-  
-  }}.
-  Elpi Command age. 
-  Elpi Accumulate Db age.db.  (* we accumulate the Db *)
-  Elpi Accumulate lp:{{
-  
-    main [str Name] :-
-      age Name A,
-      coq.say Name "is" A "years old".
-  
-  }}.
-  Elpi Typecheck. 
-  
-  Elpi age bob.
-    
-  Elpi Accumulate age.db lp:{{
-  
-    :before "age.fail"     % we place this rule before the catch all
-    age "bob" 24.
-  
-  }}.
-  
-  Elpi age bob.
-  
-  
-  Elpi Command set_age.
-  Elpi Accumulate Db age.db.
-  Elpi Accumulate lp:{{
-    main [str Name, int Age] :-
-      TheNewRule = age Name Age,
-      coq.elpi.accumulate _ "age.db"
-        (clause _ (before "age.fail") TheNewRule).
-
-  }}.
-  
-  Elpi set_age "alice" 21. 
-  Elpi age "alice".
-  \end{coqcode}
-  \caption[Databases]{Databases\label{databases}}
-  \end{figure}
-
-  
-\section{HOAS of terms and contexts}
+\section{HOAS of terms and contexts}\label{GALLINA}
 
 \begin{figure}
 \begin{elpicode}
@@ -847,6 +1253,165 @@ rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Vernacular language integration}
+
+While the language of Coq terms, gallina, is central to Coq-Elpi, there is another
+language we have to describe first, the vernacular. That ``outern'' language
+lets one organize the formalized knowledge, in particular give names to terms
+and attach to them meta data.
+
+Coq-Elpi extends the vernacular language with a few commands to declare, run
+and modify Elpi programs.
+
+
+
+\begin{figure}
+\begin{coqcode}
+Elpi Command hello.
+Elpi Accumulate lp:{{
+  main [str X] :- coq.say "Hello" X.
+}}.
+Elpi hello "reader".
+
+Fail Elpi hello 46.
+
+Elpi Accumulate lp:{{
+  main [int X] :- coq.say "Hello" X.
+}}.
+
+Elpi hello 46.
+\end{coqcode}
+\caption[Vernacular]{Vernacular\label{vernac}}
+\end{figure}
+
+\subsection{Database, homoiconicity and rules}
+
+share data between programs, and programmatically add data.
+
+maybe later?
+
+one feature that may not look evident is that
+this is allowed (unlike in teyjus)
+\begin{elpicode}
+build C, C => more
+\end{elpicode}
+
+and that one can actually write build
+
+\begin{elpicode}
+build F H 0 (p F :- H).
+build F H N (pi x \ C x) :-
+  pi x\ 
+    M is N - 1,
+    build (app F x) M (p x,H) (C x).
+\end{elpicode}
+
+
+\section{Example: to bool}
+
+\begin{figure}
+  \begin{coqcode}
+    From Coq Require Import Bool ssreflect ssrbool.
+From elpi Require Import elpi.
+Set Printing Coercions.
+
+Axiom is_even : nat -> Prop.
+
+Fixpoint even n : bool :=
+  match n with
+  | O => true
+  | S (S n) => even n
+  | _ => false
+  end.
+
+Lemma evenP n : reflect (is_even n) (even n).
+Admitted.
+
+Lemma andP  {P Q : Prop} {p q : bool} :
+  reflect P p -> reflect Q q ->
+    reflect (P /\ Q) (p && q).
+Admitted.
+
+Lemma elimT {P b} :
+  reflect P b -> b = true ->
+    P.
+Admitted.
+
+Elpi Db tb.db lp:{{
+% [tb P R] finds R : reflect P p
+pred tb i:term, o:term.
+
+:name "tb:fail"
+tb Ty _ :- coq.error "Cannot solve" {coq.term->string Ty}.
+
+}}.
+
+Elpi Tactic to_bool.
+Elpi Accumulate Db tb.db.
+Elpi Accumulate lp:{{
+
+solve (goal Ctx _ Ty _ _ as G) GL :-
+  tb Ty P,
+  refine {{ elimT lp:P _ }} G GL.
+
+}}.
+
+Elpi Command add_tb.
+Elpi Accumulate Db tb.db.
+Elpi Accumulate lp:{{
+
+% evenP : forall n, reflect (is_even n) (even N).
+%
+% tb {{ is_even lp:N }} {{ evenP lp:N }}.
+%
+% pi N\ tb {{ is_even lp:N }} {{ evenP lp:N }} :- [].
+
+% andP : forall P Q p p, reflect P p -> reflect Q q ->
+%                           reflect (P /\ Q) (p && q).
+%
+% tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
+%   tb P PP, tb Q QQ.
+%
+% pi P Q PP QQ\
+%   tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
+%     [tb P PP, tb Q QQ].
+
+pred compile i:term, i:term, i:list prop, o:prop.
+compile {{ reflect lp:Ty _ }} P Hyps (tb Ty P :- Hyps).
+compile {{ reflect lp:S _ -> lp:T }} P Hyps (pi h\ C h) :-
+  pi h\
+    compile T {{ lp:P lp:h }} [tb S h|Hyps] (C h).
+compile {{ forall x, lp:(T x) }} P Hyps (pi h\ C h) :-
+  pi x\
+    compile (T x) {{ lp:P lp:x }} Hyps (C x).
+    
+main [str S] :-
+  coq.locate S GR,
+  coq.env.typeof GR Ty,
+  compile Ty (global GR) [] C,
+  coq.elpi.accumulate _ "tb.db" (clause _ (before "tb:fail") C).
+
+}}.
+
+Elpi add_tb evenP.
+Elpi add_tb andP.
+
+Elpi Print to_bool "Demo.snippets/to_bool".
+
+
+Lemma test : is_even 6 /\ is_even 4.
+elpi to_bool.
+simpl.
+trivial.
+Qed.
+
+  \end{coqcode}
+  \caption[Databases]{Databases\label{databases}}
+  \end{figure}
+
+  
 \chapter{Coq applications}
 
 In this chapter we survey the main applications developed on top of Coq-Elpi.
@@ -1115,7 +1680,19 @@ EqDecision, Countable, Finite, Inhabited, Lens, ToBit
 
 \chapter{Conclusions}
 
+\section{the language}
+
+rules
+
+logic/pt draws the line
+
+never start from scratch
+
+\section{the implementation}
+
 impossible without an inria position.
+
+ocaml good perf, imperative, gadt essential for APIs 
 
 \section{Current and future work}
 
