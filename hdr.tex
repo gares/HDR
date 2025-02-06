@@ -821,6 +821,12 @@ rule 1
 rule 2
 \end{elpicode}
 
+\begin{elpicode}
+constraint c {
+    rule c \ c <=> (print "rule 1").
+    rule c <=> (print "rule 2").
+}
+\end{elpicode}
 
 
 \section{Syntactic sugar}
