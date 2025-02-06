@@ -513,39 +513,110 @@ to fresh constants.
 From a programming perspective, the needs are the following ones:
 
 \begin{description}
-  \item[control instantiation of holes]
-  \item[attach data to holes] 
-  \item[manipualte attached data] 
+  \item[control instantiation of holes] in particular be able to opt out of the
+     generative behavior of Prolog based on the order of rules. According to
+     our experience when a hole is encountered one of the following two
+     actions need to be implemented: either suspend the computation and
+     generate a constraint, or synthesize an assignment for the hole
+     via a dedicated routine
+  \item[attach data to holes] from a simple boolean flag, as we will do
+    when implemeting ML type inference with equality types,
+    to a full typing sequence as it is necessary to do when holes represent
+    Coq terms
+
+  \item[manipualte attached data] such as combine multiple data attached to the same
+     hole or perform a consistency check when the hole gets assigned
+
 \end{description}
 
 
-\section{Constraints}
+\section{Modes and Constraints}
 
-$\lambda$Prolog and HOAS let one use the variables of the PL for OL.
-Can we reuse UF?
+Elpi provides a notion of mode declaration that is uncommon to logic programming.
+In particular arguments that are flagged as input are not required to be
+ground in the goal, but are matched against the rule ``pattern'' instead 
+of being unified. This means that no unification variable occurring in
+the goal inside an input argument is instantiated when the rule is
+fired.
 
-Scope is there, but one lacks control over instantiation and metadata.
+Mode declaration comes together with the \elpiinline{uvar} keyword to denote
+holes in the head of a rule.
 
-\elpiinline{of (app F A) T}
-
-avoid instantiation
-
-order rules make var impractical
-
-delay directive too constrained, suspended data becomes metadata
+In the light of that we can rephrase the type checker for simply typed $\lambda$-calculus
+as follows:
 
 \begin{elpicode}
-pred of i:term, o:term.
-of (app H A) :- of H (arr S T), of A S.
+pred of i:term, o:ty.
+of (app H A) T :- of H (arr S T), of A S.
 of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
 of (uvar as E) T :- declare_constraint (of E T) [E].
 \end{elpicode} 
 
-this works
+The \elpiinline{pred} directive combines a type and mode declaration.
+The \elpiinline{uvar as E} binds to the unification variable \elpiinline{E}
+a hole in the goal and is semantically equivalent to the following,
+where \elpiinline{var/1} is the standard Prolog predicate testing if
+a variable is unbound.
+  
+\begin{elpicode}
+of E T :- var E, declare_constraint (of E T) [E].
+\end{elpicode}
 
-\elpiinline{of (app D D) T}
+Many Prolog implementations feature a ``delay directive'' sublanguage to
+prescribe when goals should be suspended or resumed. In Elpi we opeted for
+a more low level but also more flexible approach where the programmer declares
+constraints / suspends goal via  the \elpiinline{declare_constraint} built-in
+predicate. In the example above \elpiinline{[E]} is the list of variables
+that ``block'' the suspended goal: as soon as one is assigned the goal should
+be resumed.
 
-constraint language
+It is worth pointing out that the input mode described above can in principle
+we ``emulated'' via a program transformation that we sketch below:
+
+\begin{elpicode}
+of E T :- not (var E), E = (app H A), of H (arr S T), of A S.
+of E (arr S T) :- not (var E), E = (lam F), pi c\ (of E S :- not (var E), E = c) => of (F c) T.
+of E T :- var E, declare_constraint (of E T) [E].
+\end{elpicode}
+
+With this mechanism in place the type checker can do something useful
+on terms containing holes:
+
+\begin{elpicode}
+goal> of (app H A) T.
+Success:
+
+Constraints:
+  of A S  /* suspended on A */
+  of H (arr S T)  /* suspended on H */
+\end{elpicode}
+
+The resumption 
+
+\begin{elpicode}
+goal> of (app H A) T, H = (lam x\ x).
+
+Success:
+
+Constraints:
+  of A T  /* suspended on A */
+\end{elpicode}
+
+And the very same result is given on the goal \elpiinline{of (app (lam x\ x) A) T}.
+  
+Unfortunately the sole possibility of suspending and resuming goals is
+not enough to implement a satisfactory type checker. An example of
+goal giving an unexpected result is \elpiinline{of (app D D) T}
+that succeeds with constraints
+
+\begin{elpicode}
+  of D S  /* suspended on D */
+  of D (arr S T)  /* suspended on D */
+\end{elpicode}
+
+that are clearly incompatible.
+
+We need a language to combine the constraints attached to hole \elpiinline{D}.
 
 \section{Constraints Handling Rules}
 
