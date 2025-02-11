@@ -37,9 +37,8 @@ class ElpiLexer(RegexLexer):
     idcharstarns_re = rf"({idchar_re}*(\.({lcase_re}|{ucase_re}){idchar_re}*)*)"
     symbchar_re = rf"({lcase_re}|{ucase_re}|{digit_re}|{schar_re}|:)"
     constant_re = rf"({ucase_re}{idchar_re}*|{lcase_re}{idcharstarns_re}|{schar2_re}{symbchar_re}*|_{idchar_re}+)"
-    symbol_re = r"(,|<=>|->|:-|:>|;|\?-|->|&|=>|\bas\b|\buvar\b|<|=<|=|==|>=|>|\bi<|\bi=<|\bi>=|\bi>|\bis\b|\br<|\br=<|\br>=|\br>|\bs<|\bs=<|\bs>=|\bs>|@|::|\[\]|`->|`:|`:=|\^|-|\+|\bi-|\bi\+|r-|r\+|/|\*|\bdiv\b|\bi\*|\bmod\b|\br\*|~|\bi~|\br~)"
-    escape_re = rf"\(({constant_re}|{symbol_re})\)"
-    const_sym_re = rf"({constant_re}|{symbol_re}|{escape_re})"
+    symbol_re = r"(,|<=>|-->|:-|:>|;|\?-|->|&|=>|\bas\b|\buvar\b|<|=<|=|==|>=|>|\bi<|\bi=<|\bi>=|\bi>|\bis\b|\br<|\br=<|\br>=|\br>|\bs<|\bs=<|\bs>=|\bs>|@|::|\[\]|`->|`:|`:=|\^|-|\+|\bi-|\bi\+|r-|r\+|/|\*|\bdiv\b|\bi\*|\bmod\b|\br\*|~|\bi~|\br~)"
+    const_sym_re = rf"({constant_re}|{symbol_re}|\({symbol_re}\))"
 
     tokens = {
         'root': [

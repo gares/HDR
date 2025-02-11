@@ -1053,9 +1053,10 @@ Still we add a \elpiinline{global} term constructor to
 be able to set up a minimal environment for our examples.
 
 Monomorphic type expressions $\tau$ and type skemas $\sigma$
-are depicted below. 
-For the sake of this presentation we fix a few builtin type contructors
-instead of supporting a generic n-ary type former.
+are depicted below. As in the original paper we fix a few builtin type contructors
+instead of supporting a generic n-ary type former, but unlike
+the ML tradition we put type constractors to the left of an application.
+We use the infix symbol \elpiinline{-->} for the function space of ML.
 
 \begin{center}
 \begin{minipage}{0.4\textwidth}
@@ -1358,8 +1359,8 @@ pred free i:tye, i:list tye, o:list tye.
 free int L L.
 free bool L L.
 free (list A) L L1 :- free A L L1.
-free (pair A B) L L2 :- free A L L1, free B L1 L2.
-free (A --> B) L L2 :- free A L L1, free B L1 L2.
+free (pair A B) L L1 :- free B {free A L} L1.
+free (A --> B) L L1 :- free B {free A L} L1.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
 
@@ -1378,7 +1379,7 @@ pred bind i:list tye, i:list tye, i:tye, o:ty.
 bind [uvar X _|XS] Theta T (all E x\ T1 x) :- % load the substitution
   if (mem Theta (uvar X _)) (E = tt) (E = ff),
   pi c\ (copy (uvar X _) c :- !) => bind XS Theta T (T1 c).
-  bind [] _ T (mono T1) :- copy T T1. % fire the substitution
+bind [] _ T (mono T1) :- copy T T1. % fire the substitution
 
 pred copy i:tye, o:tye.
 copy int int.
