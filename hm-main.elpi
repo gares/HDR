@@ -1,0 +1,5 @@
+accumulate hm.
+
+main :-
+  theta [],
+  of (let (lam x\ eq (global "nil") x) f\f) Ty, print Ty.
