@@ -1399,15 +1399,25 @@ In particular \texttt{i:(pred i:A)} stands for an input predicate over
 pred mem i:list tye, i:tye.
 mem [uvar X _|_] (uvar X _) :- !.
 mem [_|XS] X :- mem XS X.
-
+ 
 pred filter i:list A, i:(pred i:A), o:list A.
 filter [] _ [].
 filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
 filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
+The code amounts to about 100 lines of Elpi. It is a toy, in the sense
+that its lacks code for error reporting, but its size is quite remarkable:
+it roughly mathes the length of a pen and paper presentation of the same
+algorithm.
 
-\subsection{mono}
+\subsection{A word on bodirectionality}
+
+Maybe the most unexpected feature of the running example is that
+it is a bidirectional algorithm. In particular the rule for application
+pushed dowh the expected type of the argument when type checking it.
+
+The mono-directional version could look like the following code:
 
 \begin{elpicode}
 of (app H A) (mono T) :-
@@ -1415,31 +1425,15 @@ of (app H A) (mono T) :-
   of A (mono TA),
   assert H TH (TA --> T).
 
-of (lam F) (mono (S --> T)) :-
-  pi x\ of x (mono S1) => of (F x) (mono T1),
-  assert (lam F) (S1 --> T1) (S --> T).
-
-of (let E PT B) (mono TB) :-
-  of E (mono T),
-  gammabar (mono T) PT,
-  pi x\ of x PT => of (B x) (mono TB1),
-  assert (B x) TB1 TB.
-
-of (eq LHS RHS) (mono B) :-
-  of LHS (mono TL),
-  of RHS (mono TR),
-  eqbar TL,
-  assert RHS TR TL,
-  assert (eq LHS RHS) bool B.
-
-of X (mono T) :- of X (all E Poly), specialize (all E Poly) T1, assert X T1 T.
-
 pred assert i:term, i:tye, i:tye.
 assert _ TY ETY :- TY = ETY, !.
 assert T TY ETY :-
-  print "KO: term" T "has type" TY "but its context expects" ETY, halt.
+  halt "Error: term" T "has type" TY "but its context expects" ETY.
 \end{elpicode}
 
+Note how \elpiinline{TH} is not related to \elpiinline{TA} before the
+call to  \elpiinline{of A (mono TA)}, and how the code only checkes
+after the facts that \elpiinline{TH = (TA --> T)}.
 
 \section{Pitfalls}
 
