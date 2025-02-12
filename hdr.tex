@@ -42,6 +42,10 @@
 \newminted[coqcode]{'theorem.py:XCoqLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
+\newminted[ocamlcode]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+
+
 \newenvironment{dedication}
   {%\clearpage           % we want a new page          %% I commented this
    \thispagestyle{empty}% no header and footer
@@ -1487,9 +1491,10 @@ identify the true mistake.
 
 \section{The first prototype}
 
-The first elpi was written by Tassi in about 3 months, with the objective
+The first Elpi was written by Tassi in about 3 months, with the objective
 of understanding the $\lambda$Prolog language and some of the techniques
-adopted to implement it, like the suspension calculus. This was elpi-POC
+adopted to implement it, like the suspension calculus~\cite{NADATHUR200235}.
+This was Elpi-POC
 
 Terms were purely functional, to ease backtracking. This feature comes
 with a reputation of making things hard, so we played conservative.
@@ -1557,6 +1562,12 @@ one.
 
 example from the tutorial
 
+\begin{elpicode}
+  coq.say {{ 1 + lp:{{ app[global S, {{ 0 }} ]  }}   }}
+% elpi....  coq..     elpi...........  coq  elpi  coq
+\end{elpicode}
+
+
 \subsection{FFI}\label{FFI}
 
 FFI is akin to printf, given a first class description of
@@ -1570,6 +1581,117 @@ this enables a tight integration see \ref{GALLINA}.
 the FFI makes extensive use of GADTs.
 
 contextual conversion
+
+\begin{ocamlcode}
+module Conversion : sig
+
+type 'a embedding =
+  depth:int ->
+  Data.state -> 'a -> Data.state * Data.term * extra_goals
+
+type 'a readback =
+  depth:int ->
+  Data.state -> Data.term -> Data.state * 'a * extra_goals
+
+type 'a t = {
+  ...
+  pp : Format.formatter -> 'a -> unit;
+  embed : 'a embedding;   (* 'a -> term *)
+  readback : 'a readback; (* term -> 'a *)
+}
+\end{ocamlcode}
+
+
+\begin{ocamlcode}
+module ContextualConversion : sig
+
+type ('a,'hyps,'constraints) embedding =
+  depth:int -> 'hyps -> 'constraints ->
+  Data.state -> 'a -> Data.state * Data.term * Conversion.extra_goals
+
+type ('a,'hyps,'constraints) readback =
+  depth:int -> 'hyps -> 'constraints ->
+  Data.state -> Data.term -> Data.state * 'a * Conversion.extra_goals
+
+type ('a,'h,'c) t = {
+  ...
+  pp : Format.formatter -> 'a -> unit;
+  embed : ('a,'h,'c) embedding;   (* 'a -> term *)
+  readback : ('a,'h,'c) readback; (* term -> 'a *)
+}
+
+type ('hyps,'constraints) ctx_readback =
+  depth:int -> Data.hyps -> Data.constraints ->
+  Data.state -> Data.state * 'hyps * 'constraints * Conversion.extra_goals
+\end{ocamlcode}
+
+
+\begin{ocamlcode}
+module BuiltInPredicate : sig
+
+type ('function_type, 'inernal_outtype_in, 'internal_hyps, 'internal_constraints) ffi =
+  (* Arguemnts that are translated independently of the program context *)
+  | In    : 't Conversion.t * doc * ('i, 'o,'h,'c) ffi -> ('t -> 'i,'o,'h,'c) ffi
+  | Out   : 't Conversion.t * doc * ('i, 'o * 't option,'h,'c) ffi -> ('t oarg -> 'i,'o,'h,'c) ffi
+
+  (* Arguemnts that are translated looking at the program context *)
+  | CIn    : ('t,'h,'c) ContextualConversion.t * doc * ('i, 'o,'h,'c) ffi -> ('t -> 'i,'o,'h,'c) ffi
+  | COut   : ('t,'h,'c) ContextualConversion.t * doc * ('i, 'o * 't option,'h,'c) ffi -> ('t oarg -> 'i,'o,'h,'c) ffi
+
+  (* The easy case: all arguments are context independent *)
+  | Easy : doc -> (depth:int -> 'o, 'o, unit, unit) ffi
+
+  (* The advanced case: arguments are context dependent, here we provide the
+    context readback function *)
+  | Full : ('h,'c) ContextualConversion.ctx_readback * doc -> (depth:int -> 'h -> 'c -> Data.state -> Data.state * 'o * Conversion.extra_goals, 'o,'h,'c) ffi
+
+type t = Pred : name * ('a,unit,'h,'c) ffi * 'a -> t
+\end{ocamlcode}
+
+  
+\begin{ocamlcode}
+  module BuiltInData : sig
+
+  val string : string Conversion.t
+
+  module builtins : struct
+
+  MLCode(Pred("getenv",
+  In(string,  "VarName",
+  Out(option string, "Value",
+  Easy      ("Like Sys.getenv"))),
+(fun s _ ~depth ->
+   try !:(Some (Sys.getenv s))
+   with Not_found -> !: None)),
+DocAbove);
+
+\end{ocamlcode}
+
+\begin{ocamlcode}
+let option a = let open AlgebraicData in declare {
+  ty = TyApp("option",a.Conversion.ty,[]);
+  doc = "The option type (aka Maybe)";
+  pp = (fun fmt o -> Format.fprintf fmt "%a" (Util.pp_option a.Conversion.pp) o);
+  constructors = [
+    K("none","",N,
+      B None,
+      M (fun ~ok ~ko -> function None -> ok | _ -> ko ())); 
+    K("some","",A(a,N),
+      B (fun x -> Some x),
+      M (fun ~ok ~ko -> function Some x -> ok x | _ -> ko ())); 
+  ]
+}
+\end{ocamlcode}
+
+\begin{elpicode}
+% The option type (aka Maybe)
+kind option type -> type.
+type none option A.
+type some A -> option A.
+
+% [getenv VarName Value] Like Sys.getenv
+external pred getenv i:string, o:option string.
+\end{elpicode}
 
 \section{Debugging}
 
@@ -1595,7 +1717,7 @@ stack and generating data suitable to display an interactive navigation
 
 \subsection{Trace browser}
 
-screenshot
+\includegraphics[width=.9\textwidth]{trace}
 
 developed by Julien Wintz, it displays a trace as a mailbox of events
 each events has pointers forward, backward and at a distance.
@@ -1894,11 +2016,13 @@ Qed.
   
 \chapter{Coq applications}
 
-In this chapter we survey the main applications developed on top of Coq-Elpi.
+In this chapter we survey the some applications developed on top of Coq-Elpi.
+We put forward Derive and Hierarchy Builder, to which we contributed personally.
+Last we quickly survey other applications developed by our colleagues.
 
 \section{Derive}
 
-The ``derive'' application is a framework to register automatic
+The derive application is a framework to automatic
 code generation, typically in response to the declaration of a new inductive
 data type.
 
@@ -1911,52 +2035,73 @@ I saw the opportunity to improve on that starting with the L3 internship of
 Luc Chabassier that wrote the first prototype in the summer of 2017.
 He succeeded in generating
 equality tests and their proofs in two months. While most of the credit goes to
-his learning skills, the experience confirmed that Coq-Elpi was to support
+his learning skills, the experience confirmed that Coq-Elpi was able to support
 research in this domain. Indeed the solution implemented by Luc, although
-correct, was not very satisfactory since it was not very modular. Improving
-on that lead to \cite{tassi:hal-01897468}, but before that I need to introduce
+correct, was not very satisfactory since it was not modular. Improving
+on that lead to~\cite{tassi:hal-01897468} that describes a skema to
+generate so called deep induction principles and uses them to prove
+equality tests correct. Before discussing that work I need to introduce
 the swiss army knife of boilerplate code generation: parametricity.
 
 \subsection{Parametricity}
 
 The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
-is a family of procedures that given \emph{any} Coq term $t$ of type $r$
-give both a predicate $R$ and a proof $T$ that $R$ holds for $t$, that is $T : R~t$
-in the unary case. For example the unary parametricity translation of
-\coqinline{nat : U} is \coqinline{is_nat : nat → U} and
-the translation of \coqinline{3} if a proof that \coqinline{is_nat 3} (we write
-\coqinline{U} for the universe, e.g. \coqinline{Prop}).
+is a family of procedures $[\cdot]_i$ indexed by an arity $i$. We focus on the
+unary one, i.e. $i=1$, and we write $U$ for any Coq universe, i.e. \coqinline{Prop}.
+Given \emph{any} Coq term $t : r$, the unary parametricity
+translation gives both a unary predicate $R$ on $r$, e.g. $[r]_1 = R : r \to U$
+and a proof $T$ that $R$ holds for $t$, i.e. $[t]_1 = T : R~ t$ or somewhat more
+confusingly if $t : r$ then $[t]_1 : [r]_1~ t$.
+
+For example the unary parametricity translation of
+\coqinline{nat} is \coqinline{is_nat : nat → U} and
+the translation of \coqinline{3 : nat} is a proof that \coqinline{is_nat 3}.
+
+\begin{coqcode}
+Inductive is_nat : nat -> U :=
+| is_zero : is_nat 0
+| is_succ n : is_nat n -> is_nat (S n).
+
+Definition is_nat_3 : is_nat 3 :=
+  is_succ 2 (is_succ 1 (is_succ 0 is_zero)).
+\end{coqcode}
+
+One can see \elpiinline{is_nat} as a first class description of the
+typing assignment, i.e. each term is equipped with a proof that
+is has the expected type, i.e. \coqinline{0} with \coqinline{is_zero};
+\coqinline{1} with \coqinline{is_succ 0 is_zero}, and so on.
 
 The translation becomes interesting when the type has parameters such as
 \coqinline{A} in \coqinline{list A}. In that case the translation builds
-terms and type parametric in \coqinline{A} and in its translation. For example
+a predicate parametric in \coqinline{A} and in its translation. For example
 the translation of \coqinline{list A} is a predicate
 \coqinline{is_list : ∀A, (A → U) → (list A → U)},
-and the translation of \coqinline{cons : ∀A, A → list A → list A} is
+and the translation of the constructors \coqinline{nil} and \coqinline{cons}
+are:
 \begin{coqcode}
-is_cons : ∀A (isA : A → U),
-  ∀(a : A), isA a →
-  ∀l, is_list A isA l →
-    is_list A isA l
+is_nil: ∀A (isA : A → U), is_list A isA nil
+is_cons: ∀A (isA : A → U), ∀a, isA a →  ∀l, is_list A isA l → is_list A isA (a :: l).
 \end{coqcode}
 
-The unary parametric of a container type is a predicate that
-asserts that each term contained has a given property, \coqinline{isA}
-in the example above. The unary parametricity translation is key to express in a
-systematic way that a property holds deep inside a container.
+As for the translation of natural numbers, each term comes with a proof
+that is has the expected type. When the term is of type \coqinline{A},
+the type parameter of the container, then it comes with a proof of \coqinline{isA},
+the predicate parameter associated with \coqinline{A}.
+The unary parametricity translation is the key to express, in a
+systematic way, that a property holds deep inside a container.
 
-The parametricity translation is meta, it cannot be implemented in Gallina
-itself hence one needs a meta language to implement it. Its implementation
-in Coq-Elpi was done by Cohen Cyril in the fall of 2017, as he was interested
-in exploiting the binary version of the translation to transfer properties
-automatically, possibly in the context of the Coq-EAL project.
-
+The parametricity translation is a meta program in Coq, it cannot be implemented in
+Gallina itself hence one needs a meta language to implement it.
+Cyril Cohen implemented the binary parametricity translaton in the fall of 2017,
+as he was interested in employing the translation in the Coq-EAL project.
+We based the unary version on his code. Each translation is about 250 lines
+of Elpi code.
 
 \subsection{Deep induction}
 
-Deep induction principles are said ``deep'' in contrast to the ones generated
-by Coq that, in the presence of containers, are shallow (and proof theoretically
-weak). As an example we can take the data type of rose trees.
+We say that an induction principle is deep if the induction hypothesis is
+available for sub terms that occur deep inside the immediate sub terms.
+As an example we can take the data type of rose trees.
 
 \begin{coqcode}
 Inductive rtree A : U :=
@@ -1964,7 +2109,9 @@ Inductive rtree A : U :=
 | Node (l : list (rtree A)).
 \end{coqcode}
 
-The induction principle generated by Coq is
+The induction principle generated by Coq is shallow: \coqinline{P} is
+only available on the immediate subterms of type \coqinline{rtree}, that
+in this case are none.
 
 \begin{coqcode}
 Lemma rtree_ind : ∀A (P : rtree A → U),
@@ -1973,9 +2120,9 @@ Lemma rtree_ind : ∀A (P : rtree A → U),
   ∀t : rtree A, P t.
 \end{coqcode}
 
-That is weak since no element of \coqinline{l} in \coqinline{Node A l}
+That principle is weak since no element of \coqinline{l} in \coqinline{Node A l}
 verifies \coqinline{P}. In \cite{tassi:hal-01897468} I study the synthesis
-for a stronger principle where \coqinline{P} holds ``deep'' inside \coqinline{l}.
+for a stronger principle where \coqinline{P} holds deep inside \coqinline{l}.
 
 \begin{coqcode}
 Lemma rtree_induction A is_A (P : rtree A → U) :
@@ -1984,66 +2131,241 @@ Lemma rtree_induction A is_A (P : rtree A → U) :
      ∀t, is_rtree A is_A t → P t.
 \end{coqcode}
 
-There are two characteristics of this principle worth analyzing.
+The induction principle uses the unary parametricty
+translation of \coqinline{l} and its type in order to systematically craft
+the hypothesis \coqinline{is_list (rtree A) P l} that gives access to
+\coqinline{P} on all elements of \coqinline{l}.
 
-First and foremost it is deep since the assumption
-\coqinline{is_list (rtree A) P l} gives access to \coqinline{P} on all
-elements of \coqinline{l}.
-In order to access \coqinline{P} one can combine lemmas such as
+This  extra assumption comes at a price: the induction principle does not apply
+to to just a tree, but to a tree \elpiinline{t} such that
+\coqinline{is_rtree A is_A t} holds. This extra argument is
+synthesized automatically.
+
+For non-containers like \coqinline{nat}
+we prove \coqinline{∀n, is_nat n} by induction on \coqinline{n} (no different
+than how we proved \coqinline{is_nat 3} before). For containers we prove
+the statement under the assumption that the predicate for the type parameter
+is triviall true. E.g.
+
 \begin{coqcode}
-Lemma is_list_funct A P Q : (∀ a, P a → Q a) → ∀ l, is_list A P l → is_list A Q l.
+Lemma list_is_list A isA : (forall a, isA a) -> forall l, is_list A isA l.
+Lemma rtree_is_rtree A isA : (forall a, isA a) -> forall l, is_rtree A isA l.
 \end{coqcode}
 
-with the induction principle of the container
+While the assumption seems strong at first, it actually matches two relevant class
+of predicates:
+\begin{itemize}
+  \item the one we are definig, e.g. \coqinline{nat_is_nat} fits
+  \item any \coqinline{P : t -> U} we are defining by induction on the whole
+    type \coqinline{t}, e.g. the \coqinline{P} of an induction principle
+\end{itemize}
+
+In order to prove the deep induction principle we need some scaffolding,
+again synthesized automatically via Elpi programs. The first one
+allows us to operate under a unary parametricity translation.
+
 \begin{coqcode}
-Lemma list_induction A (is_A: A → U) (P: list A → U):
-  P nil →
-  (∀ a (pa : is_A a) l, P l → P (a :: l)) →
-  ∀ l, is_list A is_A l → P l.
+Definition is_list_functor A P Q : (∀ a, P a → Q a) → ∀ l, is_list A P l → is_list A Q l :=
+fun (f : forall a, P a -> Q a) =>
+  fix IH l (pl : is_list A P l) {struct pl} : is_list A Q l :=
+    match pl in (is_list _ _ s1) return (is_list A Q s1) with
+    | is_Nil _ _ => is_Nil l pl
+    | is_Cons _ _ a Pa xs Pxs => is_Cons A Q a (f a Pa) xs (IH xs Pxs)
+    end
 \end{coqcode}
 
-Note how the former works under \coqinline{is_list} while the latter eliminates it.
+The proof is a straightforward induction on list \coqinline{l}.
+We can now present the proof of the deep induction principle over rose trees:
 
 \begin{coqcode}
 Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
-  (His_Leaf : ∀a : A, PA a → P (Leaf A a))
-  (His_Node : ∀l : list (rtree A), is_list (rtree A) P l → P (Node A l)) :=
-  fix IH (s1 : rtree A) (x : is_rtree A PA s1) {struct x} : P s1 :=
+    (His_Leaf : ∀a, PA a → P (Leaf A a))
+    (His_Node : ∀l, is_list (rtree A) P l → P (Node A l))
+:=
+  fix IH s1 (x : is_rtree A PA s1) {struct x} : P s1 :=
   match x in (is_rtree _ _ s2) return (P s2) with
-  | is_Leaf _ _ a Pa => His_Leaf a Pa
-  | is_Node _ _ l Pl => His_Node l (is_list_functor (rtree A) (is_rtree A PA) P IH l Pl)
+  | is_Leaf _ _ a Pa =>
+      His_Leaf a Pa
+  | is_Node _ _ l Pl =>
+      His_Node l (is_list_functor (rtree A) (is_rtree A PA) P IH l Pl)
   end.
 \end{coqcode}
 
+Remark the following type assignments:
 
-In a way the induction principle states that ``if a term is of type t then it validates P''
+\begin{coqcode}
+l : list (rtree A)
+Pl : is_list (rtree A) (is_rtree A PA) l
+IH : ∀r, is_rtree A PA r -> P r
+is_list_functor (rtree A) (is_rtree A PA) P IH l Pl : is_list (rtree A) P l
+\end{coqcode}
 
+The last term satisfies the premise of \coqinline{His_Node}, that in turn
+gives the user of the induction principle access to the property \coqinline{P}
+on all the elements of \coqinline{l}.
 
 \subsection{Natural equality tests}
 
-Once one has induction principles he can prove properties about recursive programs.
-The first is equality test.
+Now that we have a good induction principle we can prove the following
+properties about the recursive program of interest.
+
+\begin{coqcode}
+Definition correct (T : Type) (eqb : T -> T -> bool) :=
+  ∀x y : T, reflect (x = y) (eqb x y).
+
+Definition correct_at (T : Type) (eqb : T -> T -> bool) (x : T) :=
+  ∀y : T, reflect (x = y) (eqb x y).
+\end{coqcode}
+
+This is the form of correctness lemmas we shall prove.
+
+\begin{coqcode}
+Lemma seq_eq_correct : ∀A eqA (l : list A),
+  is_list A (correct_at A eqA) l -> correct_at (list A) (list_eq A eqA) l
+\end{coqcode}
+
+It reads: if \coqinline{eqA} is a correct test on all elements of \coqinline{l},
+then \coqinline{list_eq A eqA} is a good test for \coqinline{l}.
+
+The interesting case the the equality test for rose trees, that reuses
+the equality test for lists \coqinline{list_eq} passing the recursive call
+at the \coqinline{eqA} argument.
 
 \begin{coqcode}
 Definition rtree_eq A (A_eq : A → A → bool) :=
   fix rec (t1 t2 : rtree A) {struct t1} : bool :=
-  match t1, t2 with
-  | Leaf a, Leaf b => A_eq a b
-  | Node l, Node s => list_eq (rtree A) rec l s
-  | _, _ => false
-  end.
+    match t1, t2 with
+    | Leaf a, Leaf b => A_eq a b
+    | Node l, Node s => list_eq (rtree A) rec l s
+    | _, _ => false
+    end.
 \end{coqcode}
 
+What is remarkable is that the correctness proof for \coqinline{rtree_eq}
+reuses the correctness proof for \coqinline{list_eq}.
 
+\begin{coqcode}
+Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
+  ∀r, is_rtree A (correct_at A eqA) r -> correct_at (rtree A) (rtree_eq A eqA) r
+:=
+  rtree_induction A (correct_at A eqA) (correct_at (rtree A) (rtree_eq A eqA))
+    (fun (a0 : A) (Pa : correct_at A eqA a0) =>
+       correct_Leaf A eqA a0 Pa)
+    (fun (sib : list (rtree A))
+         (Psib : is_list (rtree A) (correct_at (rtree A) (rtree_eq A eqA)) sib) =>
+       correct_Node A eqA sib
+         (list_eq_correct (rtree A) (rtree_eq A eqA) sib Psib)).
+\end{coqcode}
 
-\cite{tassi:hal-01897468}
+The proof also uses two auxiliary lemmas that are not particularly interesting,
+we point the reader to~\cite{tassi:hal-01897468} for details about them.
+
+\begin{coqcode}
+  correct_Node : ∀A eqA (l : list (rose A)),
+    correct_at (list (rose A)) (list_eq (rose A) (rose_eq A eqA)) l ->
+      correct_at (rose A) (rose_eq A eqA) (Node A l)
+  
+  correct_Leaf : ∀A eqA (a : A),
+    correct_at A eqA x ->
+      correct_at (rose A) (rose_eq A eqA) (Leaf A x)
+  \end{coqcode}
+  
+The final theorem can be obtained by satisfying the extra the extra
+premise of the deep induction hypothesis, namely that each rose tree
+is a rose tree.
+
+\begin{coqcode}
+Definition rose_eq_OK A eqA : correct A eqA -> correct (rtree A) (rose_eq A eqA) :=
+  fun p r => rose_eq_correct A eqA r (rtree_is_rtree A (correct_at A eqA) p r).
+\end{coqcode}
+
+To conlude, both euqality tests and their proofs are built compositionally.
+In~\cite{tassi:hal-01897468} we also discuss why these proofs can be kept opaque
+without interfeering with the termination checker.
+
+TODO Elpi instrumenta
 
 \subsection{Fast equality tests}
 
-This is OK but terms are quadratic
+The results in~\cite{tassi:hal-01897468} are futher refined in~\cite{gregoire:hal-03800154}
+where we focus on the size (and hence type checking time) of the terms
+synthesized. In particular the natural equality tests are quadratic: they
+compare each constructor with all the others. Consequently proofs are also
+quadratic in the number of constructors.
 
-\cite{gregoire:hal-03800154}
+In~\cite{gregoire:hal-03800154} we devise equality tests that are pseudo
+linear in size and we prove them correct in a compositional way using the deep
+induction principles devised in~\cite{tassi:hal-01897468}.
 
+We sketch here only the pseudo linear skema for rose trees. The idea
+is to assign to each constructor a tag (a positive number) and
+compare these tags upfront. If the tags are different then
+the two rose trees are different, while if they are equal we can
+uniformly unpack the fields and compare them.
+
+We synthesize upfront these three functions.
+
+\begin{coqcode}
+Definition tag A : rtree A -> positive.
+Definition fields_t : positive -> Type.
+Definition fields A :  ∀r : rtree A, fields_t (tag t).
+\end{coqcode}
+
+The main code mattern matches over the first \coqinline{rtree} and 
+pre-computes its tag and fields. The it calls a common piece of
+code \coqinline{eqb_body} that will test if the tags agree and proceed
+if it is the case.
+
+\begin{coqcode}
+Definition rose_eqb A eqA : rtree A -> rtree A -> bool := 
+  fix rec (x1 x2 : rose A) {struct x1} : bool :=
+    match x1 with
+    | Leaf _ a =>
+        (* 1 = tag (Leaf _ a); a = fields (Leaf _ a) *)
+        eqb_body 1 (eqb_fields A eqA rec) a x2
+    | Node _ sib =>            
+        (* 2 = tag (Node _ sib); sib = fields (Node _ sib) *)
+        eqb_body 2 (eqb_fields A eqA rec) sib x2
+    end.
+\end{coqcode}
+
+When the tags agree, \coqinline{eqb_body} extracts the fields
+of the second rose tree and calls \coqinline{eqb_fields}.
+Since the two fields have, respectively, type 
+\coqinline{fields_t t1} and \coqinline{fields_t t2} a cast is necessary.
+
+\begin{coqcode}
+Definition eqb_body t1 eqb_fields v1 x2 :=
+  let t2 := tag x2 in
+  match pos_eq_dec t2 t1 with
+  | left heq =>
+    let f2 : fields_t t2 := fields x2 in
+    eqb_fields t1 f1 (match heq with eq_refl => f2 end)
+  | right _ => false
+  end.
+\end{coqcode}
+
+Comparing the fieds amounts at calling the equality test for the
+right type, possibly using the recursive call to \coqinline{rose_eqb}.
+
+\begin{coqcode}
+Definition eqb_fields A eqA rec t : fields_t t -> fields_t t -> bool :=
+  match t as i return (fields_t i -> fields_t i -> bool) with
+  | 1%positive => fun a b : A => eqA a b
+  | 2%positive => fun a b : list (rtree A) => list_eqb (rtree A) rec a b
+  | _ => fun _ _ => true (* impossible, only 2 constructors *)
+\end{coqcode}
+
+As we can see the two matches of the constructors are no nested, but rather
+chained. Both \coqinline{rose_eqb} and \coqinline{eqb_fields} have a number
+of branches proportional to the number of constructors.
+
+The main downside is that, unless the quality tests gets extracted to
+OCaml, the type cast that uses the evidence provided by \coqinline{pos_eq_dec}
+has to be evaluated. The reader interested in benchmarks
+can find them in~\cite{gregoire:hal-03800154}.
+
+TODO Elpi instrumenta
 
 \section{Hierarchy Builder}
 
