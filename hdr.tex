@@ -1979,7 +1979,7 @@ build F H N (pi x \ C x) :-
 \end{elpicode}
 
 
-\section{Example: simple proof transfer}
+\section{Example: simple proof transfer}\label{sec:tb}
 
 We provide an example of a tactic and a command that communicate via
 a database. The tactic \coqinline{to_bool} transfers a goal from the realm
@@ -2676,21 +2676,46 @@ Print stuff.
 
 EqDecision, Countable, Finite, Inhabited, Lens, ToBit
 
-\chapter{Conclusions}
+\chapter{Conclusion}
 
-\section{the language}
+\section{Summary}
 
-rules
+In this document we presented the Elpi programming language, its implementation
+and its main application as an extension language for Coq.
 
-logic/pt draws the line
+\subsection{Elpi the language}
 
-never start from scratch
+The Elpi programming language stands on the shoulders of two giants, two
+languages born in the '90s and extensively studied: $\lambda$Prolog and
+Constraint Handling Rules. The former plays the main part as most of
+Elpi programs manipulae syntax trees with binders. The latter is key to
+scale the programming comfort of $\lambda$Prolog to syntax trees with holes
+without tainting the language with tons of non logical, introspection, features.
 
-\section{the implementation}
+In this document we stressed how the \emph{key} feature of Elpi is being rule
+based. 3 points
+- dynamic the language scale so well to syntax with binders
+- static, makes it easy to write code that is easily extensible
+- code unit, facilitates considerably self manipulation
 
-impossible without an inria position.
+CHALLENGE: The challenge for other simalar systems is to do~\ref{sec:tb}.
+
+The importance of having a logic/pt foundations to draw the line between hacks.
+Eg UT as inspecting two PT branches, or Gamma/gv unlike \cite[Section 8 and later]{10.1145/3236788}.
+
+LESSON: never start from scratch
+
+\subsection{Elpi the software}
+
+We love to code, and coding a PL is great fun. Still the amount of
+time to code a working PL would have been out of reach without an inria position
+(no compulsory teaching duties) and engineering support from the institure (see
+the trace browser).
 
 ocaml good perf, imperative, gadt essential for APIs 
+
+\subsection{Elpi the extension language for Coq}
+
 
 \section{Current and future work}
 
