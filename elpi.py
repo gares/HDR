@@ -180,8 +180,9 @@ class ElpiLexer(RegexLexer):
             (r'\}\}', Punctuation, '#pop'),
             (r"\s+", Text.Whitespace),
             (r"(lp:)(\{\{)", bygroups(Number, Punctuation), 'elpi-quote-exit'),
-            (rf"(lp:)((?=[A-Z_]){constant_re})", bygroups(Number, Name.Variable)),
-            (r"((?!lp:|\}\}).)+", using(CoqLexer)),
+            (rf"(lp:)((?=[A-Za-z_]){constant_re})", bygroups(Number, Name.Variable)),
+            (r"(lp:\()([A-Za-z]+)( )([^)]*)(\))", bygroups(Number, Name.Variable, Text.Whitespace, Text, Number)),
+            (r"((?!lp:|\}\})(.|\n))+", using(CoqLexer)),
         ],
         'elpi-quote-exit': [
             include('elpi'),

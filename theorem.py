@@ -152,7 +152,7 @@ class XCoqLexer(RegexLexer):
         ],
         'elpi-hack' : [
            (r'\}\}', Punctuation, '#pop'),
-           (r"((?!lp:|\}\}).)+", using(ElpiLexer)),
+           (r"((?!lp:|\}\})(.|\n))+", using(ElpiLexer)),
         ],
         'set-options': [
             (r'\s+', Text),

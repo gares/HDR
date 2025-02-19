@@ -6,6 +6,14 @@
 \usepackage[linguistics]{forest}
 \usepackage{bussproofs}
 
+\usepackage{xpatch}
+
+\makeatletter
+\AtBeginEnvironment{minted}{\dontdofcolorbox}
+\def\dontdofcolorbox{\renewcommand\fcolorbox[4][]{##4}}
+\xpatchcmd{\inputminted}{\minted@fvset}{\minted@fvset\dontdofcolorbox}{}{}
+\makeatother
+
 \newenvironment{bprooftree}
   {\leavevmode\hbox\bgroup}
   {\DisplayProof\egroup}
@@ -42,9 +50,8 @@
 \newminted[coqcode]{'theorem.py:XCoqLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
-\newminted[ocamlcode]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[ocamlcode]{'ml.py:OcamlLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-
 
 \newenvironment{dedication}
   {%\clearpage           % we want a new page          %% I commented this
@@ -1416,7 +1423,7 @@ that its lacks code for error reporting, but its size is quite remarkable:
 it roughly mathes the length of a pen and paper presentation of the same
 algorithm.
 
-\subsection{A word on bodirectionality}
+\subsection{A word on bidirectionality}
 
 Maybe the most unexpected feature of the running example is that
 it is a bidirectional algorithm. In particular the rule for application
@@ -1693,6 +1700,29 @@ type some A -> option A.
 external pred getenv i:string, o:option string.
 \end{elpicode}
 
+\begin{ocamlcode}
+module State : sig
+
+  val new_state_descriptor : unit -> Setup.state_descriptor
+
+  type 'a component
+
+  val declare_component :
+    ?descriptor:Setup.state_descriptor ->
+    name:string ->
+    pp:(Format.formatter -> 'a -> unit) ->
+    init:(unit -> 'a) ->
+    (* run just before the goal is compiled (but after the program is) *)
+    start:('a -> 'a) ->
+    unit ->
+      'a component
+  
+  type t
+  val get : 'a component -> t -> 'a
+  val set : 'a component -> t -> 'a -> t
+\end{ocamlcode}
+
+
 \section{Debugging}
 
 The first debug tool is print, and spy.
@@ -1792,55 +1822,79 @@ can add a rule to mask/improve/debug a piece of code.
 
 \section{HOAS of terms and contexts}\label{GALLINA}
 
-\begin{figure}
+Global names
+
 \begin{elpicode}
 % Global objects: inductive types, inductive constructors, definitions
 kind gref type.
 type const constant -> gref. % Nat.add, List.append, ...
 type indt inductive -> gref. % nat, list, ...
 type indc constructor -> gref. % O, S, nil, cons, ...
+\end{elpicode}
 
+Terms
+
+\begin{elpicode}
 kind term type.
-
 type sort  sort -> term. % Prop, Type@{i}
-
 % constants: inductive types, inductive constructors, definitions
 type global gref -> term.
 type pglobal gref -> univ-instance -> term.
-
 % binders: to form functions, arities and local definitions
 type fun  name -> term -> (term -> term) -> term.         % fun x : t =>
 type prod name -> term -> (term -> term) -> term.         % forall x : t,
 type let  name -> term -> term -> (term -> term) -> term. % let x : T := v in
-
 % other term formers: function application, pattern matching and recursion
 type app   list term -> term.                   % app [hd|args]
 type match term -> term -> list term -> term.   % match t p [branch])
 type fix   name -> int -> term -> (term -> term) -> term. % fix name rno ty bo
-
 type primitive primitive-value -> term.
 \end{elpicode}
-\caption[terms]{Terms\label{hoas:term}}
-\end{figure}
-  
-\begin{figure}
+
+Context
+
 \begin{elpicode}
 pred decl i:term, o:name, o:term. % Var Name Ty
 pred def  i:term, o:name, o:term, o:term. % Var Name Ty Bo
 \end{elpicode}
-\caption[context]{Context\label{hoas:context}}
-\end{figure}
+
+Hence when crossing a binder
+
+\begin{elpicode}
+cross (fun N T F) :- pi x\ decl x N T => cross (F x).
+\end{elpicode}
+
+As a result of the convention, one can call \elpiinline{coq.typecheck}
+deep inside a term.
+
+\begin{ocamlcode}
+MLCode(Pred("coq.typecheck",
+  CIn(term, "T",
+  CInOut(B.ioargC term, "Ty",
+  InOut(B.ioarg B.diagnostic, "Diagnostic",
+  Full (proof_context, "typchecks a term T returning its type Ty...")))),
+(fun t ety diag _ proof_context _ state ->
+  let sigma = get_sigma state in
+  let sigma, ty = Typing.type_of proof_context.env sigma t in
+  ...
+\end{ocamlcode}
+
+\ocamlinline{t} and \ocamlinline{ety} are read back in the
+\ocamlinline{proof_context.env} Coq context, that is also
+passed to the type checker.
+
+Now sigma.
+
 
 \section{HOAS of holes (missing terms)}
 
-holes come with data expressing an invariant
-invariant checked when the hole materializes
+note the invariant checked when the hole materializes
 
-
-\begin{figure}
 \begin{elpicode}
 pred evar i:term, i:term, o:term. % Evar Ty RefinedSolution
+evar (uvar as X) Ty R :- declare_constraint (evar X Ty R) [X, R].
 evar X Ty R :- not(var R), !, coq.typecheck R Ty ok, X = R.
+evar X Ty R :- not(var X), var R, !, coq.elaborate-skeleton X Ty R ok.
  
 constraint declare-evar evar def decl {
 
@@ -1849,8 +1903,22 @@ rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
    
 }
 \end{elpicode}
-\caption[holes]{Holes\label{hoas:holes}}
-\end{figure}
+
+note the chr rule allows one to set the canonical context of the evar
+
+there is a link from Coq to Elpi
+
+\begin{ocamlcode}
+module FlexibleData : sig
+  module Elpi : sig type t ... end
+  module type Host = sig type t ... end
+  module Map : functor(Host : Host) -> sig
+    type t
+    val empty : t
+    val add : Elpi.t -> Host.t -> t -> t
+    val elpi   : Host.t -> t -> Elpi.t
+    val host : Elpi.t -> t -> Host.t
+\end{ocamlcode}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1888,7 +1956,7 @@ Elpi hello 46.
 \caption[Vernacular]{Vernacular\label{vernac}}
 \end{figure}
 
-\subsection{Database, homoiconicity and rules}
+\subsection{Database, homoiconicity and rules}\label{sec:homo}
 
 share data between programs, and programmatically add data.
 
@@ -1911,83 +1979,161 @@ build F H N (pi x \ C x) :-
 \end{elpicode}
 
 
-\section{Example: to bool}
+\section{Example: simple proof transfer}
 
-\begin{figure}
-  \begin{coqcode}
-    From Coq Require Import Bool ssreflect ssrbool.
-From elpi Require Import elpi.
-Set Printing Coercions.
+We provide an example of a tactic and a command that communicate via
+a database. The tactic \coqinline{to_bool} transfers a goal from the realm
+of propositions to the one of computable (boolean) tests (decidable propositions).
+The command \coqinline{register_decision} takes a proof of equivalence
+between a proposition and a boolean test and ``compiles'' it to an Elpi rule.
+The database contains all the known rules for translating propositions into
+tests: it is queried by \coqinline{to_bool} and populated by \coqinline{register_decision}.
 
-Axiom is_even : nat -> Prop.
+It is customary to organize Coq-Elpi code in this very way. The key feature
+one obtains is that the \coqinline{to_bool} is extensible: when a new
+predicate is declared and a new test defined, it is sufficient to call
+\coqinline{register_decision} to extend \coqinline{to_bool} with the new
+predicate.
 
-Fixpoint even n : bool :=
-  match n with
-  | O => true
-  | S (S n) => even n
-  | _ => false
-  end.
+We assume a Coq environment with the following lemmas. The \coqinline{reflect}
+predicate links a proposition with a boolean test: \coqinline{reflect P b}
+means \coqinline{P} holds if and only if \coqinline{b = true}.
 
+\begin{coqcode}
 Lemma evenP n : reflect (is_even n) (even n).
-Admitted.
 
 Lemma andP  {P Q : Prop} {p q : bool} :
-  reflect P p -> reflect Q q ->
-    reflect (P /\ Q) (p && q).
-Admitted.
+  reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
 
 Lemma elimT {P b} :
-  reflect P b -> b = true ->
-    P.
-Admitted.
+  reflect P b -> b = true -> P.
+\end{coqcode}
 
+The database holds rules for the \elpiinline{tb} relation. Since
+we are only interested in one direction of the equivalence we
+relate a proposition with its equivalence proof (disregarding the
+associated boolean test).
+
+\begin{coqcode}
 Elpi Db tb.db lp:{{
-% [tb P R] finds R : reflect P p
+
+% [tb P R] finds [R : reflect P b] for some b
 pred tb i:term, o:term.
 
 :name "tb:fail"
 tb Ty _ :- coq.error "Cannot solve" {coq.term->string Ty}.
 
 }}.
+\end{coqcode}
 
+The database only contains one rule aborting the search with an error message.
+All rules will need to be placed before that one.
+
+The \coqinline{to_bool} tactic is built as follows a top of the
+database.
+
+\begin{coqcode}
 Elpi Tactic to_bool.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
 
-solve (goal Ctx _ Ty _ _ as G) GL :-
+solve (goal Ctx _ Ty _ _ as G) [G1] :-
   tb Ty P,
-  refine {{ elimT lp:P _ }} G GL.
+  refine {{ elimT lp:P _ }} G [G1].
 
 }}.
+\end{coqcode}
 
-Elpi Command add_tb.
+The tactic simply queries the database for a proof \elpiinline{P} that
+the goal is related to a boolean test, then refines the goal (as in the
+standard Coq \coqinline{refine} tactic) with \coqinline{elimT lp:P _}.
+The hole stands for the proof of \coqinline{b = true}, i.e. the subgoal
+\elpiinline{G1}.
+
+The most interesting part of this example is how the dabase is populated.
+We shall write a \elpiinline{compile} procedute that given \coqinline{evenP}
+and \coqinline{andP} synthesizes the following Elpi code
+
+\begin{elpicode}
+tb {{ is_even lp:N }} {{ evenP lp:N }} :- !.
+tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- !, tb P PP, tb Q QQ.
+\end{elpicode}
+
+As sketched in~\ref{sec:homo}, the two rules above corrspond to the
+following (closed) Elpi terms:
+
+\begin{elpicode}
+pi N\ tb {{ is_even lp:N }} {{ evenP lp:N }} :- [!]
+pi P Q PP QQ\ tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
+  [!, tb P PP, tb Q QQ].
+\end{elpicode}
+
+It is worth unfolding quotations to see that a few more quantifications are
+necessary for the second rule
+
+\begin{elpicode}
+pi P Q p q PP QQ\
+  tb (app[global (indt "/\"), P, Q])
+     (app[global (con "andP"), P, Q, p, q, PP, QQ]) :-
+  [!, tb P PP, tb Q QQ].
+\end{elpicode}
+  
+
+Now that all quantifications are explicit we can look at the types of
+\coqinline{evenP} and \coqinline{andP} and remark how each \elpiinline{pi}
+Elpi quantification corresponds to a Coq quantification (dependent or not),
+and Coq premises corresponds to recursive calls in Elpi.
+
+\begin{coqcode}
+evenP : ∀n, reflect (is_even n) (even N).
+andP : ∀P Q p q,
+  reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
+\end{coqcode}
+
+The \elpiinline{compile} predicate has three inputs an one output.
+The first input is the type of a lemma and the second is the proof of that
+lemma, this relation between the first two argument is a key invariant.
+The third argument is a list of recursive calls, while the output is
+the code of the Elpi rule being generated.
+
+\begin{elpicode}
+pred compile i:term, i:term, i:list prop, o:prop.
+
+compile {{ reflect lp:Ty _ }} P Hyps (tb Ty P :- [! | Hyps]).
+
+compile {{ reflect lp:S _ -> lp:T }} P Hyps (pi h\ C h) :- !,
+  pi h\ compile T {{ lp:P lp:h }} [tb S h | Hyps] (C h).
+
+compile {{ ∀x, lp:(T x) }} P Hyps (pi h\ C h) :-
+  pi x\ compile (T x) {{ lp:P lp:x }} Hyps (C x).
+\end{elpicode}
+
+The first rule is the base case. When we reach the conclusion of the lemma
+\coqinline{reflect lp:Ty _} we know that the second argument \elpiinline{P}
+is a proof of that fact, hence \elpiinline{tb Ty P} is a correct head for the
+rule. The premises of the rules are the \elpiinline{Hyps} recursive calls
+prefixed with a cut.
+
+The second rule is for premises that are turned into recursive calls. In this
+case the output rule features an extra \elpiinline{pi} quantification and the
+\elpiinline{Hyps} list gets longer. The \elpiinline{h} variable stands for
+the proof obtained by the recursive call, a proof of \coqinline{reflect lp:S _}
+hene an argument we can pass to the second argument as in \coqinline{lp:P lp:h}
+so to keep the invariant that it is a proof of \elpiinline{T}, the type
+in which we recurse.
+
+The last rule is a simpler version of the second, in this case the quantification
+is not a premise, hence we do not extend \elpiinline{Hyps}.
+
+The code of the \coqinline{register_decision} command located the
+given lemma, finds its type and generates the new rule \elpiinline{C}.
+finally it adds the rule to the database before the \elpiinline{"tb:fail"}
+anchor point.
+
+\begin{coqcode}
+Elpi Command register_decision.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
-
-% evenP : forall n, reflect (is_even n) (even N).
-%
-% tb {{ is_even lp:N }} {{ evenP lp:N }}.
-%
-% pi N\ tb {{ is_even lp:N }} {{ evenP lp:N }} :- [].
-
-% andP : forall P Q p p, reflect P p -> reflect Q q ->
-%                           reflect (P /\ Q) (p && q).
-%
-% tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
-%   tb P PP, tb Q QQ.
-%
-% pi P Q PP QQ\
-%   tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
-%     [tb P PP, tb Q QQ].
-
-pred compile i:term, i:term, i:list prop, o:prop.
-compile {{ reflect lp:Ty _ }} P Hyps (tb Ty P :- Hyps).
-compile {{ reflect lp:S _ -> lp:T }} P Hyps (pi h\ C h) :-
-  pi h\
-    compile T {{ lp:P lp:h }} [tb S h|Hyps] (C h).
-compile {{ forall x, lp:(T x) }} P Hyps (pi h\ C h) :-
-  pi x\
-    compile (T x) {{ lp:P lp:x }} Hyps (C x).
     
 main [str S] :-
   coq.locate S GR,
@@ -1996,24 +2142,34 @@ main [str S] :-
   coq.elpi.accumulate _ "tb.db" (clause _ (before "tb:fail") C).
 
 }}.
+\end{coqcode}
 
-Elpi add_tb evenP.
-Elpi add_tb andP.
+We can now populate the database and test our tactic.
 
-Elpi Print to_bool "Demo.snippets/to_bool".
-
+\begin{coqcode}
+Elpi register_decision andP.
 
 Lemma test : is_even 6 /\ is_even 4.
-elpi to_bool.
-simpl.
+Proof.
+elpi to_bool. (* Error: Cannot solve is_even 6 *)
+Abort.
+
+Elpi register_decision evenP.
+
+Lemma test : is_even 6 /\ is_even 4.
+Proof.
+elpi to_bool. (* even 6 && even 4 = true *)
+simpl.        (* true = true *)
 trivial.
 Qed.
-
-  \end{coqcode}
-  \caption[Databases]{Databases\label{databases}}
-  \end{figure}
-
+\end{coqcode}
   
+The Coq snippet calls the \coqinline{to_bool} tactic in a scenario
+where a predicate is not (yet) registered obtaining an explicative
+error message. Then it register a test for the missing predicate
+and succesfully solves the goal.
+
+
 \chapter{Coq applications}
 
 In this chapter we survey the some applications developed on top of Coq-Elpi.
@@ -2080,7 +2236,8 @@ and the translation of the constructors \coqinline{nil} and \coqinline{cons}
 are:
 \begin{coqcode}
 is_nil: ∀A (isA : A → U), is_list A isA nil
-is_cons: ∀A (isA : A → U), ∀a, isA a →  ∀l, is_list A isA l → is_list A isA (a :: l).
+is_cons: ∀A (isA : A → U), ∀a, isA a → 
+  ∀l, is_list A isA l → is_list A isA (a :: l).
 \end{coqcode}
 
 As for the translation of natural numbers, each term comes with a proof
@@ -2148,8 +2305,8 @@ the statement under the assumption that the predicate for the type parameter
 is triviall true. E.g.
 
 \begin{coqcode}
-Lemma list_is_list A isA : (forall a, isA a) -> forall l, is_list A isA l.
-Lemma rtree_is_rtree A isA : (forall a, isA a) -> forall l, is_rtree A isA l.
+Lemma list_is_list A isA : (∀a, isA a) -> ∀l, is_list A isA l.
+Lemma rtree_is_rtree A isA : (∀a, isA a) -> ∀l, is_rtree A isA l.
 \end{coqcode}
 
 While the assumption seems strong at first, it actually matches two relevant class
@@ -2165,13 +2322,16 @@ again synthesized automatically via Elpi programs. The first one
 allows us to operate under a unary parametricity translation.
 
 \begin{coqcode}
-Definition is_list_functor A P Q : (∀ a, P a → Q a) → ∀ l, is_list A P l → is_list A Q l :=
-fun (f : forall a, P a -> Q a) =>
-  fix IH l (pl : is_list A P l) {struct pl} : is_list A Q l :=
-    match pl in (is_list _ _ s1) return (is_list A Q s1) with
-    | is_Nil _ _ => is_Nil l pl
-    | is_Cons _ _ a Pa xs Pxs => is_Cons A Q a (f a Pa) xs (IH xs Pxs)
-    end
+Definition is_list_functor A P Q :
+  (∀a, P a → Q a) → ∀l, is_list A P l → is_list A Q l
+:=
+  fun (f : ∀a, P a -> Q a) =>
+    fix IH l (pl : is_list A P l) {struct pl} : is_list A Q l :=
+      match pl in (is_list _ _ s1) return (is_list A Q s1) with
+      | is_Nil _ _ => is_Nil l pl
+      | is_Cons _ _ a Pa xs Pxs =>
+          is_Cons A Q a (f a Pa) xs (IH xs Pxs)
+      end
 \end{coqcode}
 
 The proof is a straightforward induction on list \coqinline{l}.
@@ -2197,7 +2357,8 @@ Remark the following type assignments:
 l : list (rtree A)
 Pl : is_list (rtree A) (is_rtree A PA) l
 IH : ∀r, is_rtree A PA r -> P r
-is_list_functor (rtree A) (is_rtree A PA) P IH l Pl : is_list (rtree A) P l
+is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
+  is_list (rtree A) P l
 \end{coqcode}
 
 The last term satisfies the premise of \coqinline{His_Node}, that in turn
@@ -2221,7 +2382,8 @@ This is the form of correctness lemmas we shall prove.
 
 \begin{coqcode}
 Lemma seq_eq_correct : ∀A eqA (l : list A),
-  is_list A (correct_at A eqA) l -> correct_at (list A) (list_eq A eqA) l
+  is_list A (correct_at A eqA) l ->
+    correct_at (list A) (list_eq A eqA) l
 \end{coqcode}
 
 It reads: if \coqinline{eqA} is a correct test on all elements of \coqinline{l},
@@ -2246,13 +2408,16 @@ reuses the correctness proof for \coqinline{list_eq}.
 
 \begin{coqcode}
 Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
-  ∀r, is_rtree A (correct_at A eqA) r -> correct_at (rtree A) (rtree_eq A eqA) r
+  ∀r, is_rtree A (correct_at A eqA) r ->
+        correct_at (rtree A) (rtree_eq A eqA) r
 :=
-  rtree_induction A (correct_at A eqA) (correct_at (rtree A) (rtree_eq A eqA))
+  rtree_induction
+    A (correct_at A eqA) (correct_at (rtree A) (rtree_eq A eqA))
     (fun (a0 : A) (Pa : correct_at A eqA a0) =>
        correct_Leaf A eqA a0 Pa)
     (fun (sib : list (rtree A))
-         (Psib : is_list (rtree A) (correct_at (rtree A) (rtree_eq A eqA)) sib) =>
+         (Psib : is_list (rtree A)
+                   (correct_at (rtree A) (rtree_eq A eqA)) sib) =>
        correct_Node A eqA sib
          (list_eq_correct (rtree A) (rtree_eq A eqA) sib Psib)).
 \end{coqcode}
@@ -2261,13 +2426,13 @@ The proof also uses two auxiliary lemmas that are not particularly interesting,
 we point the reader to~\cite{tassi:hal-01897468} for details about them.
 
 \begin{coqcode}
-  correct_Node : ∀A eqA (l : list (rose A)),
-    correct_at (list (rose A)) (list_eq (rose A) (rose_eq A eqA)) l ->
-      correct_at (rose A) (rose_eq A eqA) (Node A l)
-  
-  correct_Leaf : ∀A eqA (a : A),
-    correct_at A eqA x ->
-      correct_at (rose A) (rose_eq A eqA) (Leaf A x)
+correct_Node : ∀A eqA (l : list (rose A)),
+  correct_at (list (rose A)) (list_eq (rose A) (rose_eq A eqA)) l ->
+    correct_at (rose A) (rose_eq A eqA) (Node A l)
+
+correct_Leaf : ∀A eqA (a : A),
+  correct_at A eqA x ->
+    correct_at (rose A) (rose_eq A eqA) (Leaf A x)
   \end{coqcode}
   
 The final theorem can be obtained by satisfying the extra the extra
@@ -2275,8 +2440,12 @@ premise of the deep induction hypothesis, namely that each rose tree
 is a rose tree.
 
 \begin{coqcode}
-Definition rose_eq_OK A eqA : correct A eqA -> correct (rtree A) (rose_eq A eqA) :=
-  fun p r => rose_eq_correct A eqA r (rtree_is_rtree A (correct_at A eqA) p r).
+Definition rose_eq_OK A eqA :
+  correct A eqA -> correct (rtree A) (rose_eq A eqA)
+:=
+  fun p r =>
+    rose_eq_correct A eqA
+      r (rtree_is_rtree A (correct_at A eqA) p r).
 \end{coqcode}
 
 To conlude, both euqality tests and their proofs are built compositionally.
@@ -2349,10 +2518,13 @@ Comparing the fieds amounts at calling the equality test for the
 right type, possibly using the recursive call to \coqinline{rose_eqb}.
 
 \begin{coqcode}
-Definition eqb_fields A eqA rec t : fields_t t -> fields_t t -> bool :=
+Definition eqb_fields A eqA rec t :
+  fields_t t -> fields_t t -> bool
+:=
   match t as i return (fields_t i -> fields_t i -> bool) with
   | 1%positive => fun a b : A => eqA a b
-  | 2%positive => fun a b : list (rtree A) => list_eqb (rtree A) rec a b
+  | 2%positive => fun a b : list (rtree A) =>
+                    list_eqb (rtree A) rec a b
   | _ => fun _ _ => true (* impossible, only 2 constructors *)
 \end{coqcode}
 
@@ -2365,44 +2537,70 @@ OCaml, the type cast that uses the evidence provided by \coqinline{pos_eq_dec}
 has to be evaluated. The reader interested in benchmarks
 can find them in~\cite{gregoire:hal-03800154}.
 
-TODO Elpi instrumenta
+TODO Elpi instrumental
 
 \section{Hierarchy Builder}
 
-The math comp library has many good points and a few bad ones. Among these
-the most endangering ons is that the barrier to entry is high. Documentation
-a in \cite{assia_mahboubi_2022_7118596} helps, but any motivated learner
-can only read so much. In particular the last chapters of the book above
-quickly grow in complexity and technicality. The problem is that, prior to
-HB, defining a hierarchy of algebraics structure à la mathcomp was terribly
-hard. So hard that I myself would have not get it right at the first try.
+The mathmatical components library is the largest an most widely used
+mathematical library for Coq. It is the pillar that was built for
+tackling the mechanization of the Odd Order theorem~\cite{}.
+A key ingredient of this pillar is the hierarchy of interfaces around which
+the contents are orgnized and the fine tuning of the mechanisms that
+link the interfaces to their instances: the elaborator of Coq is
+programmed to automatically find a justification when an abstract theory
+is applicable to an instance.
 
-In Spring 2019 Cohen Cyril came back from a Dagstuhl seminar with ``a language for
-describing the math-comp hierarchy''. He needed a way to implement his language and
-Coq-Elpi had almost all the features he needed: APIs to declare records and
-canonical structure instances.
+The Achilles'heel of the library is the barrier to entry, and while
+documentation as in \cite{assia_mahboubi_2022_7118596} surely helps,
+the complexity of building the hierarchy and programming the elaborator
+could not be tamed by just explaining, exacly as assembly cannot be made
+amenable by just documenting it. Hierarchy Builder (HB) provides a high level,
+declarative language to describe the hierarchy and a ``compiler'' that
+translate this language down the foundational language of Coq and takes
+care of programming the elaborator to make the hierarchy work.
 
-To be honest, at that time Coq-Elpi lacked so many features, but the objective
-at stake was both a strong motivation for adding them and also a good test
-bench for their implementation.
+The design of the language was brought to our attention in Spring 2019
+by Cohen Cyril, the result of fruitful discussions with other
+researchers in this domain in a Dagstuhl seminar. The implementation
+took six months~\cite{cohen_et_al:LIPIcs.FSCD.2020.34} and pushed
+Coq-Elpi to bind a large set of Coq APIs. The ``boilerplate'' code
+HB substitute with a metaprogram has to declare Coq modules, sections,
+notations, implicit arguments, canonical structures \ldots in addition
+to records and functions between records. HB also motivated the possibility
+to pass Coq-Elpi programs arguments that are Coq declarations, such as the ones intruced by
+the Reord or Definition keywords.
 
-
-
-\cite{cohen_et_al:LIPIcs.FSCD.2020.34}
+During the first implementation of HB, version 1.0, Elpi as a language was
+really a technical advantage: its high level nature let us quickly experiment
+with different solutions. Once the design was finalize, we thought that rewriting
+the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
+changed in order to accommodate interfaces with parameters, with the objective
+to reallt apply the too to the Mathematical Components library. This huge rewriting
+turned out to possible since Elpi featured a type checker and that the change
+could be modelled as a data type change: the description of an interface moved from
+a flat list to a HOAS one, describing how bound parameters distribute over
+the sub interfaces. A posteriori we think we could have done the same
+refactoring to an OCaml program, but while it was natural to move to HOAS
+in Elpi, it is unclear if the right reflex would have emerged in OCaml where
+binding is not necessary reflected in the types.
 
 \subsection{Mathematical Components 2.0}
 
-Porting Mc to HB was a huge effort. we did it with a sprint.
-
-\cite{affeldt:hal-03463762}
+Even if HB was, in principle, capable to describe all the interfaces of
+the Mathematical Components library, it was still a huge effort to port the
+library to HB.  We were lucky that developers and power users of
+Mathematical Components agree to work on it during a week long coding
+sprint~\cite{affeldt:hal-03463762}. The results surpassed our imagination:
+not only the main library was ported, but many satellite projects moved to
+HB as wll. Moreove, the high level language HB provided unlocked the
+growth of the library, as depicted below. 
 
 \includegraphics[width=\textwidth]{hb\_intf.png}
 
-one should remark that not only MC2 has the same interfaces, but
-also that the trend changed, much more are defined.
+Since the introduction of HB the number of interfaces almost doubled
+after as decade long stagnancy.
 
-MCa has 64 + 24 legacy, as of 1.2.0-8-g1baa0a8
-
+During the porting TODO Elpi difficulty, perf, etc
 
 % mathcomp-1.6.1 mathcomp-1.7.0 mathcomp-1.8.0 mathcomp-1.9.0 mathcomp-1.10.0 mathcomp-1.11.0 mathcomp-1.12.0 mathcomp-1.13.0 mathcomp-1.14.0 mathcomp-1.15.0 mathcomp-1.16.0 mathcomp-1.17.0 mathcomp-1.18.0 mathcomp-1.19.0 mathcomp-2.0.0 mathcomp-2.1.0 mathcomp-2.2.0
 
