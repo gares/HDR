@@ -2595,9 +2595,9 @@ not only the main library was ported, but many satellite projects moved to
 HB as wll. Moreove, the high level language HB provided unlocked the
 growth of the library, as depicted below. 
 
-\includegraphics[width=\textwidth]{hb\_intf.png}
+\includegraphics[width=\textwidth]{hb\_intf.pdf}
 
-\includegraphics[width=\textwidth]{hb\_intfa.png}
+\includegraphics[width=\textwidth]{hb\_intfa.pdf}
 
 Since the introduction of HB the number of interfaces almost doubled
 after as decade long stagnancy.
@@ -2703,7 +2703,6 @@ CHALLENGE: The challenge for other simalar systems is to do~\ref{sec:tb}.
 The importance of having a logic/pt foundations to draw the line between hacks.
 Eg UT as inspecting two PT branches, or Gamma/gv unlike \cite[Section 8 and later]{10.1145/3236788}.
 
-LESSON: never start from scratch
 
 \subsection{Elpi the software}
 
@@ -2712,9 +2711,19 @@ time to code a working PL would have been out of reach without an inria position
 (no compulsory teaching duties) and engineering support from the institure (see
 the trace browser).
 
-ocaml good perf, imperative, gadt essential for APIs 
+ocaml good perf, imperative align liveness, gadt essential for APIs not work for code (eg stack/heap terms).
+
+premature optimization, teyjus as classic compiler for a general purpose language
 
 \subsection{Elpi the extension language for Coq}
+
+Elpi is 20K, Coq-Elpi is 14K
+
+developed in the open, much support for Coq devs, impossible to follow the
+dev otherwise
+
+Driven by 1 clear design/illusion: high level terms with binders and holes.
+Pushed by applications, derive and HB in primis.
 
 
 \section{Current and future work}
@@ -2744,11 +2753,12 @@ code specialization (a la mixtus)
 
 \subsection{Integration in Coq}
 
-immediate uses of derive
+immediate uses of derive in stdlib
 
 \subsection{Runtime}
 
-unification/runtime proved correct
+unification/runtime proved correct.
+no serius bugs, but the code is tricky.
 
 \subsection{Compiler}
 
