@@ -2199,7 +2199,7 @@ generate so called deep induction principles and uses them to prove
 equality tests correct. Before discussing that work I need to introduce
 the swiss army knife of boilerplate code generation: parametricity.
 
-\subsection{Parametricity}
+\subsection{Parametricity}\label{sec:param1}
 
 The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
 is a family of procedures $[\cdot]_i$ indexed by an arity $i$. We focus on the
@@ -2584,39 +2584,102 @@ refactoring to an OCaml program, but while it was natural to move to HOAS
 in Elpi, it is unclear if the right reflex would have emerged in OCaml where
 binding is not necessary reflected in the types.
 
-\subsection{Mathematical Components 2.0}
+\subsection{Mathematical Components 2.0 and M.C.A.}
 
 Even if HB was, in principle, capable to describe all the interfaces of
 the Mathematical Components library, it was still a huge effort to port the
 library to HB.  We were lucky that developers and power users of
-Mathematical Components agree to work on it during a week long coding
-sprint~\cite{affeldt:hal-03463762}. The results surpassed our imagination:
-not only the main library was ported, but many satellite projects moved to
-HB as wll. Moreove, the high level language HB provided unlocked the
-growth of the library, as depicted below. 
+Mathematical Components agreed to work on it during a week-long coding
+sprint~\cite{affeldt:hal-03463762}. The results surpassed our expectations:
+not only the library was ported, but many satellite projects moved to
+HB as well.
 
-\includegraphics[width=\textwidth,trim={2cm 18cm 2cm 3cm},clip]{hb\_intf.pdf}
+The ease in defining new interfaces brought by HB unlocked 
+the growth of the mathematical components library, in particular of
+its order theory component. The graph in Figure~\ref{fig:mc} shows in green the
+number of interfaces defined using HB.
 
-\includegraphics[width=\textwidth,trim={2cm 18cm 2cm 3cm},clip]{hb\_intfa.pdf}
+\begin{figure}[!ht]
+\includegraphics[width=\textwidth,trim={2cm 4cm 2cm 4cm},clip]{hb\_intf.pdf}
+\caption{Evolution of the Mathematical Components library\label{fig:mc}}
+\end{figure}
 
-Since the introduction of HB the number of interfaces almost doubled
-after as decade long stagnancy.
+One can see that since HB was introduced the number of
+interfaces started to grow steadily. In the last three years about a hundred
+of them were added, almost doubling their overall quantity,
+while in the previous zeven years only a handful.
+One can also see that the size of the library shrunk visibly as the result of
+the porting, since the HB language hides boilerplaec code that has a size
+(when hand written) quadratic in the number of related interfaces.
 
-During the porting TODO Elpi difficulty, perf, etc
+We want stress the link between the growth of the hierarchy of interfaces and
+the growth of the actual contents (definitions and theorems) of a formal
+library. Figure~\ref{fig:mca} shows the steady progress made by the
+Mathematical Components Analysis library (MCA).
 
+\begin{figure}[!hb]
+\includegraphics[width=\textwidth,trim={2cm 4cm 2cm 4cm},clip]{hb\_intfa.pdf}
+\caption{Evolution of the Mathematical Components Analysis library\label{fig:mca}}
+\end{figure}
 
-\section{Other applications / uses}
+The developmers of MCA adopted HB even before MC was ported to it, roughly from
+the very beginning of the library development. The graph testifies how
+the growth of a library goes hand in hand with the growth of
+its hierarchy of interfaces: inderance in the growth of the latter affects
+the growth former.
+
+\subsection{Elpi performance considerations}
+
+The development and use in production of HB unraveled a few inefficiencies
+in the implementation of HB and Elpi. Luckily they were mostly due to
+a few very naive routines, in terms of computational complexity.
+
+All the inefficiencie in HB can be imputed to the skinny standard library
+of Elpi. For example, a hierarchy is essentially a Directed Acyclic Graph that
+describes an order relation. Topologically sorting a sub part of it is a
+frequent operation in HB and our first naive implementation was cubic.
+Similarly, when we see hierarchy nodes as designated sets and
+edges as the superset relation, we often need to find all the designated
+sets included in a given one. An algorith properly exploiting the DAG
+can discard all the supersets of any set that is not included in the given one,
+while a naive algorithm just filter the designated sets, linearly.
+
+More surprisingly the inefficiencies found in Elpi were not in the runtime
+of the language, but rather in its compiler, and more specifically in
+its (lack of) incrementality. As exemplified in~\ref{sec:tb}, HB synthesizes
+and accumulates rules as it goes to represent its state. In MC alone
+the number of such rules reaches 40K, and any routine that was not incremental
+and/or a bad complexity had to be revised. In particular the version 2.0 of
+Elpi has a fully incremental compiler: adding a rule to an existing program (or
+data base) has as worse logaritmic complexity in the size of the interested
+part of program, i.e. the existing rules for the same predicate.
+
+To the best of our knowledge, today most of the time spent in HB is actually taken
+by calls to Coq API, typically to typecheck and define the terms that are
+automatically synthesized.
+
+\section{Other applications}
 
 Coq-Elpi found applications in other projects I did not participate
-into directly. Here we mention the ones we are aware of.
+into directly. Here we mention some we are aware of.
 
 \subsection{Algebra Tactics}
 
-For a long time calling ring in MC was hard, one diff
-being because of term
-repr and cs proj. KS wrote a kit of tactics
+Algebra tactics is a port (and improvement) of the \coqinline{ring}, \coqinline{field} and
+\coqinline{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
+These tactics are reflexive, i.e. a pre-processing phase called reification
+recognizes in a goal the syntax of an algebraic structure and reflects it into
+a datatypes that is then manipulated by a certified Gallina program.
+Given the hierarchy of structures, operations typical of a structure may be
+inherited from a substructure. Since the type theory of Coq does not feature
+subtyping, the cast of a structure to a substructure leaves a trace in
+the terms of Gallina, making the reification work more delicate.
 
-\cite{sakaguchi:LIPIcs.ITP.2022.29}
+For example the addition of a ring actually comes from the
+additive abelian group it inherits from. The code snippet below
+has to compare the abelian group instance \elpiinline{U} with the ring
+instance \elpiinline{R} the tactic is applied to, possibly in the context
+\elpiinline{C} of a ring morphism.
 
 \begin{elpicode}
 ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
@@ -2626,18 +2689,57 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
   build.opp Out1 Out.  
 \end{elpicode}
 
-key is call to unify
+The code crytically uses the possibility to call
+the \elpiinline{coq.unify-eq} deep inside the goal to identify
+terms up to (Coq) unification.
 
-\subsection{Tackt and TRocq: proof transfer tool}
+The algrbra tactics project comprises a few benchmarks including
+a five hundred lines long polynomial euqation in six variables.
+The \coqinline{ring} tactic takes about five seconds to solve it.
 
-The need for proof transfer, Enzo Assia and later Cyril.
+While the standard, simpler, reification writtne in OCaml is an order of
+magnitude faster, the reification procedure written in Elpi is not the dominant
+factor in the five seconds, making it usable, in practice, even on such an
+extreme goal (for an interactive theorem prover).
 
-\cite{DBLP:conf/cpp/Blot0CPKMV23}
-\cite{10.1007/978-3-031-57262-3_10}
+\subsection{Takt and TRocq: proof transfer tools}
 
-the thesis compaares how rules can be transposed naturally.
-CHR to store state, although the wekness of debugging
-facilities limited its use to that, and not data manipulation.
+The most frequently asked question regarding the Mathematical Components
+library is: how do I make it compute.
+
+Almost all definitions in the MC library
+are computable, but are not immediately executable by Coq for one of
+the following two reasons. Either they are executable but are inefficient
+being optimized for proofs and not computations, or they are ``locked''
+behind an opaque module signature to enforce an abstraction barrier previnting
+the Coq type checker to potentially take an unreasonable amount of time.
+
+The answer to the FAQ is to transfer an expression about inefficient or
+locked operations to (equivalent) fast and unlocked ones. While defining
+such operations and proving the correspondence is feasible, and sometimes
+even part of the MC library, the tooling to automatically perform
+the transfer never really existed in a easy to use form.
+
+The Trakt tool~\cite{DBLP:conf/cpp/Blot0CPKMV23} and its successor
+Trocq~\cite{10.1007/978-3-031-57262-3_10} fill this space. Both
+are implemented in Elpi and are organized as sketched in~\ref{sec:tb}.
+Trocq is based on a gradualized version of the Univalent Parametricity
+translation~\cite{10.1145/3429979}. Unlike the parametricity relation
+sketched in~\ref{sec:param1} that talks about bare bone relations, the univalent
+version focuses on relations that are equivalences.
+Trocq improves on that by studying the relations that are in between,
+like implication (i.e. type theoretic maps).
+It turns out that in many cases of practical interest the type
+theory of Coq, that does not internalize the principle of univalence, is
+sufficient to represent the result of the parametricy translation
+for non bare-bone relations.
+
+In his PhD disseration~\cite[Page 115]{enzo}, Crance
+highlights how naturally pen-and-paper Trocq rules can be transposed in Elpi.
+It is worth mentioning that Crance uses Constraints Handling Rules to
+store axiom-requirements when translating an expression, and only when
+all requirements are know he computes the minimum set of Coq axioms
+needed in order to represent the parametricity based translation.
 
 \subsection{EIris: ???}
 
