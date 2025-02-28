@@ -2023,51 +2023,208 @@ in particular give names to Gallina terms and attach meta data to them.
 Coq-Elpi extends the vernacular language with a few commands to declare, run
 and modify Elpi programs.
 
+For convenience programs are divided into commands and tactics. Both run
+Elpi code, but the entry point is different and moreover tactics can only
+be executed in Coq proof mode.
+
 \subsection{Commands}
 
-\begin{figure}
+A command is declared with \coqinline{Elpi Command} followed by a name.
+Initially a command only contains the glue code for Coq, like the
+HOAS data type of terms and the builtin predicates. Extra code
+can be added to a command via the \coqinline{Elpi Accumulate}.
+Accumulated code can have two natures: static code (e.g. from a file
+or a string) and dynamic code (from a database, see~\ref{sec:homo}).
+
+A command \texttt{hello} is executed with \coqinline{Elpi hello} followed
+by arguments. The \elpiinline{argument} data type has constructors
+for builtin data type such as strings or number as well as Gallina terms.
+
 \begin{coqcode}
 Elpi Command hello.
-Elpi Accumulate lp:{{
+Elpi Accumulate hello lp:{{
   main [str X] :- coq.say "Hello" X.
 }}.
 Elpi hello "reader".
-
 Fail Elpi hello 46.
-
-Elpi Accumulate lp:{{
-  main [int X] :- coq.say "Hello" X.
-}}.
-
-Elpi hello 46.
 \end{coqcode}
-\caption[Vernacular]{Vernacular\label{vernac}}
-\end{figure}
+
+The simple program above calls the \elpiinline{coq.say} builtin whenever the
+command is passed a string. Since the entrypoint \elpiinline{main} has
+no rule for arguments of the form \elpiinline{int X}.
+
+The interested reader can look at a comprehensive tutorial on Elpi
+commands~\cite{tuto:commands}.
+
 \subsection{Tactics}
 
+Tactics are built in a similar way, with the main difference being that
+the entry point is called \elpiinline{solve} that receives as
+argument not only the arguments passed to the tactic, but also the goal
+on which the tactic operates.
+
+\begin{coqcode}
+Elpi Tactic intro.
+Elpi Accumulate intro lp:{{
+  solve (goal _ _ _ _ [str ID] as G) GS :- !,
+    std.assert! (coq.ltac.id-free? ID G) "name already taken",
+    coq.id->name ID N,
+    refine (fun N _ _) G GS.
+}}.
+Goal ∀P, P -> P /\ P.
+elpi intro "p".
+Fail elpi intro "Hp".
+elpi intro "Hp".
+\end{coqcode}
+
+In the example above the tactic expects to receive a string \elpiinline{ID};
+it checks that no Coq proof variable is already using the same name, and
+finally refines the goal with a lambda abstraction, that is the proof term
+for logical rule of introduction of universal quantification or implication.
+  
+The interested reader can look at a longer tutorial on Elpi tactics~\cite{tuto:tactics}
+and also to eltac~\cite{app:eltac}, a collection of Coq tactics rewritten in Elpi for
+didactic purpose.
 
 \subsection{Databases, homoiconicity and rules}\label{sec:homo}
 
-share data between programs, and programmatically add data.
+A database is, in its essence, an Elpi program but unlike commands and
+tactics cannot be executed. It constitutes a pice of code that is
+accumulated into commands or tactics \emph{by name}. This means that
+whenever a program run its sees the current contents of the data bases
+it accumulates, not their contents when the commands was inidially declared.
 
-maybe later?
+A typical data base is made of one predicate, possibly with some default
+rules. The \coqinline{Elpi Db} commands declares a data base.
 
-one feature that may not look evident is that
-this is allowed (unlike in teyjus)
+\begin{coqcode}
+Elpi Db age.db lp:{{
+  pred age o:string, o:int.
+
+  % the Db is empty for now, we put a rule giving a
+  % descriptive error and we name that rule "age.fail".
+  :name "age.fail"
+  age Name _ :- coq.error "I don't know who" Name "is!".
+}}.
+\end{coqcode}
+
+Elpi rules can be given a name via the \elpiinline{:name} attribute.
+Named rules serve as anchor-points for new rules when added to the Db.
+
+A commands to print the age of a given name can be declred as follows
+
+\begin{coqcode}
+Elpi Command age.
+Elpi Accumulate Db age.db.
+Elpi Accumulate lp:{{
+
+  main [str Name] :-
+    age Name A,
+    coq.say Name "is" A "years old".
+
+}}.
+
+Fail Elpi age bob. (* I don't know who bob is! *)
+\end{coqcode}
+
+We can add entries to the data base manually as follows
+
+\begin{coqcode}
+Elpi Accumulate age.db lp:{{
+
+  :before "age.fail"     % we place this rule before the catch all
+  age "bob" 24.
+
+}}.
+
+Elpi age bob. (* bob is 24 years old *)
+\end{coqcode}
+
+We do not expect the users of Coq commands written in Elpi to know the
+syntax of Elpi, not the commands to manipulate its programs, and even more
+to actually know the Coq commands they run are implemented in Elpi.
+
+For this reason Coq-Elpi provides APIs to extend data bases from Elpi.
+Here we craft a new command \coqinline{set_age} that does use this API.
+
+\begin{coqcode}
+Elpi Command set_age.
+Elpi Accumulate Db age.db.
+Elpi Accumulate lp:{{
+
+  main [str Name, int Age] :-
+    TheNewRule = age Name Age,
+    coq.elpi.accumulate _ "age.db"
+      (clause _ (before "age.fail") TheNewRule).
+
+}}.
+
+Elpi set_age "alice" 21.
+Elpi age "alice". (* alice is 21 years old *)
+Elpi set_age "mallory" 24.
+Elpi age "mallory". (* mallory is 24 years old *)
+\end{coqcode}
+
+The same data bases can be accumulated by commands and tactics in order
+to share a ``state'', a common knowledge that typically grows as the
+commands or tactics are used in a Coq library.
+
+\subsubsection{Homoiconicity and rules}
+
+There are two characteristic of Elpi that make data bases possible and also
+handy to use.
+
+The first one is that Elpi is a Homoiconic language: it can manipulate its own
+syntax. The line
+
 \begin{elpicode}
-build C, C => more
+TheNewRule = age Name Age,
 \end{elpicode}
 
-and that one can actually write build
+is the simplest evidence of it: \elpiinline{TheNewRule} contains a pice
+of Elpi code built from the \elpiinline{age} predicate and the two arguments
+passed to \elpiinline{main}. Since construction/inspection are conflated
+into unification in logic programming, the same line can be used to analyze the
+syntax of a piece of code in order to extra the name and age.
 
-\begin{elpicode}
-build F H 0 (p F :- H).
-build F H N (pi x \ C x) :-
-  pi x\ 
-    M is N - 1,
-    build (app F x) M (p x,H) (C x).
-\end{elpicode}
+The second characteristic of Elpi that really helps is that the code is
+organized into rules, meaning that \elpiinline{age Name Age} is an entire code
+unit one can build or inspect. In comparison the OCaml code for the
+\ocamlinline{age} function is a single expression (a single unit):
 
+\begin{ocamlcode}
+let age s =
+  match s with
+  | ("bob" | "mallory") => 24
+  | "alice" => 21
+  | _ => failwith ("I don't know who " ^ s ^ " is!")
+\end{ocamlcode}
+
+While it is surely possibe to traverse the syntax tree above and add one
+pattern match branch before the last one, that manipulation is not completely
+trivial. To make it so one should opt out of most of the syntactic sugar and
+commit to use a syntactic form that is as close as possible to the one
+of a rule based language:
+\begin{itemize}
+  \item making all variable bindings local to the pattern matching branch branch
+  \item making all rules syntactically independent
+\end{itemize}
+
+The code below respects these points. Remak \ocamlinline{s} binding now
+being local to the last branch, and the separation between the bob and
+mallory branches:
+
+\begin{ocamlcode}
+let age = function
+  | "bob" => 24
+  | "alice" => 21
+  | "mallory" => 24
+  | s => failwith ("I don't know who " ^ s ^ " is!")
+\end{ocamlcode}
+  
+The syntactic price one pays when writing Elpi code is now partially
+compensated by the ease of extending existing code.
+The example in the following section makes good use of this possiblity.
 
 \section{Example: simple proof transfer}\label{sec:tb}
 
@@ -2260,11 +2417,14 @@ error message. Then it register a test for the missing predicate
 and succesfully solves the goal.
 
 
-\chapter{Coq applications}
+\chapter{Coq tools written in Elpi}
 
-In this chapter we survey the some applications developed on top of Coq-Elpi.
+In this chapter we survey the some tools developed on top of Coq-Elpi.
 We put forward Derive and Hierarchy Builder, to which we contributed personally.
-Last we quickly survey other applications developed by our colleagues.
+Last we quickly survey other tools developed by our colleagues.
+
+At the end of each section we discuss which features of Elpi and Coq-Elpi
+are key to the tool being discussed.
 
 \section{Derive}
 
@@ -2759,7 +2919,7 @@ To the best of our knowledge, today most of the time spent in HB is actually tak
 by calls to Coq API, typically to typecheck and define the terms that are
 automatically synthesized.
 
-\section{Other applications}
+\section{Other tools}
 
 Coq-Elpi found applications in other projects I did not participate
 into directly. Here we mention some we are aware of.
@@ -2790,7 +2950,7 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
   build.opp Out1 Out.  
 \end{elpicode}
 
-\subsection{The role of Coq-Elpi in Algebra Tactics}
+\subsubsection{The role of Coq-Elpi in Algebra Tactics}
 
 The code crytically uses the possibility to call
 the \elpiinline{coq.unify-eq} deep inside the goal to identify
@@ -2838,7 +2998,7 @@ theory of Coq, that does not internalize the principle of univalence, is
 sufficient to represent the result of the parametricy translation
 for non bare-bone relations.
 
-\subsection{The role of Coq-Elpi in Trocq}
+\subsubsection{The role of Coq-Elpi in Trocq}
 
 In his PhD disseration~\cite[Page 115]{enzo}, Crance
 highlights how naturally pen-and-paper Trocq rules can be transposed in Elpi.
@@ -2922,7 +3082,7 @@ of stuff does not cause a name capture (in another name space).
 Eval lazy in more_stuff. (* = 1 *)
 \end{coqcode}
 
-\subsection{The role of Coq-Elpi in BRiKs}
+\subsubsection{The role of Coq-Elpi in BRiKs}
 
 Although BlueRock has made some of his code public, much of it is still
 private hence we cannot really speculate what ingredient of the Elpi
