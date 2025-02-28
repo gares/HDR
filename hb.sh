@@ -35,7 +35,7 @@ git pull -q
 TAGS="`$GET_TAGS | grep -v odd-order | grep -v archive | grep -v beta1 | grep -v '[^0]$' | grep -v mathcomp-1.1[6789].0`"
 for t in $TAGS; do
     git checkout -q -b tmp $t
-    LOC=`find . -name \*.v | xargs cat | wc -l`
+    LOC=`find . -name \*.v | grep -v order.v | xargs cat | wc -l`
     git checkout -q master
     git branch -q -D tmp
     T=`echo ${t##mathcomp-} | sed 's/.0$//'`

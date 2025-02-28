@@ -26,6 +26,7 @@
 }
 \usepackage[backend=biber,style=alphabetic]{biblatex}
 \DeclareUnicodeCharacter{2200}{$\forall$}
+\DeclareUnicodeCharacter{03BB}{$\lambda$}
 \addbibresource{hdr.bib}
 \addbibresource{other.bib}
 
@@ -371,7 +372,7 @@ It it thanks to this rule-based nature that logic programming scales so
 naturally to the domain of syntax trees with binders (next section)
 and that it integrates so well with interactive provers (see~\ref{sec:rocq}).
 
-\section{Elpi v.s. $\lambda$Prolog}
+\section{Elpi v.s. $\lambda$Prolog}\label{sec:hello}
 
 The syntax trees we are interested in are the ones that constitute
 the foundational language of interactive provers like Coq. A characteristic common
@@ -984,7 +985,7 @@ term constructor carries the type of the bound variable
 This is frequent when spilling combined with quotations, for example
 
 \begin{elpicode}
-  T = {{ fun x : nat => lp:{{ app f {api x}  }}  }}
+  T = {{ λx : nat => lp:{{ app f {api x}  }}  }}
 \end{elpicode}
 
 where the api needs the context of the object language, see \ref{FFI}
@@ -1555,7 +1556,7 @@ special bucket for flex arg or flex input arg
 multiple arg, variable depth. similar perf
 
 
-\section{The API}
+\section{The API}\label{sec:API}
 
 The APIs to drive the interpreter essentially lets one parse code, comile into
 unit, assemble units and run it.
@@ -1822,91 +1823,176 @@ can add a rule to mask/improve/debug a piece of code.
 
 \section{HOAS of terms and contexts}\label{GALLINA}
 
-Global names
+The main data type Coq-Elpi programs work with is the one of
+terms. The first bit of terms worth describing are the pointers
+to global objects. While \elpiinline{constant}, 
+\elpiinline{inductive} and \elpiinline{constructor} are opaque
+data (as in \ref{sec:opaquedata}), their nature is exposed as
+an algebraic data type.
 
 \begin{elpicode}
-% Global objects: inductive types, inductive constructors, definitions
 kind gref type.
-type const constant -> gref. % Nat.add, List.append, ...
-type indt inductive -> gref. % nat, list, ...
-type indc constructor -> gref. % O, S, nil, cons, ...
+type const constant -> gref.            % Nat.add, List.append, ...
+type indt  inductive -> gref.           % nat, list, ...
+type indc  constructor -> gref.         % O, S, nil, cons, ...
 \end{elpicode}
 
-Terms
+Global objects are injected in the term data type via the
+\elpiinline{global} term constructor and its variant
+\elpiinline{pglobal} dedicated to universe-polymorphic global
+object.
 
 \begin{elpicode}
 kind term type.
-type sort  sort -> term. % Prop, Type@{i}
-% constants: inductive types, inductive constructors, definitions
-type global gref -> term.
+type global  gref -> term.
 type pglobal gref -> univ-instance -> term.
-% binders: to form functions, arities and local definitions
-type fun  name -> term -> (term -> term) -> term.         % fun x : t =>
-type prod name -> term -> (term -> term) -> term.         % forall x : t,
-type let  name -> term -> term -> (term -> term) -> term. % let x : T := v in
-% other term formers: function application, pattern matching and recursion
-type app   list term -> term.                   % app [hd|args]
-type match term -> term -> list term -> term.   % match t p [branch])
-type fix   name -> int -> term -> (term -> term) -> term. % fix name rno ty bo
+type sort    sort -> term.                 % Prop, Type@{i}, SProp
+\end{elpicode}
+
+We omit the algebraic data type for sorts and we rather focus on the
+three binders: \elpiinline{fun} and \elpiinline{prod} for abstraction
+and \elpiinline{let} for abbreviations.
+Other than the higher order argument, the detail common
+to all of the them is the \elpiinline{name} argument. It stands for
+a pretty printing information, e.g. the bound variable as written by
+the user. It is important to remark that \elpiinline{name} is
+an opaque data type with a trivial euqality test. That is, the
+name ``x'' and ``y'' are equal in Elpi, although they hold a
+different value in OCaml. This is key to align the equational theory
+of the meta language Elpi with a sensible notion of equality for
+the object language Gallina, namely $\alpha$-equivalence.
+
+\begin{elpicode}
+type fun  name -> term -> (term -> term) -> term.            % λ
+type prod name -> term -> (term -> term) -> term.            % ∀
+type let  name -> term -> term -> (term -> term) -> term.    % let
+\end{elpicode}
+
+Application is n-ary, with the head and arguments hold by a list.
+This choice, over binary application as in~\ref{sec:hello}, eases
+the access to the head: according to our experience the vast majority
+of rules is discriminated by the head constant of the terms they work on.
+
+The pattern matching constructor packs together the scrutinee,
+a term used to uniformly assign a type to branches and a list of
+branches. The fixpoint operator is a binder, for the recursive call,
+and carries the index of the decreasing argument. Finally a single
+constructor holds all primitive values, eg 63 bit integers and floating
+point numbers; primitive record projections.
+
+\begin{elpicode}
+type app       list term -> term.                     
+type match     term -> term -> list term -> term.   
+type fix       name -> int -> term -> (term -> term) -> term.
 type primitive primitive-value -> term.
 \end{elpicode}
 
-Context
+What is worth focusing on is the representation of contexts, a convention
+used when crossing binders to enable APIs to be called deep inside terms.
+Two context entry need to be available, one for abstraction and one for
+abbreviation.
 
 \begin{elpicode}
-pred decl i:term, o:name, o:term. % Var Name Ty
-pred def  i:term, o:name, o:term, o:term. % Var Name Ty Bo
+pred decl i:term, o:name, o:term.                 % Var Name Ty
+pred def  i:term, o:name, o:term, o:term.         % Var Name Ty Bo
 \end{elpicode}
 
-Hence when crossing a binder
+The first argument of each is, by convention, a bound variable, and is
+expected to be passed as an input in order to retrieve the associaed
+pretty pringing information, the type and in the case of
+abbreviation the body. In the light of that code that crosses a binder
+is expected to either declare a \elpiinline{decl} or a \elpiinline{def}
+hypothetical rule for the bound variable as follows:
 
 \begin{elpicode}
 cross (fun N T F) :- pi x\ decl x N T => cross (F x).
 \end{elpicode}
 
 As a result of the convention, one can call \elpiinline{coq.typecheck}
-deep inside a term.
+deep inside a term. As described in~\ref{sec:API} a predicate can
+be equipped with a \ocamlinline{ctx_readback} function such
+as \ocamlinline{proof_context} in the code below. The \ocamlinline{term}
+contextual conversion can hence access a Coq context when operating its
+readback or embedding code.
 
 \begin{ocamlcode}
 MLCode(Pred("coq.typecheck",
   CIn(term, "T",
   CInOut(B.ioargC term, "Ty",
   InOut(B.ioarg B.diagnostic, "Diagnostic",
-  Full (proof_context, "typchecks a term T returning its type Ty...")))),
-(fun t ety diag _ proof_context _ state ->
-  let sigma = get_sigma state in
-  let sigma, ty = Typing.type_of proof_context.env sigma t in
-  ...
+  Full (proof_context, "typchecks a term T ...")))),
+    (fun t ety diag _ proof_context _ state ->
+      let sigma = get_sigma state in
+      let sigma, ty = Typing.type_of proof_context.env sigma t in
+      ...
 \end{ocamlcode}
 
-\ocamlinline{t} and \ocamlinline{ety} are read back in the
-\ocamlinline{proof_context.env} Coq context, that is also
-passed to the type checker.
+Indeed here the \ocamlinline{t} and \ocamlinline{ety} values
+are read back in the \ocamlinline{proof_context.env} Coq context,
+that is also passed to the type checker in order to synthesize the
+type of \ocamlinline{t}, and later (in the omitted code) to unify
+the inferred type with the expected one \ocamlinline{ety} when provided.
+The \ocamlinline{ioargC} lifts a contextual conversion to the option
+type: if actual data is provided, then it is converted.
 
-Now sigma.
-
+The only missing piece is \ocamlinline{sigma}, the environment assigning
+type judgements to holes.
 
 \section{HOAS of holes (missing terms)}
 
-note the invariant checked when the hole materializes
+Each Coq hole as an entry in \ocamlinline{sigma} that looks like a
+typing sequent. In Elpi we represent it as a constraint \elpiinline{evar}.
+
+\begin{elpicode}
+pred declare-evar i:list prop, i:term, i:term, i:term. % Ctx RawEvar Ty Evar
+declare-evar Ctx RawEv Ty Ev :-
+  declare_constraint (declare-evar Ctx RawEv Ty Ev) [RawEv].
+
+constraint declare-evar evar def decl {
+  rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
+}
+\end{elpicode}
+
+Note how \elpiinline{declare-evar} uses the CHR meta level to craft
+a goal with a precise context \elpiinline{Ctx}, no matter the context
+under which \elpiinline{declare-evar} is generated. Ineed a Coq API
+that is called deep inside a term and that encounters a new hole has
+will add to Coq's sigma an entry for it, but also generate a
+\elpiinline{declare-evar}, and hence an \elpiinline{evar} constraint
+in Elpi.
+
+The code above also relates a Coq hole \elpiinline{Ev} and an
+Elpi unification variable \elpiinline{RawEv}. We want the following
+invariants to be hardwired on \elpiinline{Ctx => evar RawEv Ty Ev}.
+
+\begin{itemize}
+  \item \elpiinline{Ev} can only be assigned to a \elpiinline{R} if
+        \elpiinline{R} has type \elpiinline{Ty} in context \elpiinline{Ctx}
+  \item \elpiinline{RawEv} can only be assigned to a \elpiinline{X} if
+        \elpiinline{X} elaborates to a term \elpiinline{R} such that
+        the previous condition holds
+\end{itemize}
+
+The code below implements the desired invariants
 
 \begin{elpicode}
 pred evar i:term, i:term, o:term. % Evar Ty RefinedSolution
 evar (uvar as X) Ty R :- declare_constraint (evar X Ty R) [X, R].
 evar X Ty R :- not(var R), !, coq.typecheck R Ty ok, X = R.
 evar X Ty R :- not(var X), var R, !, coq.elaborate-skeleton X Ty R ok.
- 
-constraint declare-evar evar def decl {
-
-% Override the actual context
-rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
-   
-}
 \end{elpicode}
 
-note the chr rule allows one to set the canonical context of the evar
+In the code above \elpiinline{coq.elaborate-skeleton} is an API
+very similar to \elpiinline{coq.typecheck} but that does not modify
+its input in place. It rather uses its input as a skeleton term that is
+copied. This allows for changes to the structure of the term, like inserting
+explicit coercions to implement type casts. The API corresponds to the code
+that Coq runs on any input term written by the user, while \elpiinline{coq.typecheck}
+corresponds to code internally used by Coq tactics to build well typed terms.
 
-there is a link from Coq to Elpi
+The extensible state~\ref{sec:API} offered by Elpi carries a Coq-Elpi specific
+bidirectional map linked Coq unification variables and Elpi holes.
+It is built using this commodity Elpi API:
 
 \begin{ocamlcode}
 module FlexibleData : sig
@@ -1920,6 +2006,11 @@ module FlexibleData : sig
     val host : Elpi.t -> t -> Host.t
 \end{ocamlcode}
 
+TODO extra goals in API
+
+TODO sigma in Elpi, sigma in Coq, going from both.
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1927,15 +2018,12 @@ module FlexibleData : sig
 
 \section{Vernacular language integration}
 
-While the language of Coq terms, gallina, is central to Coq-Elpi, there is another
-language we have to describe first, the vernacular. That ``outern'' language
-lets one organize the formalized knowledge, in particular give names to terms
-and attach to them meta data.
-
+That vernacular language of Coq lets one organize the formalized knowledge,
+in particular give names to Gallina terms and attach meta data to them.
 Coq-Elpi extends the vernacular language with a few commands to declare, run
 and modify Elpi programs.
 
-
+\subsection{Commands}
 
 \begin{figure}
 \begin{coqcode}
@@ -1955,8 +2043,10 @@ Elpi hello 46.
 \end{coqcode}
 \caption[Vernacular]{Vernacular\label{vernac}}
 \end{figure}
+\subsection{Tactics}
 
-\subsection{Database, homoiconicity and rules}\label{sec:homo}
+
+\subsection{Databases, homoiconicity and rules}\label{sec:homo}
 
 share data between programs, and programmatically add data.
 
@@ -2325,7 +2415,7 @@ allows us to operate under a unary parametricity translation.
 Definition is_list_functor A P Q :
   (∀a, P a → Q a) → ∀l, is_list A P l → is_list A Q l
 :=
-  fun (f : ∀a, P a -> Q a) =>
+  λ(f : ∀a, P a -> Q a) =>
     fix IH l (pl : is_list A P l) {struct pl} : is_list A Q l :=
       match pl in (is_list _ _ s1) return (is_list A Q s1) with
       | is_Nil _ _ => is_Nil l pl
@@ -2413,9 +2503,9 @@ Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
 :=
   rtree_induction
     A (correct_at A eqA) (correct_at (rtree A) (rtree_eq A eqA))
-    (fun (a0 : A) (Pa : correct_at A eqA a0) =>
+    (λ(a0 : A) (Pa : correct_at A eqA a0) =>
        correct_Leaf A eqA a0 Pa)
-    (fun (sib : list (rtree A))
+    (λ(sib : list (rtree A))
          (Psib : is_list (rtree A)
                    (correct_at (rtree A) (rtree_eq A eqA)) sib) =>
        correct_Node A eqA sib
@@ -2443,7 +2533,7 @@ is a rose tree.
 Definition rose_eq_OK A eqA :
   correct A eqA -> correct (rtree A) (rose_eq A eqA)
 :=
-  fun p r =>
+  λp r =>
     rose_eq_correct A eqA
       r (rtree_is_rtree A (correct_at A eqA) p r).
 \end{coqcode}
@@ -2451,8 +2541,6 @@ Definition rose_eq_OK A eqA :
 To conlude, both euqality tests and their proofs are built compositionally.
 In~\cite{tassi:hal-01897468} we also discuss why these proofs can be kept opaque
 without interfeering with the termination checker.
-
-TODO Elpi instrumenta
 
 \subsection{Fast equality tests}
 
@@ -2522,10 +2610,10 @@ Definition eqb_fields A eqA rec t :
   fields_t t -> fields_t t -> bool
 :=
   match t as i return (fields_t i -> fields_t i -> bool) with
-  | 1%positive => fun a b : A => eqA a b
-  | 2%positive => fun a b : list (rtree A) =>
+  | 1%positive => λa b : A => eqA a b
+  | 2%positive => λa b : list (rtree A) =>
                     list_eqb (rtree A) rec a b
-  | _ => fun _ _ => true (* impossible, only 2 constructors *)
+  | _ => λ_ _ => true (* impossible, only 2 constructors *)
 \end{coqcode}
 
 As we can see the two matches of the constructors are no nested, but rather
@@ -2537,7 +2625,16 @@ OCaml, the type cast that uses the evidence provided by \coqinline{pos_eq_dec}
 has to be evaluated. The reader interested in benchmarks
 can find them in~\cite{gregoire:hal-03800154}.
 
-TODO Elpi instrumental
+\subsection{The role of Coq-Elpi in derive}
+The Elpi language turned out to be instrumental in this research since
+it allowed to quickly and concisely write derivations. We believe that
+the automatic handling of names and holes was key. Only a few Coq APIs were
+really necessary: reading from and writing to the logical environment and
+invoke type inference. Although these API come with glue code that is far from
+trivial since they read/write inductive types in HOAS form.
+Performance was no crytical: all bottlenecks turned out to be inefficiencies
+in Rocq, and in particular in the APIs to manage universe constraints.
+
 
 \section{Hierarchy Builder}
 
@@ -2570,19 +2667,6 @@ to records and functions between records. HB also motivated the possibility
 to pass Coq-Elpi programs arguments that are Coq declarations, such as the ones intruced by
 the Reord or Definition keywords.
 
-During the first implementation of HB, version 1.0, Elpi as a language was
-really a technical advantage: its high level nature let us quickly experiment
-with different solutions. Once the design was finalize, we thought that rewriting
-the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
-changed in order to accommodate interfaces with parameters, with the objective
-to reallt apply the too to the Mathematical Components library. This huge rewriting
-turned out to possible since Elpi featured a type checker and that the change
-could be modelled as a data type change: the description of an interface moved from
-a flat list to a HOAS one, describing how bound parameters distribute over
-the sub interfaces. A posteriori we think we could have done the same
-refactoring to an OCaml program, but while it was natural to move to HOAS
-in Elpi, it is unclear if the right reflex would have emerged in OCaml where
-binding is not necessary reflected in the types.
 
 \subsection{Mathematical Components 2.0 and M.C.A.}
 
@@ -2624,11 +2708,28 @@ Mathematical Components Analysis library (MCA).
 
 The developmers of MCA adopted HB even before MC was ported to it, roughly from
 the very beginning of the library development. The graph testifies how
-the growth of a library goes hand in hand with the growth of
-its hierarchy of interfaces: inderance in the growth of the latter affects
-the growth former.
+the growth of a that library went hand in hand with the growth of
+its hierarchy of interfaces. Something similar can also be observed in
+\ref{fig:mc} although before the advent of HB the addition of an interface
+was requiring the addition of very large boilerplate code, somewhat forcing
+the correlation between the two measures: the port to HB resulted in the
+removal of 5K lines of such boilerplate code.
 
-\subsection{Elpi performance considerations}
+\subsection{The role of Coq-Elpi in Hierarchy Builder}
+
+During the first implementation of HB, version 1.0, Elpi as a language was
+really a technical advantage: its high level nature let us quickly experiment
+with different solutions. Once the design was finalize, we thought that rewriting
+the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
+changed in order to accommodate interfaces with parameters, with the objective
+to really apply the too to the Mathematical Components library. This huge rewriting
+turned out to possible since Elpi featured a type checker and that the change
+could be modelled as a data type change: the description of an interface moved from
+a flat list to a HOAS one, describing how bound parameters distribute over
+the sub interfaces. A posteriori we think we could have done the same
+refactoring to an OCaml program, but while it was natural to move to HOAS
+in Elpi, it is unclear if the right reflex would have emerged in OCaml where
+binding is not necessary reflected in the types.
 
 The development and use in production of HB unraveled a few inefficiencies
 in the implementation of HB and Elpi. Luckily they were mostly due to
@@ -2689,6 +2790,8 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
   build.opp Out1 Out.  
 \end{elpicode}
 
+\subsection{The role of Coq-Elpi in Algebra Tactics}
+
 The code crytically uses the possibility to call
 the \elpiinline{coq.unify-eq} deep inside the goal to identify
 terms up to (Coq) unification.
@@ -2701,6 +2804,7 @@ While the standard, simpler, reification writtne in OCaml is an order of
 magnitude faster, the reification procedure written in Elpi is not the dominant
 factor in the five seconds, making it usable, in practice, even on such an
 extreme goal (for an interactive theorem prover).
+
 
 \subsection{Takt and TRocq: proof transfer tools}
 
@@ -2734,6 +2838,8 @@ theory of Coq, that does not internalize the principle of univalence, is
 sufficient to represent the result of the parametricy translation
 for non bare-bone relations.
 
+\subsection{The role of Coq-Elpi in Trocq}
+
 In his PhD disseration~\cite[Page 115]{enzo}, Crance
 highlights how naturally pen-and-paper Trocq rules can be transposed in Elpi.
 It is worth mentioning that Crance uses Constraints Handling Rules to
@@ -2741,42 +2847,92 @@ store axiom-requirements when translating an expression, and only when
 all requirements are know he computes the minimum set of Coq axioms
 needed in order to represent the parametricity based translation.
 
-\subsection{EIris: ???}
+% \subsection{EIris: ???}
 
-https://github.com/lukovdm/MasterThesisIrisElpi/blob/e7c9f2a835a523fa8937b24f06bac061e5f50ab9/latex/thesis/thesis.pdf
+% https://github.com/lukovdm/MasterThesisIrisElpi/blob/e7c9f2a835a523fa8937b24f06bac061e5f50ab9/latex/thesis/thesis.pdf
 
-\subsection{BedRock's BRICK}
+\subsection{BlueRock's BRiCk}
+
+BlueRock systems is a company developing, among other things, the BRiCk
+program logic for C++. It is a set of Coq libraries, partially based on Iris,
+to reason about existing C++ code: a \texttt{cpp2v} tool translate C++
+classes to a formal representation on which specification can be written.
+
+The employ Coq-Elpi to synthesize code automatically extending the
+derive utility described above. In particular they synthesize
+type classes instances for the EqDecision, Countable, Finite and Inhabited
+std++ classes, as well as a serialization one called ToBit. Finally
+they also synthesize Lenses, that is support code for record updates.
+
+We focus on another use they make of Coq-Elpi in the form of its
+NES application.
+
 \subsubsection{N.E.S. -- Namespace Emulation System}
 
-An experiment with Cyril Cohen that uses modules to emulate name spaces.
-The characteristic of name spapces is that their content can esily be extended
-a posteriori. In some way they mitigate the practical need to organize contents in
-files and in an order that is imposed by logic.
-eg in MC prime comes after lists since its natural definition uses the prime
-decomposition operation that builds a list, so unless one makes a single file
-of 10K lines he can't possibly put nat, div and prime in the same place.
-NS allows you to do that.
+It is folklore that Coq modules can, somehow, emulate name spaces.
+Coq modules are inspired by OCaml modules and are a closed entity: when
+a module is closed one cannot add to it any new entry. Sure one can
+define a new module and include the old one together with some additions,
+but the module is a new one, with a different name. Namespaces on the
+contrary give an open ended notion of that: one can alwas add new items
+to an existing namespace.
 
-The basic features of NES can be seen here
+The key ingredient for emulating namespaces with modules is the presence,
+in Coq, of a so called ``nametab'': an environment of non-ambiguous names
+that can be extended by importing in it the names from a module, even the
+names of modules themselves. It allows to create the illusion that \coqinline{A.x}
+and \coqinline{A.y} are items from the same module \coqinline{A} even if
+the two \coqinline{A}s have different (long) names, eg \coqinline{X1.A.x}
+and \coqinline{X2.A.y}.
+
+NES emulates name spaces using the trick above. It was developed
+together with Cyril Cohen as a proof of concept, possibly an addition
+to Hierarchy Builder. We believe BRiCk uses it to mimick C++ namespaces.
+
+The basic features of NES can be seen here in the Coq code below:
 
 \begin{coqcode}
+(* we place ourselves in a name space *)
 NES.Begin This.Is.A.Long.Namespace.
+  (* we add some stuff to the name space *)
   Definition stuff := 1.
 NES.End This.Is.A.Long.Namespace.
 
+(* we are now outside the name space *)
+(* we pick the same name to live dangerously *)
+Definition stuff := 2.
+
+(* we place ourselves back in an existing namespace, *)
+(* its contents are accessible via their short name *)
 NES.Begin This.Is.A.Long.Namespace.
-  Definition more_stuff := stuff. (* stuff in the namespace is visible *)
+  (* we add some more stuff to the name space *)
+  Definition more_stuff := stuff.
 NES.End This.Is.A.Long.Namespace.
 
-Print This.Is.A.Long.Namespace.stuff. (* = 1 *)
-
+(* we can access short names (shadow possible collisions) *)
 NES.Open This.Is.A.Long.Namespace.
-Print stuff.
+Print stuff. (* = 1 *)
 \end{coqcode}
 
-\subsubsection{Derive plugins}
+It worth pointing out how the definition of \coqinline{more_stuff}
+uses the contents of the name space, i.e. how the second definition
+of stuff does not cause a name capture (in another name space).
 
-EqDecision, Countable, Finite, Inhabited, Lens, ToBit
+\begin{coqcode}
+Eval lazy in more_stuff. (* = 1 *)
+\end{coqcode}
+
+\subsection{The role of Coq-Elpi in BRiKs}
+
+Although BlueRock has made some of his code public, much of it is still
+private hence we cannot really speculate what ingredient of the Elpi
+language plays which role.
+The company made public that they run about 6.5K lines of Elpi, that is
+to our knowledge the largest Elpi code base out there, given that Hierarchy
+Builder is, all included, less than 5K lines of code.
+
+In recent years the formal methods team of BlueRock contributed valuable
+patches and early feedback to Elpi and Coq-Elpi.  
 
 \chapter{Conclusion}
 
