@@ -7,6 +7,17 @@
 \usepackage{bussproofs}
 
 \usepackage{xpatch}
+\usepackage[firstpageonly=false]{draftwatermark}
+
+\SetWatermarkText{Draft \today}
+
+\SetWatermarkScale{.7}
+\SetWatermarkAngle{30}
+\SetWatermarkColor{red!50!white}
+
+\SetWatermarkHorCenter{0.15\paperwidth}
+\SetWatermarkVerCenter{0.08\paperheight}
+
 
 \makeatletter
 \AtBeginEnvironment{minted}{\dontdofcolorbox}
@@ -45,13 +56,13 @@
   }
 }
 %'theorem.py:CoqLexer -x'
-\newminted[elpicode]{'elpi.py:ElpiLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newminted[elpicodelj]{'elpi.py:ElpiLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
+\newminted[elpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
 \newmintinline{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newminted[coqcode]{'theorem.py:XCoqLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[coqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
-\newminted[ocamlcode]{'ml.py:OcamlLexer -x'}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[ocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 
 \newenvironment{dedication}
@@ -339,8 +350,7 @@ selling point. Still, according to our experience, the vast majority of code
 written in Elpi does not need this feature.
 
 So, in conclusion, I believe that the most interesting
-characteristic of logic programming is of being a rule based language.
-
+characteristic of logic programming is of being rule based.
 It trades the elaborate syntax offered by most
 programming languages with the notion of a smaller code unit.
 A code unit has a meaning per se and the operation of adding or removing it
@@ -349,15 +359,15 @@ to/from a program is well defined.
 An assignment, a while loop, or a function definition do not
 constitute a code unit. An assignment is meaningless without a variable
 declaration, similarly a while loop: they only get a meaning, even a formal 
-one, in a larger context. Even the definition of a self contained function fails to be a unit in
-this sense: while adding it to a program makes some sense (although, since nobody
-calls it, serves little purpose),
-removing a used function just results in a non functional program.
+one, in a larger context. Even the definition of a self contained function fails
+to be a unit in this sense: while adding it to a program makes some sense (although,
+since nobody calls it, serves little purpose),
+removing a used function just results in a broken program.
 
 A rule has a meaning given by its logical interpretation. Adding it or removing
 it from a logic program simply results in a different logic program. Typically
 by adding a rule the resulting program is able to handle one more case,
-a bit like a proof system lets you prove more statements if one poses
+a bit like a proof system lets you prove more theorems if one poses
 more axioms, or becomes more and more incomplete as axioms are removed.
 From the parallel with proof systems it is obvious that adding ``bad'' rules
 can result in a program that gives unexpected answers, but the operation
@@ -480,7 +490,7 @@ $$
 \mathrm{of}~ H~(\mathrm{arr}~S~T) \land \mathrm{of}~A~S \Rightarrow \mathrm{of}~(\mathrm{app}~H~A)~T
 $$
 
-\noindent the rule for lambd aabstraction truly needs the $\forall$ quantifier
+\noindent the rule for lambda abstraction truly needs the $\forall$ quantifier
 and the use of (nested) implication:
 
 $$
@@ -489,12 +499,12 @@ $$
 
 The reading of the rule for abstraction as an Hereditary Harrop formula
 makes it clear that the scope of $c$ and the so called hypothetical rule
-assigning it a type are limited to the subgoal $\mathrm{of}~(F~c)~T$,
+assigning to it a type are limited to the subgoal $\mathrm{of}~(F~c)~T$,
 unlike the \texttt{assert/1} and \texttt{retract/1} Prolog builtins\footnote{
-  although some Prolog implementation provide the notion of ``transation''
+  although some Prolog implementation provide the notion of ``transaction''
 that can be used to simulate scoping.}.
 
-As previously announced, we want to use Elpi in the contet of an
+As previously announced, we want to use Elpi in the context of an
 interactive prover like Coq where syntax trees are often incomplete, i.e.
 they contain holes. For example we would like to run the
 type checker of this goal: \elpiinline{of (app F A) T}.
@@ -535,10 +545,10 @@ From a programming perspective, the needs are the following ones:
      our experience when a hole is encountered one of the following two
      actions need to be implemented: either suspend the computation and
      generate a constraint, or synthesize an assignment for the hole
-     via a dedicated routine
+     via a dedicated routine (more complex than unification)
   \item[attach data to holes] from a simple boolean flag, as we will do
     when implemeting ML type inference with equality types,
-    to a full typing sequence as it is necessary to do when holes represent
+    to a full typing sequent as it is necessary to do when holes represent
     Coq terms
 
   \item[manipualte attached data] such as combine multiple data attached to the same
@@ -559,8 +569,8 @@ fired.
 Mode declaration comes together with the \elpiinline{uvar} keyword to denote
 holes in the head of a rule.
 
-In the light of that we can rephrase the type checker for simply typed $\lambda$-calculus
-as follows:
+In the light of that we can rephrase the type checker for simply typed
+$\lambda$-calculus as follows:
 
 \begin{elpicode}
 pred of i:term, o:ty.
@@ -579,7 +589,7 @@ a variable is unbound.
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
 
-Many Prolog implementations feature a ``delay directive'' sublanguage to
+Many Prolog implementations feature a ``delay directive'' i.e. a sublanguage to
 prescribe when goals should be suspended or resumed. In Elpi we opeted for
 a more low level but also more flexible approach where the programmer declares
 constraints / suspends goal via  the \elpiinline{declare_constraint} built-in
@@ -588,7 +598,7 @@ that ``block'' the suspended goal: as soon as one is assigned the goal should
 be resumed.
 
 It is worth pointing out that the input mode described above can in principle
-we ``emulated'' via a program transformation that we sketch below:
+be ``emulated'' via a program transformation that we sketch below:
 
 \begin{elpicode}
 of E T :- not (var E), E = (app H A), of H (arr S T), of A S.
@@ -635,7 +645,7 @@ that are clearly incompatible.
 
 We need a language to combine the constraints attached to hole \elpiinline{D}.
 
-\section{Constraints Handling Rules}
+\section{Constraints Handling Rules}\label{sec:chrui}
 
 A C.H.R.~\cite{chr}
 program is a set of rules that maintain the constraint store, a
@@ -849,6 +859,8 @@ resolution state. Since a new goal can in turn declare a new constraint,
 the CHR loop can continue. In other words constraint handling takes
 priority over SLD resolution.
 
+\subsection{Operational semantics}
+
 \section{Syntactic sugar}
 
 Elpi features some simple syntactic sugar that is elimated by
@@ -1008,7 +1020,7 @@ not when the todo list is generated, as one may have wanted.
 According to our experience the closes execution point
 is more often than not what the programmer expects.
 
-\section{A complete example: Hindley Milner type inference}
+\section{A complete example: Hindley Milner type inference}\label{sec:milner}
 
 The most significan type inference algorith is the one crafted by
 Milner the ML language~\cite{MILNER1978348}. The flavor we 
@@ -2426,7 +2438,7 @@ Last we quickly survey other tools developed by our colleagues.
 At the end of each section we discuss which features of Elpi and Coq-Elpi
 are key to the tool being discussed.
 
-\section{Derive}
+\section{Derive}\label{sec:derive}
 
 The derive application is a framework to automatic
 code generation, typically in response to the declaration of a new inductive
@@ -2796,7 +2808,7 @@ Performance was no crytical: all bottlenecks turned out to be inefficiencies
 in Rocq, and in particular in the APIs to manage universe constraints.
 
 
-\section{Hierarchy Builder}
+\section{Hierarchy Builder}\label{sec:hb}
 
 The mathmatical components library is the largest an most widely used
 mathematical library for Coq. It is the pillar that was built for
@@ -3108,40 +3120,87 @@ languages born in the '90s and extensively studied: $\lambda$Prolog and
 Constraint Handling Rules. The former plays the main part as most of
 Elpi programs manipulae syntax trees with binders. The latter is key to
 scale the programming comfort of $\lambda$Prolog to syntax trees with holes
-without tainting the language with tons of non logical, introspection, features.
+without tainting the language with many of non logical, introspection, features.
+ 
+Throuout this document we stressed how the \emph{key} feature of Elpi is being
+rule based. We identified three main advantages:
+\begin{itemize}
+\item dynamic rules make the language scale so well to syntax with binders (section~\ref{sec:hello})
+\item static rules makes it easy to write code that is easily extensible (section~\ref{sec:homo})
+\item rules as code unit facilitates considerably self manipulation~\ref{sec:tb}
+\end{itemize}
 
-In this document we stressed how the \emph{key} feature of Elpi is being rule
-based. 3 points
-- dynamic the language scale so well to syntax with binders
-- static, makes it easy to write code that is easily extensible
-- code unit, facilitates considerably self manipulation
+We take the liberty to challange the reader to write the \coqinline{to_bool}
+tool we show in section~\ref{sec:tb} in any other extension language and match
+it in size and functionality.
 
-CHALLENGE: The challenge for other simalar systems is to do~\ref{sec:tb}.
-
-The importance of having a logic/pt foundations to draw the line between hacks.
-Eg UT as inspecting two PT branches, or Gamma/gv unlike \cite[Section 8 and later]{10.1145/3236788}.
+We want to stress the importance of the cleananness of $\lambda$Prolog (and CHR)
+played in the design of Elpi. Building on sound foundations draws a clear
+line between syntactic sugar and ``hacks''. In particular the parallel between the
+execution of $\lambda$Prolog code and proof search in intuitionistic
+proof theory made it crystal clear that we had to avoid introducing ad-hoc
+introspection primitives such as the ones in~\cite[Section 8 and later]{10.1145/3236788}
+to imeplemt the type inference algorithm for a form of standard ML we give in
+section~\ref{sec:milner} or the the type checker for the simply
+typed $\lambda$-calculus we describe in~\ref{sec:chrui}.
+The former needs to look at the typing context, i.e. the hypothetical rules
+of the current goal, akin to a proof rule that look at the proof three of a premise.
+The latter is even worse, since it finds two (suspended) proof branches for
+similar goals and proviso some extra conditions joins them. Explaining
+these ``proof search'' steps at a meta level at which CHR operates is possible,
+even formally, as the meta theory of the proof system.
 
 
 \subsection{Elpi the software}
 
-We love to code, and coding a PL is great fun. Still the amount of
-time to code a working PL would have been out of reach without an inria position
-(no compulsory teaching duties) and engineering support from the institure (see
-the trace browser).
+What we love the most about our job is to design and build tools~\cite{matita,ssr,coq}.
+Elpi is, to our eyes, a tool to build tools faster. It was a great fun to
+implement it, it is actually our first whole round programming language.
+The amount of time it took to produce a working implementation
+would have been out of reach without an Inria position with no compulsory
+teaching duties and engineering support from the institure~\ref{sec:trace}.
 
-ocaml good perf, imperative align liveness, gadt essential for APIs not work for code (eg stack/heap terms).
+Even in this case we built on the shoulders of a giant. Elpi is written in
+OCaml that allows it deliver reasonable performances and ease of integration.
+The possibility to use mutable data structures to represent unification
+variabls allows Elpi to avoid ``reifying'' the heap (the assignment) and
+hence identify the notion of garbage of Elpi data and OCaml data, in turn
+making it possible to just use the mighty OCaml garbage collector for Elpi.
+At the same the rich type discipline of OCaml simplified the development of the
+Foreign Function Interface in a generic way, a bit like ``printf'' signature
+depends on the format string. GADTs turned out to be essential for this purpose.
 
-premature optimization, teyjus as classic compiler for a general purpose language
+The main contribution to the implementation of $\lambda$Prolog is
+the observation that De Bruijn levels enable an efficient implementation
+of a fragment of the language~\cite{dunchev15lpar}. The fragment
+$\mathcal{L}_\lambda^{\beta_0}$ occurs often in actual code and admits
+constant-time operations and constant-size data representation as the
+context of bound variables grows in size.
 
-\subsection{Elpi the extension language for Coq}
+\subsection{Coq-Elpi}
 
-Elpi is 20K, Coq-Elpi is 14K
+At the time of writing the size of Elpi is about 20K lines of code, about 10K
+for the runtime and 10K for the parser, static checker and ``compiler''.
+Coq-Elpi totals 13K: 5K for the HOAS of Coq terms, 5K for the bindings of about
+300 Coq APIs and 3K for the vernacular language to declare programs. The complicated
+part is the HOAS, but it is also what makes the language shine and enables
+each Coq API to require, on average, only 16 lines to be exposed to Elpi
+(documentation included).
 
-developed in the open, much support for Coq devs, impossible to follow the
-dev otherwise
+Unsurprisingly its development was pushed by the applications written in it,
+in particular Hierarchy-Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
 
-Driven by 1 clear design/illusion: high level terms with binders and holes.
-Pushed by applications, derive and HB in primis.
+Coq-Elpi was developed in the open from the the very beginning, making the
+Coq development team aware of the effor. Their committment to
+provide patches to Coq-Elpi eavery time a Coq API did evolve made its
+development over more than seven years sustainable. The contribution 
+from the Coq community was also very important, in particular from
+power users such as BlueRock systems that contributed a substantial amount
+of code.
+
+\subsection{Coq tools written in Elpi}
+
+HB unblocked MC, Derive
 
 
 \section{Current and future work}
@@ -3157,7 +3216,8 @@ like 2 times slower on simple code with a few rules.
 optimizations for flattening list as in the app.
 
 
-\subsection{static analysis}
+\subsection{Static analysis}
+
 
 determinacy
 
