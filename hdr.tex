@@ -59,12 +59,12 @@
 %'theorem.py:CoqLexer -x'
 \newminted[elpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
-\newmintinline[elpiinline]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline[elpi]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newminted[rocqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newmintinline[rocqinline]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline[rocq]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
 \newminted[ocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newmintinline{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline[ocaml]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 
 \newenvironment{dedication}
   {%\clearpage           % we want a new page          %% I commented this
@@ -155,7 +155,7 @@ the XXX building was not closed, so the 3 of us agreed to buy a sandwich,
 walk up the hill (with boots) and meet in a desert building.
 
 After two hours of gentle introduction, after having savoured the
-elegance of \elpiinline{copy}, I clearly remember I say ``sold...'',
+elegance of \elpi{copy}, I clearly remember I say ``sold...'',
 but I also completed the sentence with ``how do I do evars?''.
 
 $\lambda$Prolog could easily describe the rules my programs were
@@ -235,10 +235,10 @@ type leaf tree.
 type node int -> tree -> tree -> tree. 
 \end{elpicode}
 
-The \elpiinline{leaf} and \elpiinline{node} symbols can be used to
+The \elpi{leaf} and \elpi{node} symbols can be used to
 build terms and have arity 0 and 3 respectively. Elpi
 follows the tradition of typed functional languages by prescribing not only
-an arity but a more precise type to \elpiinline{leaf} and \elpiinline{node}.
+an arity but a more precise type to \elpi{leaf} and \elpi{node}.
 In this document we refer to them as term constructors, or simply constructors.
 \begin{wrapfigure}{r}{.2\textwidth}
   \begin{forest}
@@ -248,7 +248,7 @@ In this document we refer to them as term constructors, or simply constructors.
 Types play no role at run time but grately contribute to the static analysis
 of the code, allowing to report typos and sometime even true errors, early.
 As an example the term
-\elpiinline{(tree 46 (tree 93 leaf leaf) leaf)}
+\elpi{(tree 46 (tree 93 leaf leaf) leaf)}
 represents the tree depicted on the right.
 To the reader familiar with
 Prolog we point out that Elpi adopts the syntactic convention
@@ -270,10 +270,10 @@ type size tree -> int -> prop.
 size leaf 0.
 size (node _ L R) N :- size L N1, size R N2, N is 1 + N1 + N2.
 \end{elpicode}
-Again we favor a type assignment to a simple arity. \elpiinline{prop} is the
-type of executable code, meaning that \elpiinline{size}, when applied to two
+Again we favor a type assignment to a simple arity. \elpi{prop} is the
+type of executable code, meaning that \elpi{size}, when applied to two
 arguments, becomes a goal and a program can be run to solve it.
-On the contrary \elpiinline{node}, applied to any number of arguments,
+On the contrary \elpi{node}, applied to any number of arguments,
 is just a piece of data, it is not a goal.
 
 \begin{elpicode}
@@ -283,7 +283,7 @@ Success
   N = 2
 \end{elpicode}
 Operations on built-in data types, such as integers, are provided via
-the built-in \elpiinline{is} operator that evaluates its right hand side
+the built-in \elpi{is} operator that evaluates its right hand side
 and unifies the result with the left hand side.
 ~\\
 It is worth pointing out that variables do not need to be used linearly
@@ -342,7 +342,7 @@ On the contrary functional languages do not usually come with backtracking
 while it is undeniable that logic programming and backtracking are linked by
 a strong bond and that the ability to ``compute relations'' is a typical
 selling point. Still, according to our experience, the vast majority of code
-written in Elpi does not need this feature. In~\cite{fissore:hal-05026472} we
+written in Elpi does not need this feature. In~\cite{elpidet} we
 estimate that 96\% of the existing Elpi code computes functions!
 
 So, in conclusion, I believe that the most interesting
@@ -398,12 +398,12 @@ kind ty.
 type arr ty -> ty -> ty.
 \end{elpicode}
 
-The type declaration for terms introduces a pairing constructor \elpiinline{app},
+The type declaration for terms introduces a pairing constructor \elpi{app},
 putting together a function and its argument, and a function former
-\elpiinline{lam} that abstracts a term over a (bound) variable representing the
+\elpi{lam} that abstracts a term over a (bound) variable representing the
 formal argument. The declaration uses the function space of
 the programming language in order to represent the abstraction:
-the function carried by \elpiinline{lam} can be applied to an actual argument in order
+the function carried by \elpi{lam} can be applied to an actual argument in order
 to recoved the body of the expression where the formal argument is
 replaced by the actual argument.
 
@@ -413,15 +413,15 @@ In this syntax the function $fst = \lambda x.\lambda y.x$ is written as follows:
 Fst = (lam x\ lam y\ x)
 \end{elpicode}
 
-Note that \elpiinline{(x\ lam y\ x)} is a function of \elpiinline{x} (a
+Note that \elpi{(x\ lam y\ x)} is a function of \elpi{x} (a
 variable of the Elpi programming language)
 and that the syntax tree of our object language, $\lambda$-calculus, does not
 feature a term constructor for variables since one can reuse the variables
 of Elpi.
 As sketched above the body of the first abstraction
 can be recovered by applying the function to an argument, for
-example the constant \elpiinline{c}: \elpiinline{((x\ lam y\ x) c)}
-evaluates to \elpiinline{(lam y\ c)}.
+example the constant \elpi{c}: \elpi{((x\ lam y\ x) c)}
+evaluates to \elpi{(lam y\ c)}.
 
 
 % \begin{elpicode}
@@ -439,18 +439,24 @@ of (app H A) T :- of H (arr S T), of A S.
 of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
 \end{elpicode}
 
-The rule for application reads: in order to assign type \elpiinline{T} to
-the application of \elpiinline{H} to \elpiinline{A} we need to assign
-the type \elpiinline{S} arrow \elpiinline{T} to \elpiinline{H} and
-the type \elpiinline{S} to \elpiinline{A}. The one for abstraction
-assigns the type \elpiinline{S} arrow \elpiinline{T} if, given any
-fresh symbol \elpiinline{c} of type \elpiinline{S} the body of
-the function \elpiinline{F} has type \elpiinline{T} when the bound variable
-is substituted by \elpiinline{c}.
+The rule for application reads: in order to assign type \elpi{T} to
+the application of \elpi{H} to \elpi{A} we need to assign
+the type \elpi{S} arrow \elpi{T} to \elpi{H} and
+the type \elpi{S} to \elpi{A}. The one for abstraction
+assigns the type \elpi{S} arrow \elpi{T} if, given any
+fresh symbol \elpi{c} of type \elpi{S} the body of
+the function \elpi{F} has type \elpi{T} when the bound variable
+is substituted by \elpi{c}.
 
+\begin{elpicode}
+goal> Fst = (lam x\ lam y\ x), of Fst Ty.
+
+Success
+  Ty = arr S1 (arr S2 S1)
+\end{elpicode}
 
 The two rules above closely match the ``inference rules'' commonly used in
-by the logic or programming language communities:
+by logic or programming language communities:
 \label{inf:stlc}
 
 $$
@@ -468,8 +474,8 @@ $$
 
 
 
-The main difference is that $\Gamma$ is managed by Elpi: the \elpiinline{pi}
-operator guarantees the freshness of $c$, while \elpiinline{=>} augments
+The main difference is that $\Gamma$ is managed by Elpi: the \elpi{pi}
+operator guarantees the freshness of $c$, while \elpi{=>} augments
 the current program with an instance of the rule:
 
 $$
@@ -480,7 +486,8 @@ $$
 $$
 
 While Prolog finds it roots on Horn clauses, $\lambda$Prolog and hence
-Elpi are based on Hereditary Harrop formulas~\cite{}. While the rule for application
+Elpi are based on Hereditary Harrop formulas~\cite{Miller_Nadathur_2012}.
+While the rule for application
 can be seen as a formula in the Horn fragment:
 
 $$
@@ -495,8 +502,8 @@ $$
 $$
 
 The reading of the rule for abstraction as an Hereditary Harrop formula
-makes it clear that the scope of $c$ and the so called hypothetical rule
-assigning to it a type are limited to the subgoal $\mathrm{of}~(F~c)~T$,
+makes it clear that the scope of $c$ and its companion rule
+are limited to the subgoal $\mathrm{of}~(F~c)~T$,
 unlike the \texttt{assert/1} and \texttt{retract/1} Prolog builtins\footnote{
   although some Prolog implementation provide the notion of ``transaction''
 that can be used to simulate scoping.}.
@@ -504,8 +511,7 @@ that can be used to simulate scoping.}.
 As previously announced, we want to use Elpi in the context of an
 interactive prover like Rocq where syntax trees are often incomplete, i.e.
 they contain holes. For example we would like to run the
-type checker of this goal: \elpiinline{of (app F A) T}.
-
+type checker of this goal: \elpi{of (app F A) T}.
 This is where $\lambda$Prolog falls short, by lack of a way to avoid
 divergence by suspending search on certain goals and lack of a sub language
 to manipulate suspended goals.
@@ -520,10 +526,10 @@ or $\lambda$-tree syntax. The language also provides another kind
 of variables, meta-variables actually, that we call unification variables.
 These unification variables are equipped with a scope, a list of bound
 variables that can be used in their assignment. This is essential to
-avoid capturing variables by mistake, and it is well studiend in~\ref{}.
+avoid capturing variables by mistake, and it is well studiend in~\ref{miller92jsc}.
 
-The natural question is: can we reuse the unification variables of
-the programming language to represent holes in the syntax trees we manipulate?
+The natural question is: \emph{can we reuse the unification variables of
+the programming language to represent holes in the syntax trees we manipulate?}
 In other words, the runtime of of our Logic programming language is already
 carrying a substitution for these variables, undoing its application upon
 backtracking, avoiding the generation of circular terms (i.e. not trees)
@@ -544,7 +550,7 @@ From a programming perspective, the needs are the following ones:
      generate a constraint, or synthesize an assignment for the hole
      via a dedicated routine (more complex than unification)
   \item[attach data to holes] from a simple boolean flag, as we will do
-    when implemeting ML type inference with equality types,
+    when implemeting ML type inference with equality types (section~\ref{sec:milner}),
     to a full typing sequent as it is necessary to do when holes represent
     Rocq terms
 
@@ -563,7 +569,7 @@ of being unified. This means that no unification variable occurring in
 the goal inside an input argument is instantiated when the rule is
 fired.
 
-Mode declaration comes together with the \elpiinline{uvar} keyword to denote
+Mode declaration comes together with the \elpi{uvar} keyword to denote
 holes in the head of a rule.
 
 In the light of that we can rephrase the type checker for simply typed
@@ -576,10 +582,10 @@ of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
 of (uvar as E) T :- declare_constraint (of E T) [E].
 \end{elpicode} 
 
-The \elpiinline{pred} directive combines a type and mode declaration.
-The \elpiinline{uvar as E} binds to the unification variable \elpiinline{E}
+The \elpi{pred} directive combines a type and mode declaration.
+The \elpi{uvar as E} binds to the unification variable \elpi{E}
 a hole in the goal and is semantically equivalent to the following,
-where \elpiinline{var/1} is the standard Prolog predicate testing if
+where \elpi{var/1} is the standard Prolog predicate testing if
 a variable is unbound.
   
 \begin{elpicode}
@@ -589,21 +595,22 @@ of E T :- var E, declare_constraint (of E T) [E].
 Many Prolog implementations feature a ``delay directive'' i.e. a sublanguage to
 prescribe when goals should be suspended or resumed. In Elpi we opeted for
 a more low level but also more flexible approach where the programmer declares
-constraints / suspends goal via  the \elpiinline{declare_constraint} built-in
-predicate. In the example above \elpiinline{[E]} is the list of variables
-that ``block'' the suspended goal: as soon as one is assigned the goal should
-be resumed.
+constraints / suspends goals via  the \elpi{declare_constraint} built-in
+predicate. In the example above \elpi{[E]} is the list of variables
+that ``block'' the suspended goal: as soon as one of these variables
+is assigned the goal should be resumed.
 
 It is worth pointing out that the input mode described above can in principle
 be ``emulated'' via a program transformation that we sketch below:
 
 \begin{elpicode}
 of E T :- not (var E), E = (app H A), of H (arr S T), of A S.
-of E (arr S T) :- not (var E), E = (lam F), pi c\ (of E S :- not (var E), E = c) => of (F c) T.
+of E (arr S T) :- not (var E), E = (lam F),
+  pi c\ (of E S :- not (var E), E = c) => of (F c) T.
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
 
-With this mechanism in place the type checker can do something useful
+With this mechanism in place the type checker can do something sensible
 on terms containing holes:
 
 \begin{elpicode}
@@ -615,7 +622,16 @@ Constraints:
   of H (arr S T)  /* suspended on H */
 \end{elpicode}
 
-The resumption 
+As one expects the incomplete term is well typed under the
+constraint that \elpi{A} has a type
+compatible with one expected by \elpi{H} that
+is turn is expected to be a function to \elpi{T},
+the type of the term passed to \elpi{of}.
+
+When \elpi{H} materializes its corresponding
+constraint is resumed. Below we set \elpi{H} to
+the identity function, hence forcing its input and
+output types to be the same.
 
 \begin{elpicode}
 goal> of (app H A) T, H = (lam x\ x).
@@ -626,30 +642,42 @@ Constraints:
   of A T  /* suspended on A */
 \end{elpicode}
 
-And the very same result is given on the goal \elpiinline{of (app (lam x\ x) A) T}.
+Remark how the remaining constraint differs from before:
+the type of \elpi{A} is now the same \elpi{T}
+of the whole term.
+
+It is reassuring that the very same result is given
+for the very similar goal where the value of \elpi{H} is given
+upfront \elpi{of (app (lam x\ x) A) T}.
   
 Unfortunately the sole possibility of suspending and resuming goals is
 not enough to implement a satisfactory type checker. An example of
-goal giving an unexpected result is \elpiinline{of (app D D) T}
-that succeeds with constraints
+goal giving an unexpected result is \elpi{of (app D D) T}
+that succeeds with constraints:
 
 \begin{elpicode}
   of D S  /* suspended on D */
   of D (arr S T)  /* suspended on D */
 \end{elpicode}
 
-that are clearly incompatible.
+These constraints are clearly incompatible, hence the
+type checker should have failred.
 
-We need a language to combine the constraints attached to hole \elpiinline{D}.
+We need a language to combine the constraints attached to
+the hole \elpi{D}. We chose Constraints Handling Rules.
 
 \section{Constraints Handling Rules}\label{sec:chrui}
 
-A C.H.R.~\cite{chr}
-program is a set of rules that maintain the constraint store, a
-multi-set of (suspended) goals. A rule adds or removes constraints
-from the store, and rules are applied following their order
-as per the refined operational semantics~\cite{10.1007/978-3-540-27775-0_7}
-of C.H.R.
+Constraint Handling Rule (CHR for short) is a declarative
+programming language based on rules that operate on
+a multise of constraints~\cite{chr}.
+A rule mathes the set of constraints against a
+pattern, possibly equipped with a guard, and when it fires
+it adds or removes constraints from the store.
+Elpi implements the so called refined operational
+semantics~\cite{10.1007/978-3-540-27775-0_7}
+of CHR that, intuitively, tests rules in the given order
+and commits to the first one that fires.
 
 The following Elpi code complements the running example by
 imposing that each hole has only one typing constraint.
@@ -660,21 +688,22 @@ constraint of {
 }
 \end{elpicode}
 
-The rule reads: if the constraint \elpiinline{of X T1} is present
-in the store together with \elpiinline{of X T2}, then remove
-the latter and generate a new goal \elpiinline{T1 = T2}.
+The rule reads: if the constraint \elpi{of X T1} is present
+in the store together with \elpi{of X T2}, then remove
+the latter and generate a new goal \elpi{T1 = T2}.
 This is sufficient to make the type checker
-reject \elpiinline{of (app D D) T}, since the goal
-\elpiinline{S = arr S T} fails (because of occur check).
+reject \elpi{of (app D D) T}, since the goal
+\elpi{S = arr S T} fails (because of occur check).
 
 A detail to remak is that the constraints are matched against
 the constraint handling rules, that is the non linear occurrence
-of \elpiinline{X} does not risk to ``merge'' two unrelated constraints:
+of \elpi{X} does not risk to ``merge'' two unrelated constraints:
 the rule above only applied if two constraint about the same variable
 are in the stote.
 
-Another important difference is that constraint handling rules
-match more goals at once. While the execution of an Elpi program
+Another important aspect is that constraint handling rules
+match more goals at once (while Logic programming rules
+only match or unify one). While the execution of an Elpi program
 can be seen as a depth-first construction of a proof tree, with
 the possibility of suspending the exploration of a branch, the
 application of a constraint handling rule operates on all suspended
@@ -686,11 +715,12 @@ proof. Indeed CHR rules do have a logical reading.
 rule G1 \ G2 | T <=> G3
 \end{verbatim}
 
-This rule is sound if, somehow, if $T \land G1 \Rightarrow (G2 \Leftrightarrow G3)$
+The meaning of the rule is $T \land G1 \Rightarrow (G2 \Leftrightarrow G3)$.
+\marginpar{explain better}
   
 As we mentioned before Elpi automatically manages the context, that is
-the set of fresh constants generated by \elpiinline{pi} and hypothetical
-rules introduced by \elpiinline{=>}. As a result an Elpi goal is
+the set of fresh constants generated by \elpi{pi} and hypothetical
+rules introduced by \elpi{=>}. As a result an Elpi goal is
 not just a predicate $P$, but rather a sequent $E \triangleright  \Gamma \vdash P$
 where $E$ is the set of fresh constants and $\Gamma$ the set of hypothetical rules.
 
@@ -698,7 +728,7 @@ The previous rule to model uniqueness of typing is hence incomplete
 since the same hole can occur under different contexts. This more
 elaborate version accepts different contexts and sets of fresh constants.
 
-TODO explain S1 S2 \cite{joijgov}.
+TODO explain S1 S2 \cite{Jojgov}.
 
 \begin{elpicode}
 constraint of {
@@ -709,29 +739,38 @@ constraint of {
 
 While correct for simple types this rule does not scale for a type
 discipline like the one of Rocq where terms can occur in types,
-i.e. where the constants in S1 occur in T1, and S2 in T2. In this
-richer setting comparing T1 and T2 in the disjoint union is incorrect,
-one needs to relocate one term under the context of the other in order
-to unify them (and avoid pruning, TODO example)
+i.e. where the constants in S1 occur in T1.
+We point the reader to~\cite{TASSI_2019} for the details of
+a CHR rule to model the uniqueness of typing property
+of Rocq's logic.
 
-bla $E1 \uplus E2 \triangleright \emptyset \vdash G$ where $\uplus$.
 
-The most precise constraint handling rule is the following one:
+% , and S2 in T2. In this
+% richer setting comparing T1 and T2 in the disjoint union is incorrect,
+% one needs to relocate one term under the context of the other in order
+% to unify them (and avoid pruning, TODO example)
 
-\begin{elpicode}
-constraint of {
-  rule (E1 :> G1 ?- of (uvar X S1) T1) \ (E2 :> G2 ?- of (uvar X S1) T2)
-    | (relocate L1 L2 G1 G2 T2 T2')
-    <=> (E1 :> G1 => T1 = T2)
-}
-\end{elpicode}
+% bla $E1 \uplus E2 \triangleright \emptyset \vdash G$ where $\uplus$.
 
-First, \elpiinline{uvar X S} is the syntax for the unification variable X
-with scope S, where S is a list of constants. The guard of the rule $G$,
-namely \elpiinline{relocate L1 L2 G1 G2 T2 T2'}, runs as a Elpi goal
-$E1 \uplus E2 \triangleright \emptyset \vdash G$ where $\uplus$ denotes
+% The most precise constraint handling rule is the following one:
+
+% \begin{elpicode}
+% constraint of {
+%   rule (E1 :> G1 ?- of (uvar X S1) T1) \ (E2 :> G2 ?- of (uvar X S1) T2)
+%     | (relocate L1 L2 G1 G2 T2 T2')
+%     <=> (E1 :> G1 => T1 = T2)
+% }
+% \end{elpicode}
+
+% First, \elpi{uvar X S} is the syntax for the unification variable X
+% with scope S, where S is a list of constants. The guard of the rule $G$,
+% namely \elpi{relocate L1 L2 G1 G2 T2 T2'}, runs as a Elpi goal
+% $E1 \uplus E2 \triangleright \emptyset \vdash G$ where $\uplus$ denotes
 
 TODO: Example of abs evars?
+
+
+
 
 Constraints and CHR serve many purposes:
 \begin{itemize}
@@ -751,12 +790,16 @@ CHR as depicted:
 %\end{figure}
 
 
+\subsection{Operational semantics}\label{sec:sem}
+
+TODO \cite{TASSI_2019}
+
 
  
 Rule application follows the refined operational semantics~\cite{10.1007/978-3-540-27775-0_7}.
 It amounts to precise neting of iterations. The starting point is
 the so called ``active constraint'' $A$ that, in the context of Elpi, is
-the constraint just declared via \elpiinline{declare_constraint}.
+the constraint just declared via \elpi{declare_constraint}.
 
 \begin{enumerate}
 \item for each rule $P_1 \ldots P_x \backslash P_{x+1} \ldots P_n | C \Leftarrow G$
@@ -770,10 +813,686 @@ the constraint just declared via \elpiinline{declare_constraint}.
 \item move to the next rule
 \end{enumerate}
 
-The semantics described above, most of the times, behaves intuitively: rules
+Integration with SLD works as follows: each new constraint becomes
+a goal that is considered as the leftmost conjuct of the current
+resolution state. Since a new goal can in turn declare a new constraint,
+the CHR loop can continue. In other words constraint handling takes
+priority over SLD resolution.
+
+\section{Syntactic sugar}
+
+Elpi features some simple syntactic sugar that is elimated by
+the ``compiler'' before running programs.
+
+\subsection{Namespaces}
+
+Elpi code is obtained by accumulating together files, that is
+``concatenating'' lists of rules, possibly written by different
+authors. It is not impossible that
+two files, file1 and file2, contain declarations for a predicate with same name p.
+
+When the types for p do not match, Elpi fails immediately
+and the programmer is warned. But when the types match, it may
+happen that the predicate changes meaning or complexity,
+especially in case of failure.
+
+A simple man solution could be to simply put the file name
+as part of predicate names, eg file1.p and file2.p.
+
+To paliate the syntactic overhead Elpi provides two syntactic
+facilities: namespace and shorten. The former prefixes all
+names of the predicates contained in a block, the latter makes
+predicates accessible via a short name inside a file or a block
+
+\begin{elpicode}
+namespace n1 {
+  pred p.
+}
+\end{elpicode}
+
+elsewhere
+
+\begin{elpicode}
+shorten n1.{ p }.
+q :- p.
+\end{elpicode}
+
+note that a type/mode declaration declares the belonging to a namespace.
+
+\begin{elpicode}
+p.
+namespace n2 {
+  pred p.
+  q :- p.
+}
+\end{elpicode}
+
+\subsection{Spilling}
+
+We argue that the names we give to the objects we manipulate
+are the most important form of documentation and badly chosen
+name are the primary cause of unreadable code.
+
+The time a sloppy programmer saves by using \elpi{TMP}, \elpi{AUX}
+or \elpi{X'} instead of thinking at an appropriate name is
+demanded, with interests, to any reader of code, including himself.
+
+Logic programming, even in its Higher Order flavor, distinguishes
+commands from expressions (predicates from data). This characteristic
+is the primary contributor to the proliferation of temporary
+variables, a phenomenon that functional programming languages
+reduce by putting in the same syntactic category function calls an
+data. 
+
+For example the OCaml code \texttt{List.rev (List.append l1 l2)}
+or its equivalent \texttt{List.append l1 l2 |> List.rev} enables
+to programmer to avoid naming the result of append, while in logic
+programming one often reads
+
+\begin{elpicode}
+code L1 L2 Result :- append L1 L2 TMP, rev TMP Result.
+\end{elpicode}
+
+Elpi provides a syntatic facility to let one use
+``partially applied'' predicates as ``function calls''.
+By partially applied we mean ``applied to all the arguments flagged as input''.
+For example the code above can be written as follows
+
+\begin{elpicode}
+code L1 L2 Result :- rev {append L1 L2} Result.
+\end{elpicode}
+
+The curly braces identify a term to be \emph{spilled} to the closest
+\emph{execution point}, identified by walking the terms outside in and
+identifying the first expression of type \elpi{prop}.
+
+Spilling can be nested. Its elaboration is akin to the generation
+of the administrative normal form that is commonly used in functional
+programming languages.
+
+\subsubsection{Spilling under a binder}
+
+When the spilled expression needs to cross a binder in order to
+reach the execution point, the elaboration is more sophisticated.
+For example: 
+
+\begin{elpicode}
+code Result :- Result = (lam x\ {mk-app f [x]}).
+code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
+\end{elpicode}
+  
+
+In order to run the spilled code in a context with the bound variable
+x, the expression must be put under a \elpi{pi y\\ }. Similarly
+the temporary variable needs to be abstracted over the variable, so
+that we can identify the original one x with the one abstracted by
+\elpi{pi} y.
+
+Note that spilling does not need to cross a \elpi{pi}, but
+needs to make the quantified variable visible to the result of
+the spilled computation, for example explicilty quantifying it
+with a sigma. For example:
+
+\begin{elpicode}
+  code L1 L2 Result :- pi x\ rev {append [x|L1] L2} (Result x).
+  code L1 L2 Result :- pi x\ sigma TMP\ append [x|L1] L2 TMP, rev TMP (Result x).
+\end{elpicode}
+
+\subsubsection{Spilling and impliction}
+
+When the object language features a sophisticated HOAS for the context
+(as in \ref{GALLINA}) it may be necessary to augment the context with
+the implication operator. For example imagine the \elpi{lam}
+term constructor carries the type of the bound variable
+
+\begin{elpicode}
+  code Ty Result :- Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+  code Ty Result :-
+    (pi x\ of x Ty => of (app g x) (TMP x))
+    Result = (lam Ty x\ lam (TMP x) y\ ...)
+\end{elpicode}
+
+This is frequent when spilling combined with quotations, for example
+
+\begin{elpicode}
+  T = {{ λx : nat => lp:{{ app f {api x}  }}  }}
+\end{elpicode}
+
+where the api needs the context of the object language, see \ref{FFI}
+
+\paragraph{Spilling ambiguities}
+
+Not all that glitter is gold. Sometimes the closest execution
+point may not be what the programmer wants.
+
+\begin{elpicode}
+  code D TodoForLater  :-
+    TodoForLater [ this, that {rev D} ].
+\end{elpicode}
+
+If this and that are predicated, the latter becomes
+\elpi{(rev D TMP, that TMP)} meaning that
+D is reversed when TodoForLater will be executed, and
+not when the todo list is generated, as one may have wanted.
+
+According to our experience the closes execution point
+is more often than not what the programmer expects.
+
+\section{A complete example: Hindley Milner type inference}\label{sec:milner}
+
+The most significan type inference algorith is the one crafted by
+Milner the ML language~\cite{MILNER1978348}. The flavor we 
+study here covers equality type variables, the \texttt{''a} abstraction
+(in standard ML syntax) for decidable types, i.e. types that can be
+effectively compared unlike the function space.
+
+It makes a good use case for Elpi because:
+\begin{itemize}
+  \item it manipulates syntax trees with binders, namely lambd abstraction
+    and let binding
+  \item it manipulates types containing unification variables (i.e. holes).
+    The key step in the algorithm is to turn (existentially quantified)
+    unification variables into universally quantifies type variables to
+    form a skema
+  \item unification variables have an attribute, a flag (denoted with
+    an over bar) that is set if the equality test is used on values
+    of their type.
+\end{itemize}
+
+The syntax of terms is very similar to the simply typed $\lambda$-calculus
+one, with the addition of \texttt{let} and the equality test. We omit
+conditional, loops or recursion since it does not play an important role.
+
+\begin{center}
+\begin{minipage}{0.35\textwidth}
+$$
+\begin{array}{lrl}
+  e & =     & x                                 \\
+  & \vert & e_1\ e_2                            \\
+  & \vert & \lambda\ x\ .\ e                    \\
+  & \vert & \mathtt{let}\ x = e_1\ \mathtt{in}\ e_2 \\
+  & \vert & e_1 = e_2 \\
+\end{array}
+$$
+\end{minipage}
+\begin{minipage}{0.55\textwidth}
+\vspace{0.5em}
+%elpi:hm.elpi
+\begin{elpicodelj}
+kind term type.
+type global  string -> term.
+type app term -> term -> term.
+type lam (term -> term) -> term.
+type let term -> (term -> term) -> term.
+type eq  term -> term -> term.
+\end{elpicodelj}
+\end{minipage}
+\end{center}
+~\\  
+~\\  
+As in section~\ref{} we use an HOAS encoding of terms.
+Still we add a \elpi{global} term constructor to
+be able to set up a minimal environment for our examples.
+
+Monomorphic type expressions $\tau$ and type skemas $\sigma$
+are depicted below. As in the original paper we fix a few builtin type contructors
+instead of supporting a generic n-ary type former, but unlike
+the ML tradition we put type constractors to the left of an application.
+We use the infix symbol \elpi{-->} for the function space of ML.
+
+\begin{center}
+\begin{minipage}{0.4\textwidth}
+$$
+\begin{array}{lrl}
+  \\
+    \tau   &=     & \alpha                    \\
+                              &\vert &  \tau \to \tau         \\
+                              &\vert &  \mathtt{int}         \\
+                              &\vert &  \mathtt{bool}         \\
+                              &\vert &  \mathtt{list}\ \tau         \\
+                              &\vert &  \mathtt{pair}\ \tau\ \tau         \\
+  
+     \sigma &=    & \tau                                           \\
+                             &\vert& \forall\ \alpha\ .\ \sigma \\
+                            &\vert& \forall\ \bar\alpha\ .\ \sigma \\
+  \\
+\end{array}
+$$
+\end{minipage}
+\begin{minipage}{0.5\textwidth}
+%elpi:hm.elpi
+\begin{elpicodelj}
+kind tye type.
+type (-->) tye -> tye -> tye.  
+type int   tye.
+type bool  tye.
+type list  tye -> tye.
+type pair  tye -> tye -> tye.
+
+kind ty type.
+type all    bool -> (tye -> ty) -> ty.
+type mono   tye -> ty.
+\end{elpicodelj}
+\end{minipage}
+\end{center}
+
+
+The typing routing works with a context and, as we did for the
+simply typed lambda calculus, we delegate its management to the
+programming language.
+
+$$
+\begin{array}{llrl}
+  \\
+    \text{Context}     & \Gamma & = & \epsilon\ \mathtt{(empty)}\\
+                       &        & \vert& \Gamma,\ x : \sigma\\
+    \text{Typing}      &        & = & \Gamma \vdash e : \sigma\\
+  \\
+  \end{array}
+$$
+
+
+We give below a fre example of type assignement to global
+constants. It is worth highlighting the fact that the
+type skema for \elpi{"undup"}
+
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred of i:term, o:ty.
+of (global "1")      (mono int).
+of (global "plus")   (mono (int --> int --> int)).
+of (global "nil")    (all ff x\ mono (list x)).
+of (global "cons")   (all ff x\ mono (x --> list x --> list x)).
+of (global "pr")     (all ff x\ all ff y\ mono (x --> y --> (pair x y))).
+of (global "fst")    (all ff x\ all ff y\ mono (pair x y --> x)).
+of (global "size")   (all ff x\ mono (list x --> int)).
+of (global "undup")  (all tt x\ mono (list x --> list x)).
+\end{elpicode}
+  
+
+The specialization of type skema allows one to plug type expressions in place
+of quantified variables. When the substituted variables stands for an
+equality type, one has to check that the type expression has an equality test.
+
+$$
+\displaystyle\frac{\tau' = \left\{\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
+$$
+$$
+\displaystyle\frac{\tau' = \left\{\bar\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau) \quad \overline{eq}(\tau_i)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
+$$
+$$
+\begin{array}{ll}
+  \overline{eq}(\mbox{bool}) & \\
+  \overline{eq}(\mbox{int}) & \\
+  \overline{eq}(\mbox{list}~\tau) & ~\mbox{if}~ \overline{eq}(\tau) \\
+  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) ~\mbox{and}~ \overline{eq}(\tau_2)\\
+  \overline{eq}(\bar\alpha) & \\
+\end{array}
+$$
+
+The Elpi code departs the pen and paper presentation by instantiatin, at once,
+all skema variables by fresh unification variables, possibly constraining them
+to be an eq type
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred specialize i:ty, o:tye.
+specialize (mono T) T.
+specialize (all ff F) T :- specialize (F Fresh_) T.
+specialize (all tt F) T :- specialize (F Fresh) T, eqbar Fresh.
+\end{elpicode}
+
+The \elpi{eqbar} predicate traevrses concrete type expressions and
+suspend when variables are found.
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred eqbar i:tye.
+eqbar bool.
+eqbar int.
+eqbar (list A) :- eqbar A.
+eqbar (pair A B) :- eqbar A, eqbar B.
+eqbar (uvar as A) :- declare_constraint (eqbar A) [A,_].
+
+constraint of ?- gammabar eqbar theta rm-eqbar {
+  rule (eqbar V) \ (theta L) | (not(mem L V)) <=> (theta [V | L]).
+}
+
+pred theta i:list tye.
+theta L :- declare_constraint (theta L) [_].
+\end{elpicode}
+
+The auxiliary constraint \elpi{theta} is used to gather the
+(duplicate free) list of unification variables constrained to be equality types.
+
+The use of constraints here is handy but not essential. One could thread a state,
+the list of all type variables used so far paired with their equality type status.
+The constraint store offers a global state carried on the side of the goals
+and constraint handling rules the possibility to organize it, like grouping
+all entries into a list.
+
+The declarative code for the type inference algorithm is given below.
+While the rules for lambda abstraction and application are the same
+for simply typed lambda calculus~\ref{inf:stlc}.
+
+\begin{center}
+\begin{minipage}{0.45\textwidth}
+$$
+\begin{array}{cl}
+  \displaystyle\frac{\Gamma \vdash e_0:\tau \rightarrow \tau' \quad\quad \Gamma \vdash e_1 : \tau }{\Gamma \vdash e_0\ e_1 : \tau'}\\ \\
+  \displaystyle\frac{\Gamma,\;x:\tau\vdash e:\tau'}{\Gamma \vdash \lambda x.e : \tau \rightarrow \tau'}
+\end{array}
+  $$
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
+$$
+\begin{array}{cl}
+  \displaystyle\frac{x:\sigma \in \Gamma \quad \sigma \sqsubseteq \tau}{\Gamma \vdash x:\tau}\\ \\
+  \displaystyle\frac{\Gamma \vdash e_0:\tau \quad\quad \Gamma,\,x:\bar{\Gamma}(\tau) \vdash e_1:\tau'}{\Gamma \vdash \mathtt{let}\ x = e_0\ \mathtt{in}\ e_1 :  \tau'}
+  \end{array}
+$$
+\end{minipage}
+$$ 
+\displaystyle\frac{\Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau \quad \overline{eq}(\tau)}{\Gamma \vdash e_1 = e_2: \mathtt{bool}}
+$$
+\end{center}
+
+The rule for variables finds in $\Gamma$ a skema and assigns to the variable
+any valid instance. The rule for let pushes into the context a type
+$\overline{\Gamma}(\tau)$ for a let-bound expression of type $\tau$ in $\Gamma$.
+Finally the rule for equality tests if the type of the expressions admits
+an equality test.
+
+%elpi:hm.elpi
+\begin{elpicode}
+of (app H A) (mono T) :-
+  of H (mono (S --> T)),
+  of A (mono S).
+
+of (lam F) (mono (S --> T)) :-
+  pi x\ of x (mono S) => of (F x) (mono T).
+
+of (let E B) (mono TB) :-
+  of E (mono T),
+  gammabar (mono T) PT,
+  pi x\ of x PT => of (B x) (mono TB).
+
+of (eq LHS RHS) (mono bool) :-
+  of LHS (mono T),
+  of RHS (mono T),
+  eqbar T.
+
+of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
+\end{elpicode}
+
+Elpi rules are very close to pen and paper ones. The only difference is that
+the rule for variable is extended, on purpose, to any term so that it
+can apply to global constants as well.
+
+We have already described how \elpi{specialize} relates to $\sqsubseteq$,
+what is left to describe is the $\overline{\Gamma}$ operation.
+  
+$$
+\overline{\Gamma}(\tau) = \forall\ \hat{\alpha}\ .\ \tau \quad\quad \hat{\alpha} = \textrm{free}(\tau) - \textrm{free}(\Gamma)
+$$
+
+Intuitively one has to compute the free type variables in $\Gamma$ and $\tau$
+and only abstract the ones as not free in $\Gamma$, i.e. that are only used
+locally to the expressions being bound by the let.
+
+This operation escapes the capabilities of $\lambda$Prolog alone, even with
+the mode extensions we discuss in~\ref{sec:modes}, since $\Gamma$ is not
+first class or in other words it is automatically managed by the runtime.
+This is where the ``meta'' status of constraint handling rules comes in
+handy: suspended goals are sequents made of a formula and its context.
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred gammabar i:ty, o:ty.
+gammabar (mono T) TS :- declare_constraint (gammabar (mono T) TS) [_].
+
+constraint of ?- gammabar eqbar theta rm-eqbar {
+  rule  \ (theta L)
+          (G ?- gammabar T TS)     % matched and removed
+        | (generalize L G T POLYT ToRemove) % guard + syntesis
+      <=> (TS = POLYT, rm-eqbars ToRemove, theta []).             % new goal
+  rule \ (eqbar X) (rm-eqbar X).
+}
+
+pred rm-eqbars i:list tye.
+rm-eqbars [].
+rm-eqbars [X|XS] :- rm-eqbar X, rm-eqbars XS.
+
+pred rm-eqbar i:tye.
+rm-eqbar X :- declare_constraint (rm-eqbar X) [X, _].
+
+pred generalize i:list tye, i:list prop, i:ty, o:ty, o:list tye.
+generalize Theta Gamma (mono T) PolyT ToQuantify :-
+  free-ty (mono T) [] VT,
+  free-gamma Gamma [] VGamma,
+  filter VT (x\ not(mem VGamma x)) ToQuantify,
+  bind ToQuantify Theta T PolyT.
+\end{elpicode}
+
+The code to implement $\overline{\Gamma}(\tau)$ performs thwo tasks:
+
+\begin{itemize}
+  \item It abstracts \elpi{T} into a skema \elpi{POLYT} and
+    returns is by assigning \elpi{TS}
+  \item It cleans up the store of constraints removing the \elpi{eqbar}
+    constraints on variables that are now bound in the skema, and updates
+    \elpi{theta} by recomputing it
+\end{itemize}
+
+The first task is necessary while the second one is mainly to explain an motivate
+the scheduling choices described in~\ref{sec:elpiLP+CHR}. In particular it is crucial
+that all unneeded \elpi{eqbar} constraints are removed before
+\elpi{theta} is recomputed by combining the new constraint with all
+\elpi{eqbar} constraints still in the store. It is also worth notion how
+the (declarative) semantics of CHR grants that the new \elpi{theta}
+constraints is combined with all \elpi{eqbar} ones, no matter in
+which order they are added to the store: up to now \elpi{theta} was
+there and was updated at every \elpi{eqbar} addition; now all
+\elpi{eqbar} are there, and \elpi{theta} gets added and combined
+with the all.
+
+The code for computing free type variables is as expected.
+
+$$
+\begin{array}{ll}
+  \text{free}(\ \mathtt{int}\ ) &=\ \emptyset\\
+  \text{free}(\ \mathtt{bool}\ ) &=\ \emptyset\\
+  \text{free}(\ \mathtt{pair}\ \tau_1\ \tau_2\ ) &=\ \text{free}(\ \tau_1\ )\cup \text{free}(\ \tau_2\ ) \\
+  \text{free}(\ \mathtt{list}\ \tau\ ) &=\ \text{free}(\ \tau ) \\
+  \text{free}(\ \tau_1 \to \tau_2\ ) &=\ \text{free}(\ \tau_1\ )\cup \text{free}(\ \tau_2\ ) \\
+  \text{free}(\ \alpha\ ) &=\ \left\{\alpha\right\}\\
+  \text{free}(\ \forall\ \alpha\ .\ \sigma\ ) &=\ \text{free}(\ \sigma\ )\  -\  \left\{\alpha\right\}\\
+  \text{free}(\ \Gamma\ ) &=\ \bigcup\limits_{x:\sigma \in \Gamma}\text{free}(\ \sigma\ )\\
+\end{array}
+$$
+
+Two details of the corresponding Elpi code are worth pointing out.
+
+The former is that the context is a list of propositions. The \elpi{prop}
+type gather all predicates, not just \elpi{of}. We don't need to add
+a rule skip any unrelated predicate the program may have loaded with implication
+because the \elpi{constraint of ?- gammabar eqbar theta rm-eqbar} directive
+tells Elpi to filter the context of suspended goals (constraint) and keep only
+entries for the \elpi{of} predicate.
+
+The second is that, at the meta level of constraint handling rules, the
+\elpi{uvar} keyword becomes a regular syntax tree node and that is
+has two arguments. The first one is the unique identifier of the unification
+variable. The second one is its scope represented as a list of names.
+  
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred free-ty i:ty, i:list tye, o:list tye.
+free-ty (mono X) L L1 :- free X L L1.
+free-ty (all _ F) L L1 :- pi x\ free-ty (F x) L L1.
+
+pred free-gamma i:list prop, i:list tye, o:list tye.
+free-gamma [] L L.
+free-gamma [of _ T|X] L L2 :- free-ty T L L1, free-gamma X L1 L2.
+
+pred free i:tye, i:list tye, o:list tye.
+free int L L.
+free bool L L.
+free (list A) L L1 :- free A L L1.
+free (pair A B) L L1 :- free B {free A L} L1.
+free (A --> B) L L1 :- free B {free A L} L1.
+free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
+\end{elpicode}
+
+The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is
+the code to bind (locally used) unification variables to universal quantifications.
+The key is the \elpi{copy} predicate~\cite{}, that reflects substitution
+by traversing a type expression. Since this subtitution is not the built-in
+one (i.e. not function application), we can alter its behavior by loading
+into the program context some ad-hoc rules. In particular for
+each variable \elpi{uvar X _} to abstract we postulate a fresh symbol
+\elpi{c} and we load a rule to copy \elpi{uvar X _} to \elpi{c}.
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred bind i:list tye, i:list tye, i:tye, o:ty.
+bind [uvar X _|XS] Theta T (all E x\ T1 x) :- % load the substitution
+  if (mem Theta (uvar X _)) (E = tt) (E = ff),
+  pi c\ (copy (uvar X _) c :- !) => bind XS Theta T (T1 c).
+bind [] _ T (mono T1) :- copy T T1. % fire the substitution
+
+pred copy i:tye, o:tye.
+copy int int.
+copy bool bool.
+copy (list A) (list B) :- copy A B.
+copy (pair A B) (pair C D) :- copy A C, copy B D.
+copy (A --> B) (C --> D) :- copy A C, copy B D.
+copy (uvar _ _ as V) V.
+\end{elpicode}
+
+For completeness the remaining code follows. It may be worth explaining the
+signature of the polymorphic, higher order, \elpi{filter} predicate.
+In particular \texttt{i:(pred i:A)} stands for an input predicate over
+\elpi{A}, where the predicate itself expects an input.
+
+%elpi:hm.elpi
+\begin{elpicode}
+pred mem i:list tye, i:tye.
+mem [uvar X _|_] (uvar X _) :- !.
+mem [_|XS] X :- mem XS X.
+ 
+pred filter i:list A, i:(pred i:A), o:list A.
+filter [] _ [].
+filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
+filter [_|XS] F YS :- filter XS F YS.
+\end{elpicode}
+
+The code amounts to about 100 lines of Elpi. It is a toy, in the sense
+that its lacks code for error reporting, but its size is quite remarkable:
+it roughly mathes the length of a pen and paper presentation of the same
+algorithm.
+
+\subsection{A word on bidirectionality}
+
+Maybe the most unexpected feature of the running example is that
+it is a bidirectional algorithm. In particular the rule for application
+pushed dowh the expected type of the argument when type checking it.
+
+The mono-directional version could look like the following code:
+
+\begin{elpicode}
+of (app H A) (mono T) :-
+  of H (mono TH),
+  of A (mono TA),
+  assert H TH (TA --> T).
+
+pred assert i:term, i:tye, i:tye.
+assert _ TY ETY :- TY = ETY, !.
+assert T TY ETY :-
+  halt "Error: term" T "has type" TY "but its context expects" ETY.
+\end{elpicode}
+
+Note how \elpi{TH} is not related to \elpi{TA} before the
+call to  \elpi{of A (mono TA)}, and how the code only checkes
+after the facts that \elpi{TH = (TA --> T)}.
+
+\section{Pitfalls}
+
+During these years we gave Elpi in the hands of a
+good number of users. Here the pitfalls that tricked everybody (ourself included).
+
+\subsection{Misleading precedence of \elpi{=>}}
+
+When one write \elpi{A, B => C, D} means
+\elpi{A, B => (C, D)}. This is clear when
+one has a program \elpi{A, B => D} and wants
+to sneak in a print to debug before D.
+
+So we argue that \elpi{=>} should bind stronger than ,
+on the left but not on the right, something parsing
+technology does not support out of the box. We introduced
+\elpi{==>} that parses with these precedences and add a warning
+whenever \elpi{A, B => C, D} that can be silenced
+by writing \elpi{A, (B => C), D}.
+
+\subsection{Treacherous anonymous clauses}
+
+The higher order capabilities of Elpi let one write
+code like
+\begin{elpicode}
+map L (x\r\p x A, q A r) L'
+\end{elpicode}
+where \elpi{A} is arguably quantified (allocated) in the
+wrong place. By convention variables are considered parameters
+of the entire rule, not of the inlined, sub-rule.
+
+The correct way to write the code above is
+\begin{elpicode}
+map L (x\r\sigma A\p x A, q A r) L'
+\end{elpicode}
+where each
+call to the anonymous rule has a different \elpi{A}.
+
+We believe it would be safer to only allow (partially
+applied) predicates as higher arguments.
+The syntactic overhead is often compensated by the extra
+reading clarity a (well) named predicate provides.
+
+\begin{elpicode}
+p-then-q X R :- p X A, q A R.
+map L p-then-q L'
+\end{elpicode}  
+
+Although we have not implemented it, hence validated the idea,
+it seems reasonable to warn whenever a variable \emph{only} occurs
+in the body of an anonymous rule (a term of function type to \elpi{prop}).
+
+\subsection{Scope error as a (recondite) failure}
+
+While \elpi{pi x\ F = x} logically fails because x is
+out of scope, its practical, legit, use cases are rare.
+According to our experience, most of the times when a
+unification fails because of
+a scope problem it is due to a user mistake.
+
+Although we have not tried to implement any measure to help
+newcomers, we wonder if making this cause of unification failure
+fatal (as is aborting the program) would help newcomers quickly
+identify the true mistake. In particular Elpi already provides
+built-in predicates to perform bound-variable occur-checking
+or pruning, allowing the user to not resort to higher order
+unification for accomplishing these tasks.
+
+\subsection{Symmetric CHR rules}
+
+The CHR semantics described in section~\ref{sec:sem} behaves intuitively most of
+the times: rules
 are scanned in order and applied when applicable. It becomes a bit surprising,
 accorsing to our experience, when the multiset nature of the constraint store
-plays a role, in particular when permutations contain duplicate predicates.
+plays a role, in particular when permutations contain duplicate predicates
+and when rules have some symmetry in their patterns.
 
 
 \begin{center}\begin{minipage}{.6\textwidth}
@@ -844,660 +1563,16 @@ rule 2 on 2
 ~\\
 
 According to the rule set on the left hand side of the figure,
-rule 1 triggers twice since the second \elpiinline{c} constraint
+rule 1 triggers twice since the second \elpi{c} constraint
 is active in both position 1 and 2. This is also the case
 in the second rule set, but since the rule remove one (copy) of
-\elpiinline{c} from the store and hence from the permutations set,
+\elpi{c} from the store and hence from the permutations set,
 the rule cannot trigger twice.
 
-Integration with SLD works as follows: each new constraint becomes
-a goal that is considered as the leftmost conjuct of the current
-resolution state. Since a new goal can in turn declare a new constraint,
-the CHR loop can continue. In other words constraint handling takes
-priority over SLD resolution.
+Symmetry can also be broken by using the guard, eg
+requiring \elpi{N < M}, hence it is hard to imagine a
+sensible warning for this problem.
 
-\subsection{Operational semantics}
-
-\section{Syntactic sugar}
-
-Elpi features some simple syntactic sugar that is elimated by
-the ``compiler'' before running programs.
-
-\subsection{Namespaces}
-
-Elpi code is obtained by accumulating together files, that is
-``concatenating'' lists of rules, possibly written by different
-authors. It is not impossible that
-two files, file1 and file2, contain declarations for a predicate with same name p.
-
-When the types for p do not match, Elpi fails immediately
-and the programmer is warned. But when the types match, it may
-happen that the predicate changes meaning or complexity,
-especially in case of failure.
-
-A simple man solution could be to simply put the file name
-as part of predicate names, eg file1.p and file2.p.
-
-To paliate the syntactic overhead Elpi provides two syntactic
-facilities: namespace and shorten. The former prefixes all
-names of the predicates contained in a block, the latter makes
-predicates accessible via a short name inside a file or a block
-
-\begin{elpicode}
-namespace n1 {
-  pred p.
-}
-\end{elpicode}
-
-elsewhere
-
-\begin{elpicode}
-shorten n1.{ p }.
-q :- p.
-\end{elpicode}
-
-note that a type/mode declaration declares the belonging to a namespace.
-
-\begin{elpicode}
-p.
-namespace n2 {
-  pred p.
-  q :- p.
-}
-\end{elpicode}
-
-\subsection{Spilling}
-
-We argue that the names we give to the objects we manipulate
-are the most important form of documentation and badly chosen
-name are the primary cause of unreadable code.
-
-The time a sloppy programmer saves by using \elpiinline{TMP}, \elpiinline{AUX}
-or \elpiinline{X'} instead of thinking at an appropriate name is
-demanded, with interests, to any reader of code, including himself.
-
-Logic programming, even in its Higher Order flavor, distinguishes
-commands from expressions (predicates from data). This characteristic
-is the primary contributor to the proliferation of temporary
-variables, a phenomenon that functional programming languages
-reduce by putting in the same syntactic category function calls an
-data. 
-
-For example the OCaml code \texttt{List.rev (List.append l1 l2)}
-or its equivalent \texttt{List.append l1 l2 |> List.rev} enables
-to programmer to avoid naming the result of append, while in logic
-programming one often reads
-
-\begin{elpicode}
-code L1 L2 Result :- append L1 L2 TMP, rev TMP Result.
-\end{elpicode}
-
-Elpi provides a syntatic facility to let one use
-``partially applied'' predicates as ``function calls''.
-By partially applied we mean ``applied to all the arguments flagged as input''.
-For example the code above can be written as follows
-
-\begin{elpicode}
-code L1 L2 Result :- rev {append L1 L2} Result.
-\end{elpicode}
-
-The curly braces identify a term to be \emph{spilled} to the closest
-\emph{execution point}, identified by walking the terms outside in and
-identifying the first expression of type \elpiinline{prop}.
-
-Spilling can be nested. Its elaboration is akin to the generation
-of the administrative normal form that is commonly used in functional
-programming languages.
-
-\subsubsection{Spilling under a binder}
-
-When the spilled expression needs to cross a binder in order to
-reach the execution point, the elaboration is more sophisticated.
-For example: 
-
-\begin{elpicode}
-code Result :- Result = (lam x\ {mk-app f [x]}).
-code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
-\end{elpicode}
-  
-
-In order to run the spilled code in a context with the bound variable
-x, the expression must be put under a \elpiinline{pi y\\ }. Similarly
-the temporary variable needs to be abstracted over the variable, so
-that we can identify the original one x with the one abstracted by
-\elpiinline{pi} y.
-
-Note that spilling does not need to cross a \elpiinline{pi}, but
-needs to make the quantified variable visible to the result of
-the spilled computation, for example explicilty quantifying it
-with a sigma. For example:
-
-\begin{elpicode}
-  code L1 L2 Result :- pi x\ rev {append [x|L1] L2} (Result x).
-  code L1 L2 Result :- pi x\ sigma TMP\ append [x|L1] L2 TMP, rev TMP (Result x).
-\end{elpicode}
-
-\subsubsection{Spilling and impliction}
-
-When the object language features a sophisticated HOAS for the context
-(as in \ref{GALLINA}) it may be necessary to augment the context with
-the implication operator. For example imagine the \elpiinline{lam}
-term constructor carries the type of the bound variable
-
-\begin{elpicode}
-  code Ty Result :- Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
-  code Ty Result :-
-    (pi x\ of x Ty => of (app g x) (TMP x))
-    Result = (lam Ty x\ lam (TMP x) y\ ...)
-\end{elpicode}
-
-This is frequent when spilling combined with quotations, for example
-
-\begin{elpicode}
-  T = {{ λx : nat => lp:{{ app f {api x}  }}  }}
-\end{elpicode}
-
-where the api needs the context of the object language, see \ref{FFI}
-
-\paragraph{Spilling ambiguities}
-
-Not all that glitter is gold. Sometimes the closest execution
-point may not be what the programmer wants.
-
-\begin{elpicode}
-  code D TodoForLater  :-
-    TodoForLater [ this, that {rev D} ].
-\end{elpicode}
-
-If this and that are predicated, the latter becomes
-\elpiinline{(rev D TMP, that TMP)} meaning that
-D is reversed when TodoForLater will be executed, and
-not when the todo list is generated, as one may have wanted.
-
-According to our experience the closes execution point
-is more often than not what the programmer expects.
-
-\section{A complete example: Hindley Milner type inference}\label{sec:milner}
-
-The most significan type inference algorith is the one crafted by
-Milner the ML language~\cite{MILNER1978348}. The flavor we 
-study here covers equality type variables, the \texttt{''a} abstraction
-(in standard ML syntax) for decidable types, i.e. types that can be
-effectively compared unlike the function space.
-
-It makes a good use case for Elpi because:
-\begin{itemize}
-  \item it manipulates syntax trees with binders, namely lambd abstraction
-    and let binding
-  \item it manipulates types containing unification variables (i.e. holes).
-    The key step in the algorithm is to turn (existentially quantified)
-    unification variables into universally quantifies type variables to
-    form a skema
-  \item unification variables have an attribute, a flag (denoted with
-    an over bar) that is set if the equality test is used on values
-    of their type.
-\end{itemize}
-
-The syntax of terms is very similar to the simply typed $\lambda$-calculus
-one, with the addition of \texttt{let} and the equality test. We omit
-conditional, loops or recursion since it does not play an important role.
-
-\begin{center}
-\begin{minipage}{0.35\textwidth}
-$$
-\begin{array}{lrl}
-  e & =     & x                                 \\
-  & \vert & e_1\ e_2                            \\
-  & \vert & \lambda\ x\ .\ e                    \\
-  & \vert & \mathtt{let}\ x = e_1\ \mathtt{in}\ e_2 \\
-  & \vert & e_1 = e_2 \\
-\end{array}
-$$
-\end{minipage}
-\begin{minipage}{0.55\textwidth}
-\vspace{0.5em}
-%elpi:hm.elpi
-\begin{elpicodelj}
-kind term type.
-type global  string -> term.
-type app term -> term -> term.
-type lam (term -> term) -> term.
-type let term -> (term -> term) -> term.
-type eq  term -> term -> term.
-\end{elpicodelj}
-\end{minipage}
-\end{center}
-~\\  
-~\\  
-As in section~\ref{} we use an HOAS encoding of terms.
-Still we add a \elpiinline{global} term constructor to
-be able to set up a minimal environment for our examples.
-
-Monomorphic type expressions $\tau$ and type skemas $\sigma$
-are depicted below. As in the original paper we fix a few builtin type contructors
-instead of supporting a generic n-ary type former, but unlike
-the ML tradition we put type constractors to the left of an application.
-We use the infix symbol \elpiinline{-->} for the function space of ML.
-
-\begin{center}
-\begin{minipage}{0.4\textwidth}
-$$
-\begin{array}{lrl}
-  \\
-    \tau   &=     & \alpha                    \\
-                              &\vert &  \tau \to \tau         \\
-                              &\vert &  \mathtt{int}         \\
-                              &\vert &  \mathtt{bool}         \\
-                              &\vert &  \mathtt{list}\ \tau         \\
-                              &\vert &  \mathtt{pair}\ \tau\ \tau         \\
-  
-     \sigma &=    & \tau                                           \\
-                             &\vert& \forall\ \alpha\ .\ \sigma \\
-                            &\vert& \forall\ \bar\alpha\ .\ \sigma \\
-  \\
-\end{array}
-$$
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
-%elpi:hm.elpi
-\begin{elpicodelj}
-kind tye type.
-type (-->) tye -> tye -> tye.  
-type int   tye.
-type bool  tye.
-type list  tye -> tye.
-type pair  tye -> tye -> tye.
-
-kind ty type.
-type all    bool -> (tye -> ty) -> ty.
-type mono   tye -> ty.
-\end{elpicodelj}
-\end{minipage}
-\end{center}
-
-
-The typing routing works with a context and, as we did for the
-simply typed lambda calculus, we delegate its management to the
-programming language.
-
-$$
-\begin{array}{llrl}
-  \\
-    \text{Context}     & \Gamma & = & \epsilon\ \mathtt{(empty)}\\
-                       &        & \vert& \Gamma,\ x : \sigma\\
-    \text{Typing}      &        & = & \Gamma \vdash e : \sigma\\
-  \\
-  \end{array}
-$$
-
-
-We give below a fre example of type assignement to global
-constants. It is worth highlighting the fact that the
-type skema for \elpiinline{"undup"}
-
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred of i:term, o:ty.
-of (global "1")      (mono int).
-of (global "plus")   (mono (int --> int --> int)).
-of (global "nil")    (all ff x\ mono (list x)).
-of (global "cons")   (all ff x\ mono (x --> list x --> list x)).
-of (global "pr")     (all ff x\ all ff y\ mono (x --> y --> (pair x y))).
-of (global "fst")    (all ff x\ all ff y\ mono (pair x y --> x)).
-of (global "size")   (all ff x\ mono (list x --> int)).
-of (global "undup")  (all tt x\ mono (list x --> list x)).
-\end{elpicode}
-  
-
-The specialization of type skema allows one to plug type expressions in place
-of quantified variables. When the substituted variables stands for an
-equality type, one has to check that the type expression has an equality test.
-
-$$
-\displaystyle\frac{\tau' = \left\{\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
-$$
-$$
-\displaystyle\frac{\tau' = \left\{\bar\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau) \quad \overline{eq}(\tau_i)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
-$$
-$$
-\begin{array}{ll}
-  \overline{eq}(\mbox{bool}) & \\
-  \overline{eq}(\mbox{int}) & \\
-  \overline{eq}(\mbox{list}~\tau) & ~\mbox{if}~ \overline{eq}(\tau) \\
-  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) ~\mbox{and}~ \overline{eq}(\tau_2)\\
-  \overline{eq}(\bar\alpha) & \\
-\end{array}
-$$
-
-The Elpi code departs the pen and paper presentation by instantiatin, at once,
-all skema variables by fresh unification variables, possibly constraining them
-to be an eq type
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred specialize i:ty, o:tye.
-specialize (mono T) T.
-specialize (all ff F) T :- specialize (F Fresh_) T.
-specialize (all tt F) T :- specialize (F Fresh) T, eqbar Fresh.
-\end{elpicode}
-
-The \elpiinline{eqbar} predicate traevrses concrete type expressions and
-suspend when variables are found.
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred eqbar i:tye.
-eqbar bool.
-eqbar int.
-eqbar (list A) :- eqbar A.
-eqbar (pair A B) :- eqbar A, eqbar B.
-eqbar (uvar as A) :- declare_constraint (eqbar A) [A,_].
-
-constraint of ?- gammabar eqbar theta rm-eqbar {
-  rule (eqbar V) \ (theta L) | (not(mem L V)) <=> (theta [V | L]).
-}
-
-pred theta i:list tye.
-theta L :- declare_constraint (theta L) [_].
-\end{elpicode}
-
-The auxiliary constraint \elpiinline{theta} is used to gather the
-(duplicate free) list of unification variables constrained to be equality types.
-
-The use of constraints here is handy but not essential. One could thread a state,
-the list of all type variables used so far paired with their equality type status.
-The constraint store offers a global state carried on the side of the goals
-and constraint handling rules the possibility to organize it, like grouping
-all entries into a list.
-
-The declarative code for the type inference algorithm is given below.
-While the rules for lambda abstraction and application are the same
-for simply typed lambda calculus~\ref{inf:stlc}.
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-$$
-\begin{array}{cl}
-  \displaystyle\frac{\Gamma \vdash e_0:\tau \rightarrow \tau' \quad\quad \Gamma \vdash e_1 : \tau }{\Gamma \vdash e_0\ e_1 : \tau'}\\ \\
-  \displaystyle\frac{\Gamma,\;x:\tau\vdash e:\tau'}{\Gamma \vdash \lambda x.e : \tau \rightarrow \tau'}
-\end{array}
-  $$
-\end{minipage}
-\begin{minipage}{0.45\textwidth}
-$$
-\begin{array}{cl}
-  \displaystyle\frac{x:\sigma \in \Gamma \quad \sigma \sqsubseteq \tau}{\Gamma \vdash x:\tau}\\ \\
-  \displaystyle\frac{\Gamma \vdash e_0:\tau \quad\quad \Gamma,\,x:\bar{\Gamma}(\tau) \vdash e_1:\tau'}{\Gamma \vdash \mathtt{let}\ x = e_0\ \mathtt{in}\ e_1 :  \tau'}
-  \end{array}
-$$
-\end{minipage}
-$$ 
-\displaystyle\frac{\Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau \quad \overline{eq}(\tau)}{\Gamma \vdash e_1 = e_2: \mathtt{bool}}
-$$
-\end{center}
-
-The rule for variables finds in $\Gamma$ a skema and assigns to the variable
-any valid instance. The rule for let pushes into the context a type
-$\overline{\Gamma}(\tau)$ for a let-bound expression of type $\tau$ in $\Gamma$.
-Finally the rule for equality tests if the type of the expressions admits
-an equality test.
-
-%elpi:hm.elpi
-\begin{elpicode}
-of (app H A) (mono T) :-
-  of H (mono (S --> T)),
-  of A (mono S).
-
-of (lam F) (mono (S --> T)) :-
-  pi x\ of x (mono S) => of (F x) (mono T).
-
-of (let E B) (mono TB) :-
-  of E (mono T),
-  gammabar (mono T) PT,
-  pi x\ of x PT => of (B x) (mono TB).
-
-of (eq LHS RHS) (mono bool) :-
-  of LHS (mono T),
-  of RHS (mono T),
-  eqbar T.
-
-of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
-\end{elpicode}
-
-Elpi rules are very close to pen and paper ones. The only difference is that
-the rule for variable is extended, on purpose, to any term so that it
-can apply to global constants as well.
-
-We have already described how \elpiinline{specialize} relates to $\sqsubseteq$,
-what is left to describe is the $\overline{\Gamma}$ operation.
-  
-$$
-\overline{\Gamma}(\tau) = \forall\ \hat{\alpha}\ .\ \tau \quad\quad \hat{\alpha} = \textrm{free}(\tau) - \textrm{free}(\Gamma)
-$$
-
-Intuitively one has to compute the free type variables in $\Gamma$ and $\tau$
-and only abstract the ones as not free in $\Gamma$, i.e. that are only used
-locally to the expressions being bound by the let.
-
-This operation escapes the capabilities of $\lambda$Prolog alone, even with
-the mode extensions we discuss in~\ref{sec:modes}, since $\Gamma$ is not
-first class or in other words it is automatically managed by the runtime.
-This is where the ``meta'' status of constraint handling rules comes in
-handy: suspended goals are sequents made of a formula and its context.
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred gammabar i:ty, o:ty.
-gammabar (mono T) TS :- declare_constraint (gammabar (mono T) TS) [_].
-
-constraint of ?- gammabar eqbar theta rm-eqbar {
-  rule  \ (theta L)
-          (G ?- gammabar T TS)     % matched and removed
-        | (generalize L G T POLYT ToRemove) % guard + syntesis
-      <=> (TS = POLYT, rm-eqbars ToRemove, theta []).             % new goal
-  rule \ (eqbar X) (rm-eqbar X).
-}
-
-pred rm-eqbars i:list tye.
-rm-eqbars [].
-rm-eqbars [X|XS] :- rm-eqbar X, rm-eqbars XS.
-
-pred rm-eqbar i:tye.
-rm-eqbar X :- declare_constraint (rm-eqbar X) [X, _].
-
-pred generalize i:list tye, i:list prop, i:ty, o:ty, o:list tye.
-generalize Theta Gamma (mono T) PolyT ToQuantify :-
-  free-ty (mono T) [] VT,
-  free-gamma Gamma [] VGamma,
-  filter VT (x\ not(mem VGamma x)) ToQuantify,
-  bind ToQuantify Theta T PolyT.
-\end{elpicode}
-
-The code to implement $\overline{\Gamma}(\tau)$ performs thwo tasks:
-
-\begin{itemize}
-  \item It abstracts \elpiinline{T} into a skema \elpiinline{POLYT} and
-    returns is by assigning \elpiinline{TS}
-  \item It cleans up the store of constraints removing the \elpiinline{eqbar}
-    constraints on variables that are now bound in the skema, and updates
-    \elpiinline{theta} by recomputing it
-\end{itemize}
-
-The first task is necessary while the second one is mainly to explain an motivate
-the scheduling choices described in~\ref{sec:elpiLP+CHR}. In particular it is crucial
-that all unneeded \elpiinline{eqbar} constraints are removed before
-\elpiinline{theta} is recomputed by combining the new constraint with all
-\elpiinline{eqbar} constraints still in the store. It is also worth notion how
-the (declarative) semantics of CHR grants that the new \elpiinline{theta}
-constraints is combined with all \elpiinline{eqbar} ones, no matter in
-which order they are added to the store: up to now \elpiinline{theta} was
-there and was updated at every \elpiinline{eqbar} addition; now all
-\elpiinline{eqbar} are there, and \elpiinline{theta} gets added and combined
-with the all.
-
-The code for computing free type variables is as expected.
-
-$$
-\begin{array}{ll}
-  \text{free}(\ \mathtt{int}\ ) &=\ \emptyset\\
-  \text{free}(\ \mathtt{bool}\ ) &=\ \emptyset\\
-  \text{free}(\ \mathtt{pair}\ \tau_1\ \tau_2\ ) &=\ \text{free}(\ \tau_1\ )\cup \text{free}(\ \tau_2\ ) \\
-  \text{free}(\ \mathtt{list}\ \tau\ ) &=\ \text{free}(\ \tau ) \\
-  \text{free}(\ \tau_1 \to \tau_2\ ) &=\ \text{free}(\ \tau_1\ )\cup \text{free}(\ \tau_2\ ) \\
-  \text{free}(\ \alpha\ ) &=\ \left\{\alpha\right\}\\
-  \text{free}(\ \forall\ \alpha\ .\ \sigma\ ) &=\ \text{free}(\ \sigma\ )\  -\  \left\{\alpha\right\}\\
-  \text{free}(\ \Gamma\ ) &=\ \bigcup\limits_{x:\sigma \in \Gamma}\text{free}(\ \sigma\ )\\
-\end{array}
-$$
-
-Two details of the corresponding Elpi code are worth pointing out.
-
-The former is that the context is a list of propositions. The \elpiinline{prop}
-type gather all predicates, not just \elpiinline{of}. We don't need to add
-a rule skip any unrelated predicate the program may have loaded with implication
-because the \elpiinline{constraint of ?- gammabar eqbar theta rm-eqbar} directive
-tells Elpi to filter the context of suspended goals (constraint) and keep only
-entries for the \elpiinline{of} predicate.
-
-The second is that, at the meta level of constraint handling rules, the
-\elpiinline{uvar} keyword becomes a regular syntax tree node and that is
-has two arguments. The first one is the unique identifier of the unification
-variable. The second one is its scope represented as a list of names.
-  
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred free-ty i:ty, i:list tye, o:list tye.
-free-ty (mono X) L L1 :- free X L L1.
-free-ty (all _ F) L L1 :- pi x\ free-ty (F x) L L1.
-
-pred free-gamma i:list prop, i:list tye, o:list tye.
-free-gamma [] L L.
-free-gamma [of _ T|X] L L2 :- free-ty T L L1, free-gamma X L1 L2.
-
-pred free i:tye, i:list tye, o:list tye.
-free int L L.
-free bool L L.
-free (list A) L L1 :- free A L L1.
-free (pair A B) L L1 :- free B {free A L} L1.
-free (A --> B) L L1 :- free B {free A L} L1.
-free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
-\end{elpicode}
-
-The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is
-the code to bind (locally used) unification variables to universal quantifications.
-The key is the \elpiinline{copy} predicate~\cite{}, that reflects substitution
-by traversing a type expression. Since this subtitution is not the built-in
-one (i.e. not function application), we can alter its behavior by loading
-into the program context some ad-hoc rules. In particular for
-each variable \elpiinline{uvar X _} to abstract we postulate a fresh symbol
-\elpiinline{c} and we load a rule to copy \elpiinline{uvar X _} to \elpiinline{c}.
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred bind i:list tye, i:list tye, i:tye, o:ty.
-bind [uvar X _|XS] Theta T (all E x\ T1 x) :- % load the substitution
-  if (mem Theta (uvar X _)) (E = tt) (E = ff),
-  pi c\ (copy (uvar X _) c :- !) => bind XS Theta T (T1 c).
-bind [] _ T (mono T1) :- copy T T1. % fire the substitution
-
-pred copy i:tye, o:tye.
-copy int int.
-copy bool bool.
-copy (list A) (list B) :- copy A B.
-copy (pair A B) (pair C D) :- copy A C, copy B D.
-copy (A --> B) (C --> D) :- copy A C, copy B D.
-copy (uvar _ _ as V) V.
-\end{elpicode}
-
-For completeness the remaining code follows. It may be worth explaining the
-signature of the polymorphic, higher order, \elpiinline{filter} predicate.
-In particular \texttt{i:(pred i:A)} stands for an input predicate over
-\elpiinline{A}, where the predicate itself expects an input.
-
-%elpi:hm.elpi
-\begin{elpicode}
-pred mem i:list tye, i:tye.
-mem [uvar X _|_] (uvar X _) :- !.
-mem [_|XS] X :- mem XS X.
- 
-pred filter i:list A, i:(pred i:A), o:list A.
-filter [] _ [].
-filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
-filter [_|XS] F YS :- filter XS F YS.
-\end{elpicode}
-
-The code amounts to about 100 lines of Elpi. It is a toy, in the sense
-that its lacks code for error reporting, but its size is quite remarkable:
-it roughly mathes the length of a pen and paper presentation of the same
-algorithm.
-
-\subsection{A word on bidirectionality}
-
-Maybe the most unexpected feature of the running example is that
-it is a bidirectional algorithm. In particular the rule for application
-pushed dowh the expected type of the argument when type checking it.
-
-The mono-directional version could look like the following code:
-
-\begin{elpicode}
-of (app H A) (mono T) :-
-  of H (mono TH),
-  of A (mono TA),
-  assert H TH (TA --> T).
-
-pred assert i:term, i:tye, i:tye.
-assert _ TY ETY :- TY = ETY, !.
-assert T TY ETY :-
-  halt "Error: term" T "has type" TY "but its context expects" ETY.
-\end{elpicode}
-
-Note how \elpiinline{TH} is not related to \elpiinline{TA} before the
-call to  \elpiinline{of A (mono TA)}, and how the code only checkes
-after the facts that \elpiinline{TH = (TA --> T)}.
-
-\section{Pitfalls}
-
-During these years we gave Elpi in the hands of a
-good number of users. Here the pitfalls that tricked everybody (ourself included).
-
-\subsection{Misleading precedence of \elpiinline{=>}}
-
-When one write \elpiinline{A, B => C, D} means
-\elpiinline{A, B => (C, D)}. This is clear when
-one has a program \elpiinline{A, B => D} and wants
-to sneak in a print to debug before D.
-
-So we argue that \elpiinline{=>} should bind stronger than ,
-on the left but not on the right, something parsing
-technology does not support out of the box. We introduced
-\elpiinline{==>} that parses with these precedences and add a warning
-whenever \elpiinline{A, B => C, D} that can be silenced
-by writing \elpiinline{A, (B => C), D}.
-
-\subsection{Treacherous anonymous clauses}
-
-HO lets one write \elpiinline{map L (x\r\p x A, q A r) L'}
-where A is quantified (allocated) in the wrong place.
-The correct way is \elpiinline{map L (x\r\sigma A\p x A, q A r) L'},
-but we believe it would be way safer to only allow (partially
-applied) predicates as HO arguments.
-
-The syntactic overhead is often compensated by the extra
-reading clarity a (well) named predicate provides.
-
-\subsection{Scope error as a (recondite) failure}
-
-While \elpiinline{pi x\ F = x} clearly fails because x is
-out of scope, its practical, legit, use cases are rare.
-Most of the times when a unification fails because of
-a scope problem, it is dues to a user mistake.
-
-Although we have not tried to implement any measure to help
-newcomers, we wonder if making this cause of unification failure
-fatal (as is aborting the program) would help newcomers quickly
-identify the true mistake.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -1834,8 +1909,8 @@ can add a rule to mask/improve/debug a piece of code.
 
 The main data type Rocq-Elpi programs work with is the one of
 terms. The first bit of terms worth describing are the pointers
-to global objects. While \elpiinline{constant}, 
-\elpiinline{inductive} and \elpiinline{constructor} are opaque
+to global objects. While \elpi{constant}, 
+\elpi{inductive} and \elpi{constructor} are opaque
 data (as in \ref{sec:opaquedata}), their nature is exposed as
 an algebraic data type.
 
@@ -1847,8 +1922,8 @@ type indc  constructor -> gref.         % O, S, nil, cons, ...
 \end{elpicode}
 
 Global objects are injected in the term data type via the
-\elpiinline{global} term constructor and its variant
-\elpiinline{pglobal} dedicated to universe-polymorphic global
+\elpi{global} term constructor and its variant
+\elpi{pglobal} dedicated to universe-polymorphic global
 object.
 
 \begin{elpicode}
@@ -1859,12 +1934,12 @@ type sort    sort -> term.                 % Prop, Type@{i}, SProp
 \end{elpicode}
 
 We omit the algebraic data type for sorts and we rather focus on the
-three binders: \elpiinline{fun} and \elpiinline{prod} for abstraction
-and \elpiinline{let} for abbreviations.
+three binders: \elpi{fun} and \elpi{prod} for abstraction
+and \elpi{let} for abbreviations.
 Other than the higher order argument, the detail common
-to all of the them is the \elpiinline{name} argument. It stands for
+to all of the them is the \elpi{name} argument. It stands for
 a pretty printing information, e.g. the bound variable as written by
-the user. It is important to remark that \elpiinline{name} is
+the user. It is important to remark that \elpi{name} is
 an opaque data type with a trivial euqality test. That is, the
 name ``x'' and ``y'' are equal in Elpi, although they hold a
 different value in OCaml. This is key to align the equational theory
@@ -1910,17 +1985,17 @@ The first argument of each is, by convention, a bound variable, and is
 expected to be passed as an input in order to retrieve the associaed
 pretty pringing information, the type and in the case of
 abbreviation the body. In the light of that code that crosses a binder
-is expected to either declare a \elpiinline{decl} or a \elpiinline{def}
+is expected to either declare a \elpi{decl} or a \elpi{def}
 hypothetical rule for the bound variable as follows:
 
 \begin{elpicode}
 cross (fun N T F) :- pi x\ decl x N T => cross (F x).
 \end{elpicode}
 
-As a result of the convention, one can call \elpiinline{rocq.typecheck}
+As a result of the convention, one can call \elpi{rocq.typecheck}
 deep inside a term. As described in~\ref{sec:API} a predicate can
-be equipped with a \ocamlinline{ctx_readback} function such
-as \ocamlinline{proof_context} in the code below. The \ocamlinline{term}
+be equipped with a \ocaml{ctx_readback} function such
+as \ocaml{proof_context} in the code below. The \ocaml{term}
 contextual conversion can hence access a Rocq context when operating its
 readback or embedding code.
 
@@ -1936,21 +2011,21 @@ MLCode(Pred("rocq.typecheck",
       ...
 \end{ocamlcode}
 
-Indeed here the \ocamlinline{t} and \ocamlinline{ety} values
-are read back in the \ocamlinline{proof_context.env} Rocq context,
+Indeed here the \ocaml{t} and \ocaml{ety} values
+are read back in the \ocaml{proof_context.env} Rocq context,
 that is also passed to the type checker in order to synthesize the
-type of \ocamlinline{t}, and later (in the omitted code) to unify
-the inferred type with the expected one \ocamlinline{ety} when provided.
-The \ocamlinline{ioargC} lifts a contextual conversion to the option
+type of \ocaml{t}, and later (in the omitted code) to unify
+the inferred type with the expected one \ocaml{ety} when provided.
+The \ocaml{ioargC} lifts a contextual conversion to the option
 type: if actual data is provided, then it is converted.
 
-The only missing piece is \ocamlinline{sigma}, the environment assigning
+The only missing piece is \ocaml{sigma}, the environment assigning
 type judgements to holes.
 
 \section{HOAS of holes (missing terms)}
 
-Each Rocq hole as an entry in \ocamlinline{sigma} that looks like a
-typing sequent. In Elpi we represent it as a constraint \elpiinline{evar}.
+Each Rocq hole as an entry in \ocaml{sigma} that looks like a
+typing sequent. In Elpi we represent it as a constraint \elpi{evar}.
 
 \begin{elpicode}
 pred declare-evar i:list prop, i:term, i:term, i:term. % Ctx RawEvar Ty Evar
@@ -1962,23 +2037,23 @@ constraint declare-evar evar def decl {
 }
 \end{elpicode}
 
-Note how \elpiinline{declare-evar} uses the CHR meta level to craft
-a goal with a precise context \elpiinline{Ctx}, no matter the context
-under which \elpiinline{declare-evar} is generated. Ineed a Rocq API
+Note how \elpi{declare-evar} uses the CHR meta level to craft
+a goal with a precise context \elpi{Ctx}, no matter the context
+under which \elpi{declare-evar} is generated. Ineed a Rocq API
 that is called deep inside a term and that encounters a new hole has
 will add to Rocq's sigma an entry for it, but also generate a
-\elpiinline{declare-evar}, and hence an \elpiinline{evar} constraint
+\elpi{declare-evar}, and hence an \elpi{evar} constraint
 in Elpi.
 
-The code above also relates a Rocq hole \elpiinline{Ev} and an
-Elpi unification variable \elpiinline{RawEv}. We want the following
-invariants to be hardwired on \elpiinline{Ctx => evar RawEv Ty Ev}.
+The code above also relates a Rocq hole \elpi{Ev} and an
+Elpi unification variable \elpi{RawEv}. We want the following
+invariants to be hardwired on \elpi{Ctx => evar RawEv Ty Ev}.
 
 \begin{itemize}
-  \item \elpiinline{Ev} can only be assigned to a \elpiinline{R} if
-        \elpiinline{R} has type \elpiinline{Ty} in context \elpiinline{Ctx}
-  \item \elpiinline{RawEv} can only be assigned to a \elpiinline{X} if
-        \elpiinline{X} elaborates to a term \elpiinline{R} such that
+  \item \elpi{Ev} can only be assigned to a \elpi{R} if
+        \elpi{R} has type \elpi{Ty} in context \elpi{Ctx}
+  \item \elpi{RawEv} can only be assigned to a \elpi{X} if
+        \elpi{X} elaborates to a term \elpi{R} such that
         the previous condition holds
 \end{itemize}
 
@@ -1991,12 +2066,12 @@ evar X Ty R :- not(var R), !, rocq.typecheck R Ty ok, X = R.
 evar X Ty R :- not(var X), var R, !, rocq.elaborate-skeleton X Ty R ok.
 \end{elpicode}
 
-In the code above \elpiinline{rocq.elaborate-skeleton} is an API
-very similar to \elpiinline{rocq.typecheck} but that does not modify
+In the code above \elpi{rocq.elaborate-skeleton} is an API
+very similar to \elpi{rocq.typecheck} but that does not modify
 its input in place. It rather uses its input as a skeleton term that is
 copied. This allows for changes to the structure of the term, like inserting
 explicit coercions to implement type casts. The API corresponds to the code
-that Rocq runs on any input term written by the user, while \elpiinline{rocq.typecheck}
+that Rocq runs on any input term written by the user, while \elpi{rocq.typecheck}
 corresponds to code internally used by Rocq tactics to build well typed terms.
 
 The extensible state~\ref{sec:API} offered by Elpi carries a Rocq-Elpi specific
@@ -2038,15 +2113,15 @@ be executed in Rocq proof mode.
 
 \subsection{Commands}
 
-A command is declared with \rocqinline{Elpi Command} followed by a name.
+A command is declared with \rocq{Elpi Command} followed by a name.
 Initially a command only contains the glue code for Rocq, like the
 HOAS data type of terms and the builtin predicates. Extra code
-can be added to a command via the \rocqinline{Elpi Accumulate}.
+can be added to a command via the \rocq{Elpi Accumulate}.
 Accumulated code can have two natures: static code (e.g. from a file
 or a string) and dynamic code (from a database, see~\ref{sec:homo}).
 
-A command \texttt{hello} is executed with \rocqinline{Elpi hello} followed
-by arguments. The \elpiinline{argument} data type has constructors
+A command \texttt{hello} is executed with \rocq{Elpi hello} followed
+by arguments. The \elpi{argument} data type has constructors
 for builtin data type such as strings or number as well as Gallina terms.
 
 \begin{rocqcode}
@@ -2058,9 +2133,9 @@ Elpi hello "reader".
 Fail Elpi hello 46.
 \end{rocqcode}
 
-The simple program above calls the \elpiinline{rocq.say} builtin whenever the
-command is passed a string. Since the entrypoint \elpiinline{main} has
-no rule for arguments of the form \elpiinline{int X}.
+The simple program above calls the \elpi{rocq.say} builtin whenever the
+command is passed a string. Since the entrypoint \elpi{main} has
+no rule for arguments of the form \elpi{int X}.
 
 The interested reader can look at a comprehensive tutorial on Elpi
 commands~\cite{tuto:commands}.
@@ -2068,7 +2143,7 @@ commands~\cite{tuto:commands}.
 \subsection{Tactics}
 
 Tactics are built in a similar way, with the main difference being that
-the entry point is called \elpiinline{solve} that receives as
+the entry point is called \elpi{solve} that receives as
 argument not only the arguments passed to the tactic, but also the goal
 on which the tactic operates.
 
@@ -2086,7 +2161,7 @@ Fail elpi intro "Hp".
 elpi intro "Hp".
 \end{rocqcode}
 
-In the example above the tactic expects to receive a string \elpiinline{ID};
+In the example above the tactic expects to receive a string \elpi{ID};
 it checks that no Rocq proof variable is already using the same name, and
 finally refines the goal with a lambda abstraction, that is the proof term
 for logical rule of introduction of universal quantification or implication.
@@ -2104,7 +2179,7 @@ whenever a program run its sees the current contents of the data bases
 it accumulates, not their contents when the commands was inidially declared.
 
 A typical data base is made of one predicate, possibly with some default
-rules. The \rocqinline{Elpi Db} commands declares a data base.
+rules. The \rocq{Elpi Db} commands declares a data base.
 
 \begin{rocqcode}
 Elpi Db age.db lp:{{
@@ -2117,7 +2192,7 @@ Elpi Db age.db lp:{{
 }}.
 \end{rocqcode}
 
-Elpi rules can be given a name via the \elpiinline{:name} attribute.
+Elpi rules can be given a name via the \elpi{:name} attribute.
 Named rules serve as anchor-points for new rules when added to the Db.
 
 A commands to print the age of a given name can be declred as follows
@@ -2154,7 +2229,7 @@ syntax of Elpi, not the commands to manipulate its programs, and even more
 to actually know the Rocq commands they run are implemented in Elpi.
 
 For this reason Rocq-Elpi provides APIs to extend data bases from Elpi.
-Here we craft a new command \rocqinline{set_age} that does use this API.
+Here we craft a new command \rocq{set_age} that does use this API.
 
 \begin{rocqcode}
 Elpi Command set_age.
@@ -2190,16 +2265,16 @@ syntax. The line
 TheNewRule = age Name Age,
 \end{elpicode}
 
-is the simplest evidence of it: \elpiinline{TheNewRule} contains a pice
-of Elpi code built from the \elpiinline{age} predicate and the two arguments
-passed to \elpiinline{main}. Since construction/inspection are conflated
+is the simplest evidence of it: \elpi{TheNewRule} contains a pice
+of Elpi code built from the \elpi{age} predicate and the two arguments
+passed to \elpi{main}. Since construction/inspection are conflated
 into unification in logic programming, the same line can be used to analyze the
 syntax of a piece of code in order to extra the name and age.
 
 The second characteristic of Elpi that really helps is that the code is
-organized into rules, meaning that \elpiinline{age Name Age} is an entire code
+organized into rules, meaning that \elpi{age Name Age} is an entire code
 unit one can build or inspect. In comparison the OCaml code for the
-\ocamlinline{age} function is a single expression (a single unit):
+\ocaml{age} function is a single expression (a single unit):
 
 \begin{ocamlcode}
 let age s =
@@ -2219,7 +2294,7 @@ of a rule based language:
   \item making all rules syntactically independent
 \end{itemize}
 
-The code below respects these points. Remak \ocamlinline{s} binding now
+The code below respects these points. Remak \ocaml{s} binding now
 being local to the last branch, and the separation between the bob and
 mallory branches:
 
@@ -2238,22 +2313,22 @@ The example in the following section makes good use of this possiblity.
 \section{Example: simple proof transfer}\label{sec:tb}
 
 We provide an example of a tactic and a command that communicate via
-a database. The tactic \rocqinline{to_bool} transfers a goal from the realm
+a database. The tactic \rocq{to_bool} transfers a goal from the realm
 of propositions to the one of computable (boolean) tests (decidable propositions).
-The command \rocqinline{register_decision} takes a proof of equivalence
+The command \rocq{register_decision} takes a proof of equivalence
 between a proposition and a boolean test and ``compiles'' it to an Elpi rule.
 The database contains all the known rules for translating propositions into
-tests: it is queried by \rocqinline{to_bool} and populated by \rocqinline{register_decision}.
+tests: it is queried by \rocq{to_bool} and populated by \rocq{register_decision}.
 
 It is customary to organize Rocq-Elpi code in this very way. The key feature
-one obtains is that the \rocqinline{to_bool} is extensible: when a new
+one obtains is that the \rocq{to_bool} is extensible: when a new
 predicate is declared and a new test defined, it is sufficient to call
-\rocqinline{register_decision} to extend \rocqinline{to_bool} with the new
+\rocq{register_decision} to extend \rocq{to_bool} with the new
 predicate.
 
-We assume a Rocq environment with the following lemmas. The \rocqinline{reflect}
-predicate links a proposition with a boolean test: \rocqinline{reflect P b}
-means \rocqinline{P} holds if and only if \rocqinline{b = true}.
+We assume a Rocq environment with the following lemmas. The \rocq{reflect}
+predicate links a proposition with a boolean test: \rocq{reflect P b}
+means \rocq{P} holds if and only if \rocq{b = true}.
 
 \begin{rocqcode}
 Lemma evenP n : reflect (is_even n) (even n).
@@ -2265,7 +2340,7 @@ Lemma elimT {P b} :
   reflect P b -> b = true -> P.
 \end{rocqcode}
 
-The database holds rules for the \elpiinline{tb} relation. Since
+The database holds rules for the \elpi{tb} relation. Since
 we are only interested in one direction of the equivalence we
 relate a proposition with its equivalence proof (disregarding the
 associated boolean test).
@@ -2285,7 +2360,7 @@ tb Ty _ :- rocq.error "Cannot solve" {rocq.term->string Ty}.
 The database only contains one rule aborting the search with an error message.
 All rules will need to be placed before that one.
 
-The \rocqinline{to_bool} tactic is built as follows a top of the
+The \rocq{to_bool} tactic is built as follows a top of the
 database.
 
 \begin{rocqcode}
@@ -2300,15 +2375,15 @@ solve (goal Ctx _ Ty _ _ as G) [G1] :-
 }}.
 \end{rocqcode}
 
-The tactic simply queries the database for a proof \elpiinline{P} that
+The tactic simply queries the database for a proof \elpi{P} that
 the goal is related to a boolean test, then refines the goal (as in the
-standard Rocq \rocqinline{refine} tactic) with \rocqinline{elimT lp:P _}.
-The hole stands for the proof of \rocqinline{b = true}, i.e. the subgoal
-\elpiinline{G1}.
+standard Rocq \rocq{refine} tactic) with \rocq{elimT lp:P _}.
+The hole stands for the proof of \rocq{b = true}, i.e. the subgoal
+\elpi{G1}.
 
 The most interesting part of this example is how the dabase is populated.
-We shall write a \elpiinline{compile} procedute that given \rocqinline{evenP}
-and \rocqinline{andP} synthesizes the following Elpi code
+We shall write a \elpi{compile} procedute that given \rocq{evenP}
+and \rocq{andP} synthesizes the following Elpi code
 
 \begin{elpicode}
 tb {{ is_even lp:N }} {{ evenP lp:N }} :- !.
@@ -2336,7 +2411,7 @@ pi P Q p q PP QQ\
   
 
 Now that all quantifications are explicit we can look at the types of
-\rocqinline{evenP} and \rocqinline{andP} and remark how each \elpiinline{pi}
+\rocq{evenP} and \rocq{andP} and remark how each \elpi{pi}
 Elpi quantification corresponds to a Rocq quantification (dependent or not),
 and Rocq premises corresponds to recursive calls in Elpi.
 
@@ -2346,7 +2421,7 @@ andP : ∀P Q p q,
   reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
 \end{rocqcode}
 
-The \elpiinline{compile} predicate has three inputs an one output.
+The \elpi{compile} predicate has three inputs an one output.
 The first input is the type of a lemma and the second is the proof of that
 lemma, this relation between the first two argument is a key invariant.
 The third argument is a list of recursive calls, while the output is
@@ -2365,25 +2440,25 @@ compile {{ ∀x, lp:(T x) }} P Hyps (pi h\ C h) :-
 \end{elpicode}
 
 The first rule is the base case. When we reach the conclusion of the lemma
-\rocqinline{reflect lp:Ty _} we know that the second argument \elpiinline{P}
-is a proof of that fact, hence \elpiinline{tb Ty P} is a correct head for the
-rule. The premises of the rules are the \elpiinline{Hyps} recursive calls
+\rocq{reflect lp:Ty _} we know that the second argument \elpi{P}
+is a proof of that fact, hence \elpi{tb Ty P} is a correct head for the
+rule. The premises of the rules are the \elpi{Hyps} recursive calls
 prefixed with a cut.
 
 The second rule is for premises that are turned into recursive calls. In this
-case the output rule features an extra \elpiinline{pi} quantification and the
-\elpiinline{Hyps} list gets longer. The \elpiinline{h} variable stands for
-the proof obtained by the recursive call, a proof of \rocqinline{reflect lp:S _}
-hene an argument we can pass to the second argument as in \rocqinline{lp:P lp:h}
-so to keep the invariant that it is a proof of \elpiinline{T}, the type
+case the output rule features an extra \elpi{pi} quantification and the
+\elpi{Hyps} list gets longer. The \elpi{h} variable stands for
+the proof obtained by the recursive call, a proof of \rocq{reflect lp:S _}
+hene an argument we can pass to the second argument as in \rocq{lp:P lp:h}
+so to keep the invariant that it is a proof of \elpi{T}, the type
 in which we recurse.
 
 The last rule is a simpler version of the second, in this case the quantification
-is not a premise, hence we do not extend \elpiinline{Hyps}.
+is not a premise, hence we do not extend \elpi{Hyps}.
 
-The code of the \rocqinline{register_decision} command located the
-given lemma, finds its type and generates the new rule \elpiinline{C}.
-finally it adds the rule to the database before the \elpiinline{"tb:fail"}
+The code of the \rocq{register_decision} command located the
+given lemma, finds its type and generates the new rule \elpi{C}.
+finally it adds the rule to the database before the \elpi{"tb:fail"}
 anchor point.
 
 \begin{rocqcode}
@@ -2420,7 +2495,7 @@ trivial.
 Qed.
 \end{rocqcode}
   
-The Rocq snippet calls the \rocqinline{to_bool} tactic in a scenario
+The Rocq snippet calls the \rocq{to_bool} tactic in a scenario
 where a predicate is not (yet) registered obtaining an explicative
 error message. Then it register a test for the missing predicate
 and succesfully solves the goal.
@@ -2462,15 +2537,15 @@ the swiss army knife of boilerplate code generation: parametricity.
 
 The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
 is a family of procedures $[\cdot]_i$ indexed by an arity $i$. We focus on the
-unary one, i.e. $i=1$, and we write $U$ for any Rocq universe, i.e. \rocqinline{Prop}.
+unary one, i.e. $i=1$, and we write $U$ for any Rocq universe, i.e. \rocq{Prop}.
 Given \emph{any} Rocq term $t : r$, the unary parametricity
 translation gives both a unary predicate $R$ on $r$, e.g. $[r]_1 = R : r \to U$
 and a proof $T$ that $R$ holds for $t$, i.e. $[t]_1 = T : R~ t$ or somewhat more
 confusingly if $t : r$ then $[t]_1 : [r]_1~ t$.
 
 For example the unary parametricity translation of
-\rocqinline{nat} is \rocqinline{is_nat : nat → U} and
-the translation of \rocqinline{3 : nat} is a proof that \rocqinline{is_nat 3}.
+\rocq{nat} is \rocq{is_nat : nat → U} and
+the translation of \rocq{3 : nat} is a proof that \rocq{is_nat 3}.
 
 \begin{rocqcode}
 Inductive is_nat : nat -> U :=
@@ -2481,17 +2556,17 @@ Definition is_nat_3 : is_nat 3 :=
   is_succ 2 (is_succ 1 (is_succ 0 is_zero)).
 \end{rocqcode}
 
-One can see \elpiinline{is_nat} as a first class description of the
+One can see \elpi{is_nat} as a first class description of the
 typing assignment, i.e. each term is equipped with a proof that
-is has the expected type, i.e. \rocqinline{0} with \rocqinline{is_zero};
-\rocqinline{1} with \rocqinline{is_succ 0 is_zero}, and so on.
+is has the expected type, i.e. \rocq{0} with \rocq{is_zero};
+\rocq{1} with \rocq{is_succ 0 is_zero}, and so on.
 
 The translation becomes interesting when the type has parameters such as
-\rocqinline{A} in \rocqinline{list A}. In that case the translation builds
-a predicate parametric in \rocqinline{A} and in its translation. For example
-the translation of \rocqinline{list A} is a predicate
-\rocqinline{is_list : ∀A, (A → U) → (list A → U)},
-and the translation of the constructors \rocqinline{nil} and \rocqinline{cons}
+\rocq{A} in \rocq{list A}. In that case the translation builds
+a predicate parametric in \rocq{A} and in its translation. For example
+the translation of \rocq{list A} is a predicate
+\rocq{is_list : ∀A, (A → U) → (list A → U)},
+and the translation of the constructors \rocq{nil} and \rocq{cons}
 are:
 \begin{rocqcode}
 is_nil: ∀A (isA : A → U), is_list A isA nil
@@ -2500,9 +2575,9 @@ is_cons: ∀A (isA : A → U), ∀a, isA a →
 \end{rocqcode}
 
 As for the translation of natural numbers, each term comes with a proof
-that is has the expected type. When the term is of type \rocqinline{A},
-the type parameter of the container, then it comes with a proof of \rocqinline{isA},
-the predicate parameter associated with \rocqinline{A}.
+that is has the expected type. When the term is of type \rocq{A},
+the type parameter of the container, then it comes with a proof of \rocq{isA},
+the predicate parameter associated with \rocq{A}.
 The unary parametricity translation is the key to express, in a
 systematic way, that a property holds deep inside a container.
 
@@ -2525,8 +2600,8 @@ Inductive rtree A : U :=
 | Node (l : list (rtree A)).
 \end{rocqcode}
 
-The induction principle generated by Rocq is shallow: \rocqinline{P} is
-only available on the immediate subterms of type \rocqinline{rtree}, that
+The induction principle generated by Rocq is shallow: \rocq{P} is
+only available on the immediate subterms of type \rocq{rtree}, that
 in this case are none.
 
 \begin{rocqcode}
@@ -2536,9 +2611,9 @@ Lemma rtree_ind : ∀A (P : rtree A → U),
   ∀t : rtree A, P t.
 \end{rocqcode}
 
-That principle is weak since no element of \rocqinline{l} in \rocqinline{Node A l}
-verifies \rocqinline{P}. In \cite{tassi:hal-01897468} I study the synthesis
-for a stronger principle where \rocqinline{P} holds deep inside \rocqinline{l}.
+That principle is weak since no element of \rocq{l} in \rocq{Node A l}
+verifies \rocq{P}. In \cite{tassi:hal-01897468} I study the synthesis
+for a stronger principle where \rocq{P} holds deep inside \rocq{l}.
 
 \begin{rocqcode}
 Lemma rtree_induction A is_A (P : rtree A → U) :
@@ -2548,18 +2623,18 @@ Lemma rtree_induction A is_A (P : rtree A → U) :
 \end{rocqcode}
 
 The induction principle uses the unary parametricty
-translation of \rocqinline{l} and its type in order to systematically craft
-the hypothesis \rocqinline{is_list (rtree A) P l} that gives access to
-\rocqinline{P} on all elements of \rocqinline{l}.
+translation of \rocq{l} and its type in order to systematically craft
+the hypothesis \rocq{is_list (rtree A) P l} that gives access to
+\rocq{P} on all elements of \rocq{l}.
 
 This  extra assumption comes at a price: the induction principle does not apply
-to to just a tree, but to a tree \elpiinline{t} such that
-\rocqinline{is_rtree A is_A t} holds. This extra argument is
+to to just a tree, but to a tree \elpi{t} such that
+\rocq{is_rtree A is_A t} holds. This extra argument is
 synthesized automatically.
 
-For non-containers like \rocqinline{nat}
-we prove \rocqinline{∀n, is_nat n} by induction on \rocqinline{n} (no different
-than how we proved \rocqinline{is_nat 3} before). For containers we prove
+For non-containers like \rocq{nat}
+we prove \rocq{∀n, is_nat n} by induction on \rocq{n} (no different
+than how we proved \rocq{is_nat 3} before). For containers we prove
 the statement under the assumption that the predicate for the type parameter
 is triviall true. E.g.
 
@@ -2571,9 +2646,9 @@ Lemma rtree_is_rtree A isA : (∀a, isA a) -> ∀l, is_rtree A isA l.
 While the assumption seems strong at first, it actually matches two relevant class
 of predicates:
 \begin{itemize}
-  \item the one we are definig, e.g. \rocqinline{nat_is_nat} fits
-  \item any \rocqinline{P : t -> U} we are defining by induction on the whole
-    type \rocqinline{t}, e.g. the \rocqinline{P} of an induction principle
+  \item the one we are definig, e.g. \rocq{nat_is_nat} fits
+  \item any \rocq{P : t -> U} we are defining by induction on the whole
+    type \rocq{t}, e.g. the \rocq{P} of an induction principle
 \end{itemize}
 
 In order to prove the deep induction principle we need some scaffolding,
@@ -2593,7 +2668,7 @@ Definition is_list_functor A P Q :
       end
 \end{rocqcode}
 
-The proof is a straightforward induction on list \rocqinline{l}.
+The proof is a straightforward induction on list \rocq{l}.
 We can now present the proof of the deep induction principle over rose trees:
 
 \begin{rocqcode}
@@ -2620,9 +2695,9 @@ is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
   is_list (rtree A) P l
 \end{rocqcode}
 
-The last term satisfies the premise of \rocqinline{His_Node}, that in turn
-gives the user of the induction principle access to the property \rocqinline{P}
-on all the elements of \rocqinline{l}.
+The last term satisfies the premise of \rocq{His_Node}, that in turn
+gives the user of the induction principle access to the property \rocq{P}
+on all the elements of \rocq{l}.
 
 \subsection{Natural equality tests}
 
@@ -2645,12 +2720,12 @@ Lemma seq_eq_correct : ∀A eqA (l : list A),
     correct_at (list A) (list_eq A eqA) l
 \end{rocqcode}
 
-It reads: if \rocqinline{eqA} is a correct test on all elements of \rocqinline{l},
-then \rocqinline{list_eq A eqA} is a good test for \rocqinline{l}.
+It reads: if \rocq{eqA} is a correct test on all elements of \rocq{l},
+then \rocq{list_eq A eqA} is a good test for \rocq{l}.
 
 The interesting case the the equality test for rose trees, that reuses
-the equality test for lists \rocqinline{list_eq} passing the recursive call
-at the \rocqinline{eqA} argument.
+the equality test for lists \rocq{list_eq} passing the recursive call
+at the \rocq{eqA} argument.
 
 \begin{rocqcode}
 Definition rtree_eq A (A_eq : A → A → bool) :=
@@ -2662,8 +2737,8 @@ Definition rtree_eq A (A_eq : A → A → bool) :=
     end.
 \end{rocqcode}
 
-What is remarkable is that the correctness proof for \rocqinline{rtree_eq}
-reuses the correctness proof for \rocqinline{list_eq}.
+What is remarkable is that the correctness proof for \rocq{rtree_eq}
+reuses the correctness proof for \rocq{list_eq}.
 
 \begin{rocqcode}
 Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
@@ -2737,9 +2812,9 @@ Definition fields_t : positive -> Type.
 Definition fields A :  ∀r : rtree A, fields_t (tag t).
 \end{rocqcode}
 
-The main code mattern matches over the first \rocqinline{rtree} and 
+The main code mattern matches over the first \rocq{rtree} and 
 pre-computes its tag and fields. The it calls a common piece of
-code \rocqinline{eqb_body} that will test if the tags agree and proceed
+code \rocq{eqb_body} that will test if the tags agree and proceed
 if it is the case.
 
 \begin{rocqcode}
@@ -2755,10 +2830,10 @@ Definition rose_eqb A eqA : rtree A -> rtree A -> bool :=
     end.
 \end{rocqcode}
 
-When the tags agree, \rocqinline{eqb_body} extracts the fields
-of the second rose tree and calls \rocqinline{eqb_fields}.
+When the tags agree, \rocq{eqb_body} extracts the fields
+of the second rose tree and calls \rocq{eqb_fields}.
 Since the two fields have, respectively, type 
-\rocqinline{fields_t t1} and \rocqinline{fields_t t2} a cast is necessary.
+\rocq{fields_t t1} and \rocq{fields_t t2} a cast is necessary.
 
 \begin{rocqcode}
 Definition eqb_body t1 eqb_fields v1 x2 :=
@@ -2772,7 +2847,7 @@ Definition eqb_body t1 eqb_fields v1 x2 :=
 \end{rocqcode}
 
 Comparing the fieds amounts at calling the equality test for the
-right type, possibly using the recursive call to \rocqinline{rose_eqb}.
+right type, possibly using the recursive call to \rocq{rose_eqb}.
 
 \begin{rocqcode}
 Definition eqb_fields A eqA rec t :
@@ -2786,11 +2861,11 @@ Definition eqb_fields A eqA rec t :
 \end{rocqcode}
 
 As we can see the two matches of the constructors are no nested, but rather
-chained. Both \rocqinline{rose_eqb} and \rocqinline{eqb_fields} have a number
+chained. Both \rocq{rose_eqb} and \rocq{eqb_fields} have a number
 of branches proportional to the number of constructors.
 
 The main downside is that, unless the quality tests gets extracted to
-OCaml, the type cast that uses the evidence provided by \rocqinline{pos_eq_dec}
+OCaml, the type cast that uses the evidence provided by \rocq{pos_eq_dec}
 has to be evaluated. The reader interested in benchmarks
 can find them in~\cite{gregoire:hal-03800154}.
 
@@ -2935,8 +3010,8 @@ into directly. Here we mention some we are aware of.
 
 \subsection{Algebra Tactics}
 
-Algebra tactics is a port (and improvement) of the \rocqinline{ring}, \rocqinline{field} and
-\rocqinline{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
+Algebra tactics is a port (and improvement) of the \rocq{ring}, \rocq{field} and
+\rocq{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
 These tactics are reflexive, i.e. a pre-processing phase called reification
 recognizes in a goal the syntax of an algebraic structure and reflects it into
 a datatypes that is then manipulated by a certified Gallina program.
@@ -2947,9 +3022,9 @@ the terms of Gallina, making the reification work more delicate.
 
 For example the addition of a ring actually comes from the
 additive abelian group it inherits from. The code snippet below
-has to compare the abelian group instance \elpiinline{U} with the ring
-instance \elpiinline{R} the tactic is applied to, possibly in the context
-\elpiinline{C} of a ring morphism.
+has to compare the abelian group instance \elpi{U} with the ring
+instance \elpi{R} the tactic is applied to, possibly in the context
+\elpi{C} of a ring morphism.
 
 \begin{elpicode}
 ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
@@ -2962,12 +3037,12 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
 \subsubsection{The role of Rocq-Elpi in Algebra Tactics}
 
 The code crytically uses the possibility to call
-the \elpiinline{rocq.unify-eq} deep inside the goal to identify
+the \elpi{rocq.unify-eq} deep inside the goal to identify
 terms up to (Rocq) unification.
 
 The algrbra tactics project comprises a few benchmarks including
 a five hundred lines long polynomial euqation in six variables.
-The \rocqinline{ring} tactic takes about five seconds to solve it.
+The \rocq{ring} tactic takes about five seconds to solve it.
 
 While the standard, simpler, reification writtne in OCaml is an order of
 magnitude faster, the reification procedure written in Elpi is not the dominant
@@ -3049,10 +3124,10 @@ to an existing namespace.
 The key ingredient for emulating namespaces with modules is the presence,
 in Rocq, of a so called ``nametab'': an environment of non-ambiguous names
 that can be extended by importing in it the names from a module, even the
-names of modules themselves. It allows to create the illusion that \rocqinline{A.x}
-and \rocqinline{A.y} are items from the same module \rocqinline{A} even if
-the two \rocqinline{A}s have different (long) names, eg \rocqinline{X1.A.x}
-and \rocqinline{X2.A.y}.
+names of modules themselves. It allows to create the illusion that \rocq{A.x}
+and \rocq{A.y} are items from the same module \rocq{A} even if
+the two \rocq{A}s have different (long) names, eg \rocq{X1.A.x}
+and \rocq{X2.A.y}.
 
 NES emulates name spaces using the trick above. It was developed
 together with Cyril Cohen as a proof of concept, possibly an addition
@@ -3083,7 +3158,7 @@ NES.Open This.Is.A.Long.Namespace.
 Print stuff. (* = 1 *)
 \end{rocqcode}
 
-It worth pointing out how the definition of \rocqinline{more_stuff}
+It worth pointing out how the definition of \rocq{more_stuff}
 uses the contents of the name space, i.e. how the second definition
 of stuff does not cause a name capture (in another name space).
 
@@ -3127,7 +3202,7 @@ rule based. We identified three main advantages:
 \item rules as code unit facilitates considerably self manipulation~\ref{sec:tb}
 \end{itemize}
 
-We take the liberty to challange the reader to write the \rocqinline{to_bool}
+We take the liberty to challange the reader to write the \rocq{to_bool}
 tool we show in section~\ref{sec:tb} in any other extension language and match
 it in size and functionality.
 
