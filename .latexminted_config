@@ -2,6 +2,6 @@
     "custom_lexers": {
         "elpi.py": "abc5ff120d08ba36515261c5753dd6e725b899e55a83d70807fab019eea8523b",
         "ml.py": "17c725fcf7e934b6f95a4e66e3f4cb4fae07a4bb1f78a9e3a47b7372e6601b41",
-        "theorem.py": "0ae875b9827aec6b90dac00d5f095b4c1f68eb06c2d9d16496aeb59dfebbb212"
+        "theorem.py": "58e7d49365a4f7691d4d1c5282289b4fa635d59a4a49f00350da4e2b87449cfe"
     }
 }

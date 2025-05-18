@@ -5,6 +5,7 @@
 \usepackage{hyperref}
 \usepackage[linguistics]{forest}
 \usepackage{bussproofs}
+\usepackage{wrapfig}
 
 \usepackage{xpatch}
 \usepackage[firstpageonly=false]{draftwatermark}
@@ -58,9 +59,9 @@
 %'theorem.py:CoqLexer -x'
 \newminted[elpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
-\newmintinline{elpi}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newminted[coqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newmintinline{coq}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline[elpiinline]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[rocqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newmintinline[rocqinline]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
 \newminted[ocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newmintinline{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
@@ -104,14 +105,14 @@ a tool can democratize...
 3 points 1) engineering practices, not new but too often
 ignored by the community; 2) formalization technique known as boolean
 reflection (or small scale reflection) that carves a light weight
-``classical math'' framework in Coq (EM, UIP, FUNEXT) in Coq when
+``classical math'' framework in Rocq (EM, UIP, FUNEXT) in Rocq when
 constructivism allows for it; 3) ``creative'' programming of the
-Coq elaborator.
+Rocq elaborator.
 
-We focused on 3. These programs make Coq behave as an informed readers,
+We focused on 3. These programs make Rocq behave as an informed readers,
 that is a reader that knows some base facts and that is expected to
 be able to combine them using some well known rules. It was customary,
-at that time, to see Coq as a ``dumb reader'': you have to explain
+at that time, to see Rocq as a ``dumb reader'': you have to explain
 every single detail to him. These programs changed the game  for the
 oothm and made it possible to use notations as in math, that is convoy
 a lot of information implicitly, by convention.
@@ -122,7 +123,7 @@ knowledge could be organized by the author an retrieved by these
 programs was even harder. The programming mechanism is called CS,
 and is strictly related to the UH I studied during my PhD.
 Independently, about at the same time,
-Coq got extended with type classes, which happened to be usd for similar
+Rocq got extended with type classes, which happened to be usd for similar
 purposes, and immediately raised similar programming issues.
 
 To my eyes, these programs were strikingly related to Prolog.
@@ -134,7 +135,7 @@ and thanks to Assia Mahboubi and Stephane Legrand I could give a talk
 at a STTT workshop they were hosting.
 
 In my talk I did explain some of the programs we wrote and why they
-were helping us writing math in Coq. Dale Miller, asked a few questions
+were helping us writing math in Rocq. Dale Miller, asked a few questions
 and suggested that his $\lambda$Prolog language was probably what I
 was looking for, but since I did not know anything about it I could
 just nod and ask to continue to the discussion offline.
@@ -158,10 +159,10 @@ elegance of \elpiinline{copy}, I clearly remember I say ``sold...'',
 but I also completed the sentence with ``how do I do evars?''.
 
 $\lambda$Prolog could easily describe the rules my programs were
-made of and elegantly manipulate the data type of Coq terms that
-notably contains many binders. But also holes, evars in Coq slang,
+made of and elegantly manipulate the data type of Rocq terms that
+notably contains many binders. But also holes, evars in Rocq slang,
 that are the other beast one has to tame in order to implement an
-elaborator and, in general, the outern layers of a toll like Coq.
+elaborator and, in general, the outern layers of a toll like Rocq.
 
 It was the beginning.
 
@@ -173,9 +174,9 @@ of LP, and Teyjus, do not really give you systems to control their
 assignment and an elaborator takes in input a term with holes
 and returns a term where only some holes are assigned...
 
-It was worth trying but using teyjus in Matita or Coq was too hard.
+It was worth trying but using teyjus in Matita or Rocq was too hard.
 I write a POC interpreter of LP in OCaml for embedding it into
-Matita and Coq, elpi. It was easy to add hacks and experiment with
+Matita and Rocq, elpi. It was easy to add hacks and experiment with
 it, and that ... Elab in matita was kind of working, we could run
 it on the arithmetic library. It was clear that:
 the perf were bad, very bad, like 22K times bad.
@@ -196,8 +197,8 @@ I perceived many times, in academic circles, some mistrust in logic programming.
 
 We organize this document in four parts. The first two describe Elpi from
 A to Z, both as a language and as an implementation of that language (we credit
-\cite{ridoux1998lambda}). The third describes the integration of Elpi in Coq
-and the fourth one surveys the application developed for Coq using Elpi.
+\cite{ridoux1998lambda}). The third describes the integration of Elpi in Rocq
+and the fourth one surveys the application developed for Rocq using Elpi.
 
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
@@ -213,7 +214,7 @@ We briefly introduce all the ingredients that constitute Elpi.
 Most of the syntax of Elpi is inherited from $\lambda$Prolog, as well
 as the type discipline~\cite{Miller_Nadathur_2012}; similarly most of
 its dynamic semantics is inherited from Prolog.
-We state this upfront with no claim of novelty and but we just say Elpi in what
+We state this upfront with no claim of novelty but we will just say Elpi in what
 follows. We shall still highlight the novelties or simply differences from
 $\lambda$Prolog or Prolog as they appear.
 
@@ -234,28 +235,26 @@ type leaf tree.
 type node int -> tree -> tree -> tree. 
 \end{elpicode}
 
-The \elpiinline{leaf} and \elpiinline{node} function symbols can be used to
-build ``compound terms'' and have arity 0 and 3 respectively. Elpi
+The \elpiinline{leaf} and \elpiinline{node} symbols can be used to
+build terms and have arity 0 and 3 respectively. Elpi
 follows the tradition of typed functional languages by prescribing not only
 an arity but a more precise type to \elpiinline{leaf} and \elpiinline{node}.
 In this document we refer to them as term constructors, or simply constructors.
+\begin{wrapfigure}{r}{.2\textwidth}
+  \begin{forest}
+    [46 [93 [-] [-]] [-]]
+  \end{forest}
+\end{wrapfigure}
 Types play no role at run time but grately contribute to the static analysis
-of the code, allowing to report typos and sometime even true errors early.
-
-Here an example of the three
-
-\begin{forest}
-  [46 [93 [-] [-]] [-]]
-\end{forest}
-
-\begin{elpicode}
-T = (tree 46 (tree 93 leaf leaf) leaf)
-\end{elpicode}
-  
+of the code, allowing to report typos and sometime even true errors, early.
+As an example the term
+\elpiinline{(tree 46 (tree 93 leaf leaf) leaf)}
+represents the tree depicted on the right.
 To the reader familiar with
 Prolog we point out that Elpi adopts the syntactic convention
 of $\lambda$-calculus for function calls, namely $(f~ x~ y)$ rather than the
 mathematical convention $f(x,y)$ adopted by Prolog.
+
 
 The second feature we discuss is that the code is organized into
 rules, that constitue the smallest code unit\footnote{In this document we prefer the
@@ -263,15 +262,14 @@ word rule to clause.}. A rule is made of two parts, the head and the premises.
 Intuitively the head drives the selection of a rule, reducing the current
 problem, that we goal, to simpler ones. Operationally the head is unified with the
 goal, possibly assigning value to the rule parameters that are embodied by
-unification variables. For example code computing the size of a tree, together
-with its signature:
+unification variables. As an example we provide the code computing the size of
+a tree, together with its signature:
 
 \begin{elpicode}
 type size tree -> int -> prop.
 size leaf 0.
 size (node _ L R) N :- size L N1, size R N2, N is 1 + N1 + N2.
 \end{elpicode}
-
 Again we favor a type assignment to a simple arity. \elpiinline{prop} is the
 type of executable code, meaning that \elpiinline{size}, when applied to two
 arguments, becomes a goal and a program can be run to solve it.
@@ -284,11 +282,10 @@ goal> size T N.
 Success
   N = 2
 \end{elpicode}
-
 Operations on built-in data types, such as integers, are provided via
 the built-in \elpiinline{is} operator that evaluates its right hand side
 and unifies the result with the left hand side.
-
+~\\
 It is worth pointing out that variables do not need to be used linearly
 in the head of a rule: since the head is unified with the goal, it makes sense to
 write there any therm, not just terms that happen to be patterns in
@@ -314,7 +311,6 @@ mem (node N _ _) N.
 mem (node _ L _) N :- mem L N.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}
-
 Backtracking is a very powerful feature but without control leads to
 unnecessarily bad computational complexity. The one contruct to control
 backtracking is the cut operator.
@@ -324,7 +320,6 @@ mem (node N _ _) N :- !.
 mem (node _ L _) N :- mem L N, !.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}  
-
 Operationally the cut is not a premise to be solved, but rather telling
 the runtime the intention to commit to the current rule and solution.
 The former cut indicates that if the number is found in the current node
@@ -347,10 +342,11 @@ On the contrary functional languages do not usually come with backtracking
 while it is undeniable that logic programming and backtracking are linked by
 a strong bond and that the ability to ``compute relations'' is a typical
 selling point. Still, according to our experience, the vast majority of code
-written in Elpi does not need this feature.
+written in Elpi does not need this feature. In~\cite{fissore:hal-05026472} we
+estimate that 96\% of the existing Elpi code computes functions!
 
 So, in conclusion, I believe that the most interesting
-characteristic of logic programming is of being rule based.
+characteristic of Elpi is of being rule based.
 It trades the elaborate syntax offered by most
 programming languages with the notion of a smaller code unit.
 A code unit has a meaning per se and the operation of adding or removing it
@@ -358,8 +354,8 @@ to/from a program is well defined.
 
 An assignment, a while loop, or a function definition do not
 constitute a code unit. An assignment is meaningless without a variable
-declaration, similarly a while loop: they only get a meaning, even a formal 
-one, in a larger context. Even the definition of a self contained function fails
+declaration, similarly a while loop: they can get a meaning, and even a formal 
+one, only in a larger context. Even the definition of a self contained function fails
 to be a unit in this sense: while adding it to a program makes some sense (although,
 since nobody calls it, serves little purpose),
 removing a used function just results in a broken program.
@@ -380,12 +376,12 @@ or after another rule.
 
 It it thanks to this rule-based nature that logic programming scales so
 naturally to the domain of syntax trees with binders (next section)
-and that it integrates so well with interactive provers (see~\ref{sec:rocq}).
+and that it integrates so well with interactive provers (see section~\ref{sec:rocq}).
 
 \section{Elpi v.s. $\lambda$Prolog}\label{sec:hello}
 
 The syntax trees we are interested in are the ones that constitute
-the foundational language of interactive provers like Coq. A characteristic common
+the foundational language of interactive provers like Rocq. A characteristic common
 to all of the them is the presence of binders, as forall and exists in
 the world of specification or (lambda) abstraction in the world of terms.
 
@@ -411,7 +407,7 @@ the function carried by \elpiinline{lam} can be applied to an actual argument in
 to recoved the body of the expression where the formal argument is
 replaced by the actual argument.
 
-In this syntax the fst function is written as follows:
+In this syntax the function $fst = \lambda x.\lambda y.x$ is written as follows:
 
 \begin{elpicode}
 Fst = (lam x\ lam y\ x)
@@ -423,8 +419,9 @@ and that the syntax tree of our object language, $\lambda$-calculus, does not
 feature a term constructor for variables since one can reuse the variables
 of Elpi.
 As sketched above the body of the first abstraction
-can be recovered by applying the function: \elpiinline{((x\ lam y\ x) c)}
-gives \elpiinline{(lam y\ c)}.
+can be recovered by applying the function to an argument, for
+example the constant \elpiinline{c}: \elpiinline{((x\ lam y\ x) c)}
+evaluates to \elpiinline{(lam y\ c)}.
 
 
 % \begin{elpicode}
@@ -505,7 +502,7 @@ unlike the \texttt{assert/1} and \texttt{retract/1} Prolog builtins\footnote{
 that can be used to simulate scoping.}.
 
 As previously announced, we want to use Elpi in the context of an
-interactive prover like Coq where syntax trees are often incomplete, i.e.
+interactive prover like Rocq where syntax trees are often incomplete, i.e.
 they contain holes. For example we would like to run the
 type checker of this goal: \elpiinline{of (app F A) T}.
 
@@ -549,7 +546,7 @@ From a programming perspective, the needs are the following ones:
   \item[attach data to holes] from a simple boolean flag, as we will do
     when implemeting ML type inference with equality types,
     to a full typing sequent as it is necessary to do when holes represent
-    Coq terms
+    Rocq terms
 
   \item[manipualte attached data] such as combine multiple data attached to the same
      hole or perform a consistency check when the hole gets assigned
@@ -711,7 +708,7 @@ constraint of {
 \end{elpicode}
 
 While correct for simple types this rule does not scale for a type
-discipline like the one of Coq where terms can occur in types,
+discipline like the one of Rocq where terms can occur in types,
 i.e. where the constants in S1 occur in T1, and S2 in T2. In this
 richer setting comparing T1 and T2 in the disjoint union is incorrect,
 one needs to relocate one term under the context of the other in order
@@ -1522,7 +1519,7 @@ with a reputation of making things hard, so we played conservative.
 Suspension calculus did look similar to exp-substitutions, but until the very
 last last paper in the pile on my desk it was not clear is was actually isomorphic
 to $\lambda_\rho$. While explicit substitutions are often presented as a way to
-obtain better performances, in practice they fail to deliver. In Coq two
+obtain better performances, in practice they fail to deliver. In Rocq two
 people tried. In elpi-POC, in our limited tests, disabling them resulted in
 a faster runtime.  bla bla about lazyness.
 
@@ -1583,8 +1580,8 @@ one.
 example from the tutorial
 
 \begin{elpicode}
-  coq.say {{ 1 + lp:{{ app[global S, {{ 0 }} ]  }}   }}
-% elpi....  coq..     elpi...........  coq  elpi  coq
+  rocq.say {{ 1 + lp:{{ app[global S, {{ 0 }} ]  }}   }}
+% elpi....  rocq..     elpi...........  rocq  elpi  rocq
 \end{elpicode}
 
 
@@ -1767,11 +1764,11 @@ each events has pointers forward, backward and at a distance.
 Each goal displays it full success or failure letting one
 peek. The trace is searchable.
 
-\chapter{Coq-Elpi}
+\chapter{Rocq-Elpi}\label{sec:rocq}
 
 While Elpi is a standalone language and software project, it was designed to
-play the role of an \emph{extension language} for Coq. The glue between Elpi and
-Coq is called Coq-Elpi.
+play the role of an \emph{extension language} for Rocq. The glue between Elpi and
+Rocq is called Rocq-Elpi.
 
 My definition of this role, \emph{extension language}, is largely influenced
 by the Lua programming language~\cite{10.5555/1200583}. Lua is an extension
@@ -1786,22 +1783,22 @@ memory management and provides dictionaries as a builtin data structure.
 Finally, it is easy for a user to get started with Lua because he does not need
 to set up a proper development environment, the host application is sufficient
 since Lua is an interpreter.\\
-Elpi tries to do the same for OCaml, and Coq is the host application of interest.
+Elpi tries to do the same for OCaml, and Rocq is the host application of interest.
 
 Even if I'm not a big fan of it, in academia the same role is often called
-meta-programming framework. Coq's main data type, terms, are programs and Elpi
-programs do manipulate Coq programs. In this sense Elpi programs live at the
+meta-programming framework. Rocq's main data type, terms, are programs and Elpi
+programs do manipulate Rocq programs. In this sense Elpi programs live at the
 meta level.
 
-\section{Why extending Coq in OCaml is hard}
+\section{Why extending Rocq in OCaml is hard}
 
 Luckily OCaml features automatic memory management, types and algebraic data.
-It is much, much higher level than C. Why it is hard to extend Coq then?
+It is much, much higher level than C. Why it is hard to extend Rocq then?
 
-The first difficulty is that the complexity of the main Coq data type, terms,
+The first difficulty is that the complexity of the main Rocq data type, terms,
 is not completely hidden by the algebraic data types provided by the programming
 language. The missing features are encoded and it is hard to completely hide
-it to the programer (via curated APIs). In particular Coq terms feature binders
+it to the programer (via curated APIs). In particular Rocq terms feature binders
 and holes. 
 
 Binders pose two problems of their own and interact badly with holes.
@@ -1823,7 +1820,7 @@ types), no gc. The only thing that is easy is backracking, since the map is
 purely functional.
 
 The second difficulty is no inherent in OCaml, but rather an artifact of the
-history of Coq. The API are not curated. Exposing the API in a manual, althought
+history of Rocq. The API are not curated. Exposing the API in a manual, althought
 not very demanding, way is key to rationalize them.
 
 
@@ -1835,7 +1832,7 @@ can add a rule to mask/improve/debug a piece of code.
 
 \section{HOAS of terms and contexts}\label{GALLINA}
 
-The main data type Coq-Elpi programs work with is the one of
+The main data type Rocq-Elpi programs work with is the one of
 terms. The first bit of terms worth describing are the pointers
 to global objects. While \elpiinline{constant}, 
 \elpiinline{inductive} and \elpiinline{constructor} are opaque
@@ -1920,15 +1917,15 @@ hypothetical rule for the bound variable as follows:
 cross (fun N T F) :- pi x\ decl x N T => cross (F x).
 \end{elpicode}
 
-As a result of the convention, one can call \elpiinline{coq.typecheck}
+As a result of the convention, one can call \elpiinline{rocq.typecheck}
 deep inside a term. As described in~\ref{sec:API} a predicate can
 be equipped with a \ocamlinline{ctx_readback} function such
 as \ocamlinline{proof_context} in the code below. The \ocamlinline{term}
-contextual conversion can hence access a Coq context when operating its
+contextual conversion can hence access a Rocq context when operating its
 readback or embedding code.
 
 \begin{ocamlcode}
-MLCode(Pred("coq.typecheck",
+MLCode(Pred("rocq.typecheck",
   CIn(term, "T",
   CInOut(B.ioargC term, "Ty",
   InOut(B.ioarg B.diagnostic, "Diagnostic",
@@ -1940,7 +1937,7 @@ MLCode(Pred("coq.typecheck",
 \end{ocamlcode}
 
 Indeed here the \ocamlinline{t} and \ocamlinline{ety} values
-are read back in the \ocamlinline{proof_context.env} Coq context,
+are read back in the \ocamlinline{proof_context.env} Rocq context,
 that is also passed to the type checker in order to synthesize the
 type of \ocamlinline{t}, and later (in the omitted code) to unify
 the inferred type with the expected one \ocamlinline{ety} when provided.
@@ -1952,7 +1949,7 @@ type judgements to holes.
 
 \section{HOAS of holes (missing terms)}
 
-Each Coq hole as an entry in \ocamlinline{sigma} that looks like a
+Each Rocq hole as an entry in \ocamlinline{sigma} that looks like a
 typing sequent. In Elpi we represent it as a constraint \elpiinline{evar}.
 
 \begin{elpicode}
@@ -1967,13 +1964,13 @@ constraint declare-evar evar def decl {
 
 Note how \elpiinline{declare-evar} uses the CHR meta level to craft
 a goal with a precise context \elpiinline{Ctx}, no matter the context
-under which \elpiinline{declare-evar} is generated. Ineed a Coq API
+under which \elpiinline{declare-evar} is generated. Ineed a Rocq API
 that is called deep inside a term and that encounters a new hole has
-will add to Coq's sigma an entry for it, but also generate a
+will add to Rocq's sigma an entry for it, but also generate a
 \elpiinline{declare-evar}, and hence an \elpiinline{evar} constraint
 in Elpi.
 
-The code above also relates a Coq hole \elpiinline{Ev} and an
+The code above also relates a Rocq hole \elpiinline{Ev} and an
 Elpi unification variable \elpiinline{RawEv}. We want the following
 invariants to be hardwired on \elpiinline{Ctx => evar RawEv Ty Ev}.
 
@@ -1990,20 +1987,20 @@ The code below implements the desired invariants
 \begin{elpicode}
 pred evar i:term, i:term, o:term. % Evar Ty RefinedSolution
 evar (uvar as X) Ty R :- declare_constraint (evar X Ty R) [X, R].
-evar X Ty R :- not(var R), !, coq.typecheck R Ty ok, X = R.
-evar X Ty R :- not(var X), var R, !, coq.elaborate-skeleton X Ty R ok.
+evar X Ty R :- not(var R), !, rocq.typecheck R Ty ok, X = R.
+evar X Ty R :- not(var X), var R, !, rocq.elaborate-skeleton X Ty R ok.
 \end{elpicode}
 
-In the code above \elpiinline{coq.elaborate-skeleton} is an API
-very similar to \elpiinline{coq.typecheck} but that does not modify
+In the code above \elpiinline{rocq.elaborate-skeleton} is an API
+very similar to \elpiinline{rocq.typecheck} but that does not modify
 its input in place. It rather uses its input as a skeleton term that is
 copied. This allows for changes to the structure of the term, like inserting
 explicit coercions to implement type casts. The API corresponds to the code
-that Coq runs on any input term written by the user, while \elpiinline{coq.typecheck}
-corresponds to code internally used by Coq tactics to build well typed terms.
+that Rocq runs on any input term written by the user, while \elpiinline{rocq.typecheck}
+corresponds to code internally used by Rocq tactics to build well typed terms.
 
-The extensible state~\ref{sec:API} offered by Elpi carries a Coq-Elpi specific
-bidirectional map linked Coq unification variables and Elpi holes.
+The extensible state~\ref{sec:API} offered by Elpi carries a Rocq-Elpi specific
+bidirectional map linked Rocq unification variables and Elpi holes.
 It is built using this commodity Elpi API:
 
 \begin{ocamlcode}
@@ -2020,7 +2017,7 @@ module FlexibleData : sig
 
 TODO extra goals in API
 
-TODO sigma in Elpi, sigma in Coq, going from both.
+TODO sigma in Elpi, sigma in Rocq, going from both.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2030,38 +2027,38 @@ TODO sigma in Elpi, sigma in Coq, going from both.
 
 \section{Vernacular language integration}
 
-That vernacular language of Coq lets one organize the formalized knowledge,
+That vernacular language of Rocq lets one organize the formalized knowledge,
 in particular give names to Gallina terms and attach meta data to them.
-Coq-Elpi extends the vernacular language with a few commands to declare, run
+Rocq-Elpi extends the vernacular language with a few commands to declare, run
 and modify Elpi programs.
 
 For convenience programs are divided into commands and tactics. Both run
 Elpi code, but the entry point is different and moreover tactics can only
-be executed in Coq proof mode.
+be executed in Rocq proof mode.
 
 \subsection{Commands}
 
-A command is declared with \coqinline{Elpi Command} followed by a name.
-Initially a command only contains the glue code for Coq, like the
+A command is declared with \rocqinline{Elpi Command} followed by a name.
+Initially a command only contains the glue code for Rocq, like the
 HOAS data type of terms and the builtin predicates. Extra code
-can be added to a command via the \coqinline{Elpi Accumulate}.
+can be added to a command via the \rocqinline{Elpi Accumulate}.
 Accumulated code can have two natures: static code (e.g. from a file
 or a string) and dynamic code (from a database, see~\ref{sec:homo}).
 
-A command \texttt{hello} is executed with \coqinline{Elpi hello} followed
+A command \texttt{hello} is executed with \rocqinline{Elpi hello} followed
 by arguments. The \elpiinline{argument} data type has constructors
 for builtin data type such as strings or number as well as Gallina terms.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Command hello.
 Elpi Accumulate hello lp:{{
-  main [str X] :- coq.say "Hello" X.
+  main [str X] :- rocq.say "Hello" X.
 }}.
 Elpi hello "reader".
 Fail Elpi hello 46.
-\end{coqcode}
+\end{rocqcode}
 
-The simple program above calls the \elpiinline{coq.say} builtin whenever the
+The simple program above calls the \elpiinline{rocq.say} builtin whenever the
 command is passed a string. Since the entrypoint \elpiinline{main} has
 no rule for arguments of the form \elpiinline{int X}.
 
@@ -2075,27 +2072,27 @@ the entry point is called \elpiinline{solve} that receives as
 argument not only the arguments passed to the tactic, but also the goal
 on which the tactic operates.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Tactic intro.
 Elpi Accumulate intro lp:{{
   solve (goal _ _ _ _ [str ID] as G) GS :- !,
-    std.assert! (coq.ltac.id-free? ID G) "name already taken",
-    coq.id->name ID N,
+    std.assert! (rocq.ltac.id-free? ID G) "name already taken",
+    rocq.id->name ID N,
     refine (fun N _ _) G GS.
 }}.
 Goal ∀P, P -> P /\ P.
 elpi intro "p".
 Fail elpi intro "Hp".
 elpi intro "Hp".
-\end{coqcode}
+\end{rocqcode}
 
 In the example above the tactic expects to receive a string \elpiinline{ID};
-it checks that no Coq proof variable is already using the same name, and
+it checks that no Rocq proof variable is already using the same name, and
 finally refines the goal with a lambda abstraction, that is the proof term
 for logical rule of introduction of universal quantification or implication.
   
 The interested reader can look at a longer tutorial on Elpi tactics~\cite{tuto:tactics}
-and also to eltac~\cite{app:eltac}, a collection of Coq tactics rewritten in Elpi for
+and also to eltac~\cite{app:eltac}, a collection of Rocq tactics rewritten in Elpi for
 didactic purpose.
 
 \subsection{Databases, homoiconicity and rules}\label{sec:homo}
@@ -2107,41 +2104,41 @@ whenever a program run its sees the current contents of the data bases
 it accumulates, not their contents when the commands was inidially declared.
 
 A typical data base is made of one predicate, possibly with some default
-rules. The \coqinline{Elpi Db} commands declares a data base.
+rules. The \rocqinline{Elpi Db} commands declares a data base.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Db age.db lp:{{
   pred age o:string, o:int.
 
   % the Db is empty for now, we put a rule giving a
   % descriptive error and we name that rule "age.fail".
   :name "age.fail"
-  age Name _ :- coq.error "I don't know who" Name "is!".
+  age Name _ :- rocq.error "I don't know who" Name "is!".
 }}.
-\end{coqcode}
+\end{rocqcode}
 
 Elpi rules can be given a name via the \elpiinline{:name} attribute.
 Named rules serve as anchor-points for new rules when added to the Db.
 
 A commands to print the age of a given name can be declred as follows
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Command age.
 Elpi Accumulate Db age.db.
 Elpi Accumulate lp:{{
 
   main [str Name] :-
     age Name A,
-    coq.say Name "is" A "years old".
+    rocq.say Name "is" A "years old".
 
 }}.
 
 Fail Elpi age bob. (* I don't know who bob is! *)
-\end{coqcode}
+\end{rocqcode}
 
 We can add entries to the data base manually as follows
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Accumulate age.db lp:{{
 
   :before "age.fail"     % we place this rule before the catch all
@@ -2150,23 +2147,23 @@ Elpi Accumulate age.db lp:{{
 }}.
 
 Elpi age bob. (* bob is 24 years old *)
-\end{coqcode}
+\end{rocqcode}
 
-We do not expect the users of Coq commands written in Elpi to know the
+We do not expect the users of Rocq commands written in Elpi to know the
 syntax of Elpi, not the commands to manipulate its programs, and even more
-to actually know the Coq commands they run are implemented in Elpi.
+to actually know the Rocq commands they run are implemented in Elpi.
 
-For this reason Coq-Elpi provides APIs to extend data bases from Elpi.
-Here we craft a new command \coqinline{set_age} that does use this API.
+For this reason Rocq-Elpi provides APIs to extend data bases from Elpi.
+Here we craft a new command \rocqinline{set_age} that does use this API.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Command set_age.
 Elpi Accumulate Db age.db.
 Elpi Accumulate lp:{{
 
   main [str Name, int Age] :-
     TheNewRule = age Name Age,
-    coq.elpi.accumulate _ "age.db"
+    rocq.elpi.accumulate _ "age.db"
       (clause _ (before "age.fail") TheNewRule).
 
 }}.
@@ -2175,11 +2172,11 @@ Elpi set_age "alice" 21.
 Elpi age "alice". (* alice is 21 years old *)
 Elpi set_age "mallory" 24.
 Elpi age "mallory". (* mallory is 24 years old *)
-\end{coqcode}
+\end{rocqcode}
 
 The same data bases can be accumulated by commands and tactics in order
 to share a ``state'', a common knowledge that typically grows as the
-commands or tactics are used in a Coq library.
+commands or tactics are used in a Rocq library.
 
 \subsubsection{Homoiconicity and rules}
 
@@ -2241,24 +2238,24 @@ The example in the following section makes good use of this possiblity.
 \section{Example: simple proof transfer}\label{sec:tb}
 
 We provide an example of a tactic and a command that communicate via
-a database. The tactic \coqinline{to_bool} transfers a goal from the realm
+a database. The tactic \rocqinline{to_bool} transfers a goal from the realm
 of propositions to the one of computable (boolean) tests (decidable propositions).
-The command \coqinline{register_decision} takes a proof of equivalence
+The command \rocqinline{register_decision} takes a proof of equivalence
 between a proposition and a boolean test and ``compiles'' it to an Elpi rule.
 The database contains all the known rules for translating propositions into
-tests: it is queried by \coqinline{to_bool} and populated by \coqinline{register_decision}.
+tests: it is queried by \rocqinline{to_bool} and populated by \rocqinline{register_decision}.
 
-It is customary to organize Coq-Elpi code in this very way. The key feature
-one obtains is that the \coqinline{to_bool} is extensible: when a new
+It is customary to organize Rocq-Elpi code in this very way. The key feature
+one obtains is that the \rocqinline{to_bool} is extensible: when a new
 predicate is declared and a new test defined, it is sufficient to call
-\coqinline{register_decision} to extend \coqinline{to_bool} with the new
+\rocqinline{register_decision} to extend \rocqinline{to_bool} with the new
 predicate.
 
-We assume a Coq environment with the following lemmas. The \coqinline{reflect}
-predicate links a proposition with a boolean test: \coqinline{reflect P b}
-means \coqinline{P} holds if and only if \coqinline{b = true}.
+We assume a Rocq environment with the following lemmas. The \rocqinline{reflect}
+predicate links a proposition with a boolean test: \rocqinline{reflect P b}
+means \rocqinline{P} holds if and only if \rocqinline{b = true}.
 
-\begin{coqcode}
+\begin{rocqcode}
 Lemma evenP n : reflect (is_even n) (even n).
 
 Lemma andP  {P Q : Prop} {p q : bool} :
@@ -2266,32 +2263,32 @@ Lemma andP  {P Q : Prop} {p q : bool} :
 
 Lemma elimT {P b} :
   reflect P b -> b = true -> P.
-\end{coqcode}
+\end{rocqcode}
 
 The database holds rules for the \elpiinline{tb} relation. Since
 we are only interested in one direction of the equivalence we
 relate a proposition with its equivalence proof (disregarding the
 associated boolean test).
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Db tb.db lp:{{
 
 % [tb P R] finds [R : reflect P b] for some b
 pred tb i:term, o:term.
 
 :name "tb:fail"
-tb Ty _ :- coq.error "Cannot solve" {coq.term->string Ty}.
+tb Ty _ :- rocq.error "Cannot solve" {rocq.term->string Ty}.
 
 }}.
-\end{coqcode}
+\end{rocqcode}
 
 The database only contains one rule aborting the search with an error message.
 All rules will need to be placed before that one.
 
-The \coqinline{to_bool} tactic is built as follows a top of the
+The \rocqinline{to_bool} tactic is built as follows a top of the
 database.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Tactic to_bool.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
@@ -2301,17 +2298,17 @@ solve (goal Ctx _ Ty _ _ as G) [G1] :-
   refine {{ elimT lp:P _ }} G [G1].
 
 }}.
-\end{coqcode}
+\end{rocqcode}
 
 The tactic simply queries the database for a proof \elpiinline{P} that
 the goal is related to a boolean test, then refines the goal (as in the
-standard Coq \coqinline{refine} tactic) with \coqinline{elimT lp:P _}.
-The hole stands for the proof of \coqinline{b = true}, i.e. the subgoal
+standard Rocq \rocqinline{refine} tactic) with \rocqinline{elimT lp:P _}.
+The hole stands for the proof of \rocqinline{b = true}, i.e. the subgoal
 \elpiinline{G1}.
 
 The most interesting part of this example is how the dabase is populated.
-We shall write a \elpiinline{compile} procedute that given \coqinline{evenP}
-and \coqinline{andP} synthesizes the following Elpi code
+We shall write a \elpiinline{compile} procedute that given \rocqinline{evenP}
+and \rocqinline{andP} synthesizes the following Elpi code
 
 \begin{elpicode}
 tb {{ is_even lp:N }} {{ evenP lp:N }} :- !.
@@ -2339,15 +2336,15 @@ pi P Q p q PP QQ\
   
 
 Now that all quantifications are explicit we can look at the types of
-\coqinline{evenP} and \coqinline{andP} and remark how each \elpiinline{pi}
-Elpi quantification corresponds to a Coq quantification (dependent or not),
-and Coq premises corresponds to recursive calls in Elpi.
+\rocqinline{evenP} and \rocqinline{andP} and remark how each \elpiinline{pi}
+Elpi quantification corresponds to a Rocq quantification (dependent or not),
+and Rocq premises corresponds to recursive calls in Elpi.
 
-\begin{coqcode}
+\begin{rocqcode}
 evenP : ∀n, reflect (is_even n) (even N).
 andP : ∀P Q p q,
   reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
-\end{coqcode}
+\end{rocqcode}
 
 The \elpiinline{compile} predicate has three inputs an one output.
 The first input is the type of a lemma and the second is the proof of that
@@ -2368,7 +2365,7 @@ compile {{ ∀x, lp:(T x) }} P Hyps (pi h\ C h) :-
 \end{elpicode}
 
 The first rule is the base case. When we reach the conclusion of the lemma
-\coqinline{reflect lp:Ty _} we know that the second argument \elpiinline{P}
+\rocqinline{reflect lp:Ty _} we know that the second argument \elpiinline{P}
 is a proof of that fact, hence \elpiinline{tb Ty P} is a correct head for the
 rule. The premises of the rules are the \elpiinline{Hyps} recursive calls
 prefixed with a cut.
@@ -2376,36 +2373,36 @@ prefixed with a cut.
 The second rule is for premises that are turned into recursive calls. In this
 case the output rule features an extra \elpiinline{pi} quantification and the
 \elpiinline{Hyps} list gets longer. The \elpiinline{h} variable stands for
-the proof obtained by the recursive call, a proof of \coqinline{reflect lp:S _}
-hene an argument we can pass to the second argument as in \coqinline{lp:P lp:h}
+the proof obtained by the recursive call, a proof of \rocqinline{reflect lp:S _}
+hene an argument we can pass to the second argument as in \rocqinline{lp:P lp:h}
 so to keep the invariant that it is a proof of \elpiinline{T}, the type
 in which we recurse.
 
 The last rule is a simpler version of the second, in this case the quantification
 is not a premise, hence we do not extend \elpiinline{Hyps}.
 
-The code of the \coqinline{register_decision} command located the
+The code of the \rocqinline{register_decision} command located the
 given lemma, finds its type and generates the new rule \elpiinline{C}.
 finally it adds the rule to the database before the \elpiinline{"tb:fail"}
 anchor point.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi Command register_decision.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
     
 main [str S] :-
-  coq.locate S GR,
-  coq.env.typeof GR Ty,
+  rocq.locate S GR,
+  rocq.env.typeof GR Ty,
   compile Ty (global GR) [] C,
-  coq.elpi.accumulate _ "tb.db" (clause _ (before "tb:fail") C).
+  rocq.elpi.accumulate _ "tb.db" (clause _ (before "tb:fail") C).
 
 }}.
-\end{coqcode}
+\end{rocqcode}
 
 We can now populate the database and test our tactic.
 
-\begin{coqcode}
+\begin{rocqcode}
 Elpi register_decision andP.
 
 Lemma test : is_even 6 /\ is_even 4.
@@ -2421,21 +2418,21 @@ elpi to_bool. (* even 6 && even 4 = true *)
 simpl.        (* true = true *)
 trivial.
 Qed.
-\end{coqcode}
+\end{rocqcode}
   
-The Coq snippet calls the \coqinline{to_bool} tactic in a scenario
+The Rocq snippet calls the \rocqinline{to_bool} tactic in a scenario
 where a predicate is not (yet) registered obtaining an explicative
 error message. Then it register a test for the missing predicate
 and succesfully solves the goal.
 
 
-\chapter{Coq tools written in Elpi}
+\chapter{Rocq tools written in Elpi}
 
-In this chapter we survey the some tools developed on top of Coq-Elpi.
+In this chapter we survey the some tools developed on top of Rocq-Elpi.
 We put forward Derive and Hierarchy Builder, to which we contributed personally.
 Last we quickly survey other tools developed by our colleagues.
 
-At the end of each section we discuss which features of Elpi and Coq-Elpi
+At the end of each section we discuss which features of Elpi and Rocq-Elpi
 are key to the tool being discussed.
 
 \section{Derive}\label{sec:derive}
@@ -2444,7 +2441,7 @@ The derive application is a framework to automatic
 code generation, typically in response to the declaration of a new inductive
 data type.
 
-Coq itself is known to generate induction principles and equality tests.
+Rocq itself is known to generate induction principles and equality tests.
 Unfortunately it is also known to generate bad induction principles when
 containers (e.g. lists) are involved and often fail to generate useful
 equality tests.
@@ -2453,7 +2450,7 @@ I saw the opportunity to improve on that starting with the L3 internship of
 Luc Chabassier that wrote the first prototype in the summer of 2017.
 He succeeded in generating
 equality tests and their proofs in two months. While most of the credit goes to
-his learning skills, the experience confirmed that Coq-Elpi was able to support
+his learning skills, the experience confirmed that Rocq-Elpi was able to support
 research in this domain. Indeed the solution implemented by Luc, although
 correct, was not very satisfactory since it was not modular. Improving
 on that lead to~\cite{tassi:hal-01897468} that describes a skema to
@@ -2465,54 +2462,54 @@ the swiss army knife of boilerplate code generation: parametricity.
 
 The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
 is a family of procedures $[\cdot]_i$ indexed by an arity $i$. We focus on the
-unary one, i.e. $i=1$, and we write $U$ for any Coq universe, i.e. \coqinline{Prop}.
-Given \emph{any} Coq term $t : r$, the unary parametricity
+unary one, i.e. $i=1$, and we write $U$ for any Rocq universe, i.e. \rocqinline{Prop}.
+Given \emph{any} Rocq term $t : r$, the unary parametricity
 translation gives both a unary predicate $R$ on $r$, e.g. $[r]_1 = R : r \to U$
 and a proof $T$ that $R$ holds for $t$, i.e. $[t]_1 = T : R~ t$ or somewhat more
 confusingly if $t : r$ then $[t]_1 : [r]_1~ t$.
 
 For example the unary parametricity translation of
-\coqinline{nat} is \coqinline{is_nat : nat → U} and
-the translation of \coqinline{3 : nat} is a proof that \coqinline{is_nat 3}.
+\rocqinline{nat} is \rocqinline{is_nat : nat → U} and
+the translation of \rocqinline{3 : nat} is a proof that \rocqinline{is_nat 3}.
 
-\begin{coqcode}
+\begin{rocqcode}
 Inductive is_nat : nat -> U :=
 | is_zero : is_nat 0
 | is_succ n : is_nat n -> is_nat (S n).
 
 Definition is_nat_3 : is_nat 3 :=
   is_succ 2 (is_succ 1 (is_succ 0 is_zero)).
-\end{coqcode}
+\end{rocqcode}
 
 One can see \elpiinline{is_nat} as a first class description of the
 typing assignment, i.e. each term is equipped with a proof that
-is has the expected type, i.e. \coqinline{0} with \coqinline{is_zero};
-\coqinline{1} with \coqinline{is_succ 0 is_zero}, and so on.
+is has the expected type, i.e. \rocqinline{0} with \rocqinline{is_zero};
+\rocqinline{1} with \rocqinline{is_succ 0 is_zero}, and so on.
 
 The translation becomes interesting when the type has parameters such as
-\coqinline{A} in \coqinline{list A}. In that case the translation builds
-a predicate parametric in \coqinline{A} and in its translation. For example
-the translation of \coqinline{list A} is a predicate
-\coqinline{is_list : ∀A, (A → U) → (list A → U)},
-and the translation of the constructors \coqinline{nil} and \coqinline{cons}
+\rocqinline{A} in \rocqinline{list A}. In that case the translation builds
+a predicate parametric in \rocqinline{A} and in its translation. For example
+the translation of \rocqinline{list A} is a predicate
+\rocqinline{is_list : ∀A, (A → U) → (list A → U)},
+and the translation of the constructors \rocqinline{nil} and \rocqinline{cons}
 are:
-\begin{coqcode}
+\begin{rocqcode}
 is_nil: ∀A (isA : A → U), is_list A isA nil
 is_cons: ∀A (isA : A → U), ∀a, isA a → 
   ∀l, is_list A isA l → is_list A isA (a :: l).
-\end{coqcode}
+\end{rocqcode}
 
 As for the translation of natural numbers, each term comes with a proof
-that is has the expected type. When the term is of type \coqinline{A},
-the type parameter of the container, then it comes with a proof of \coqinline{isA},
-the predicate parameter associated with \coqinline{A}.
+that is has the expected type. When the term is of type \rocqinline{A},
+the type parameter of the container, then it comes with a proof of \rocqinline{isA},
+the predicate parameter associated with \rocqinline{A}.
 The unary parametricity translation is the key to express, in a
 systematic way, that a property holds deep inside a container.
 
-The parametricity translation is a meta program in Coq, it cannot be implemented in
+The parametricity translation is a meta program in Rocq, it cannot be implemented in
 Gallina itself hence one needs a meta language to implement it.
 Cyril Cohen implemented the binary parametricity translaton in the fall of 2017,
-as he was interested in employing the translation in the Coq-EAL project.
+as he was interested in employing the translation in the Rocq-EAL project.
 We based the unary version on his code. Each translation is about 250 lines
 of Elpi code.
 
@@ -2522,68 +2519,68 @@ We say that an induction principle is deep if the induction hypothesis is
 available for sub terms that occur deep inside the immediate sub terms.
 As an example we can take the data type of rose trees.
 
-\begin{coqcode}
+\begin{rocqcode}
 Inductive rtree A : U :=
 | Leaf (a : A)
 | Node (l : list (rtree A)).
-\end{coqcode}
+\end{rocqcode}
 
-The induction principle generated by Coq is shallow: \coqinline{P} is
-only available on the immediate subterms of type \coqinline{rtree}, that
+The induction principle generated by Rocq is shallow: \rocqinline{P} is
+only available on the immediate subterms of type \rocqinline{rtree}, that
 in this case are none.
 
-\begin{coqcode}
+\begin{rocqcode}
 Lemma rtree_ind : ∀A (P : rtree A → U),
   (∀a : A, P (Leaf A a)) →
   (∀l : list (rtree A), P (Node A l)) →
   ∀t : rtree A, P t.
-\end{coqcode}
+\end{rocqcode}
 
-That principle is weak since no element of \coqinline{l} in \coqinline{Node A l}
-verifies \coqinline{P}. In \cite{tassi:hal-01897468} I study the synthesis
-for a stronger principle where \coqinline{P} holds deep inside \coqinline{l}.
+That principle is weak since no element of \rocqinline{l} in \rocqinline{Node A l}
+verifies \rocqinline{P}. In \cite{tassi:hal-01897468} I study the synthesis
+for a stronger principle where \rocqinline{P} holds deep inside \rocqinline{l}.
 
-\begin{coqcode}
+\begin{rocqcode}
 Lemma rtree_induction A is_A (P : rtree A → U) :
   (∀a, is_A a → P (Leaf A a)) →
   (∀l, is_list (rtree A) P l → P (Node A l)) →
      ∀t, is_rtree A is_A t → P t.
-\end{coqcode}
+\end{rocqcode}
 
 The induction principle uses the unary parametricty
-translation of \coqinline{l} and its type in order to systematically craft
-the hypothesis \coqinline{is_list (rtree A) P l} that gives access to
-\coqinline{P} on all elements of \coqinline{l}.
+translation of \rocqinline{l} and its type in order to systematically craft
+the hypothesis \rocqinline{is_list (rtree A) P l} that gives access to
+\rocqinline{P} on all elements of \rocqinline{l}.
 
 This  extra assumption comes at a price: the induction principle does not apply
 to to just a tree, but to a tree \elpiinline{t} such that
-\coqinline{is_rtree A is_A t} holds. This extra argument is
+\rocqinline{is_rtree A is_A t} holds. This extra argument is
 synthesized automatically.
 
-For non-containers like \coqinline{nat}
-we prove \coqinline{∀n, is_nat n} by induction on \coqinline{n} (no different
-than how we proved \coqinline{is_nat 3} before). For containers we prove
+For non-containers like \rocqinline{nat}
+we prove \rocqinline{∀n, is_nat n} by induction on \rocqinline{n} (no different
+than how we proved \rocqinline{is_nat 3} before). For containers we prove
 the statement under the assumption that the predicate for the type parameter
 is triviall true. E.g.
 
-\begin{coqcode}
+\begin{rocqcode}
 Lemma list_is_list A isA : (∀a, isA a) -> ∀l, is_list A isA l.
 Lemma rtree_is_rtree A isA : (∀a, isA a) -> ∀l, is_rtree A isA l.
-\end{coqcode}
+\end{rocqcode}
 
 While the assumption seems strong at first, it actually matches two relevant class
 of predicates:
 \begin{itemize}
-  \item the one we are definig, e.g. \coqinline{nat_is_nat} fits
-  \item any \coqinline{P : t -> U} we are defining by induction on the whole
-    type \coqinline{t}, e.g. the \coqinline{P} of an induction principle
+  \item the one we are definig, e.g. \rocqinline{nat_is_nat} fits
+  \item any \rocqinline{P : t -> U} we are defining by induction on the whole
+    type \rocqinline{t}, e.g. the \rocqinline{P} of an induction principle
 \end{itemize}
 
 In order to prove the deep induction principle we need some scaffolding,
 again synthesized automatically via Elpi programs. The first one
 allows us to operate under a unary parametricity translation.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition is_list_functor A P Q :
   (∀a, P a → Q a) → ∀l, is_list A P l → is_list A Q l
 :=
@@ -2594,12 +2591,12 @@ Definition is_list_functor A P Q :
       | is_Cons _ _ a Pa xs Pxs =>
           is_Cons A Q a (f a Pa) xs (IH xs Pxs)
       end
-\end{coqcode}
+\end{rocqcode}
 
-The proof is a straightforward induction on list \coqinline{l}.
+The proof is a straightforward induction on list \rocqinline{l}.
 We can now present the proof of the deep induction principle over rose trees:
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
     (His_Leaf : ∀a, PA a → P (Leaf A a))
     (His_Node : ∀l, is_list (rtree A) P l → P (Node A l))
@@ -2611,51 +2608,51 @@ Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
   | is_Node _ _ l Pl =>
       His_Node l (is_list_functor (rtree A) (is_rtree A PA) P IH l Pl)
   end.
-\end{coqcode}
+\end{rocqcode}
 
 Remark the following type assignments:
 
-\begin{coqcode}
+\begin{rocqcode}
 l : list (rtree A)
 Pl : is_list (rtree A) (is_rtree A PA) l
 IH : ∀r, is_rtree A PA r -> P r
 is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
   is_list (rtree A) P l
-\end{coqcode}
+\end{rocqcode}
 
-The last term satisfies the premise of \coqinline{His_Node}, that in turn
-gives the user of the induction principle access to the property \coqinline{P}
-on all the elements of \coqinline{l}.
+The last term satisfies the premise of \rocqinline{His_Node}, that in turn
+gives the user of the induction principle access to the property \rocqinline{P}
+on all the elements of \rocqinline{l}.
 
 \subsection{Natural equality tests}
 
 Now that we have a good induction principle we can prove the following
 properties about the recursive program of interest.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition correct (T : Type) (eqb : T -> T -> bool) :=
   ∀x y : T, reflect (x = y) (eqb x y).
 
 Definition correct_at (T : Type) (eqb : T -> T -> bool) (x : T) :=
   ∀y : T, reflect (x = y) (eqb x y).
-\end{coqcode}
+\end{rocqcode}
 
 This is the form of correctness lemmas we shall prove.
 
-\begin{coqcode}
+\begin{rocqcode}
 Lemma seq_eq_correct : ∀A eqA (l : list A),
   is_list A (correct_at A eqA) l ->
     correct_at (list A) (list_eq A eqA) l
-\end{coqcode}
+\end{rocqcode}
 
-It reads: if \coqinline{eqA} is a correct test on all elements of \coqinline{l},
-then \coqinline{list_eq A eqA} is a good test for \coqinline{l}.
+It reads: if \rocqinline{eqA} is a correct test on all elements of \rocqinline{l},
+then \rocqinline{list_eq A eqA} is a good test for \rocqinline{l}.
 
 The interesting case the the equality test for rose trees, that reuses
-the equality test for lists \coqinline{list_eq} passing the recursive call
-at the \coqinline{eqA} argument.
+the equality test for lists \rocqinline{list_eq} passing the recursive call
+at the \rocqinline{eqA} argument.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition rtree_eq A (A_eq : A → A → bool) :=
   fix rec (t1 t2 : rtree A) {struct t1} : bool :=
     match t1, t2 with
@@ -2663,12 +2660,12 @@ Definition rtree_eq A (A_eq : A → A → bool) :=
     | Node l, Node s => list_eq (rtree A) rec l s
     | _, _ => false
     end.
-\end{coqcode}
+\end{rocqcode}
 
-What is remarkable is that the correctness proof for \coqinline{rtree_eq}
-reuses the correctness proof for \coqinline{list_eq}.
+What is remarkable is that the correctness proof for \rocqinline{rtree_eq}
+reuses the correctness proof for \rocqinline{list_eq}.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
   ∀r, is_rtree A (correct_at A eqA) r ->
         correct_at (rtree A) (rtree_eq A eqA) r
@@ -2682,12 +2679,12 @@ Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
                    (correct_at (rtree A) (rtree_eq A eqA)) sib) =>
        correct_Node A eqA sib
          (list_eq_correct (rtree A) (rtree_eq A eqA) sib Psib)).
-\end{coqcode}
+\end{rocqcode}
 
 The proof also uses two auxiliary lemmas that are not particularly interesting,
 we point the reader to~\cite{tassi:hal-01897468} for details about them.
 
-\begin{coqcode}
+\begin{rocqcode}
 correct_Node : ∀A eqA (l : list (rose A)),
   correct_at (list (rose A)) (list_eq (rose A) (rose_eq A eqA)) l ->
     correct_at (rose A) (rose_eq A eqA) (Node A l)
@@ -2695,20 +2692,20 @@ correct_Node : ∀A eqA (l : list (rose A)),
 correct_Leaf : ∀A eqA (a : A),
   correct_at A eqA x ->
     correct_at (rose A) (rose_eq A eqA) (Leaf A x)
-  \end{coqcode}
+  \end{rocqcode}
   
 The final theorem can be obtained by satisfying the extra the extra
 premise of the deep induction hypothesis, namely that each rose tree
 is a rose tree.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition rose_eq_OK A eqA :
   correct A eqA -> correct (rtree A) (rose_eq A eqA)
 :=
   λp r =>
     rose_eq_correct A eqA
       r (rtree_is_rtree A (correct_at A eqA) p r).
-\end{coqcode}
+\end{rocqcode}
 
 To conlude, both euqality tests and their proofs are built compositionally.
 In~\cite{tassi:hal-01897468} we also discuss why these proofs can be kept opaque
@@ -2734,18 +2731,18 @@ uniformly unpack the fields and compare them.
 
 We synthesize upfront these three functions.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition tag A : rtree A -> positive.
 Definition fields_t : positive -> Type.
 Definition fields A :  ∀r : rtree A, fields_t (tag t).
-\end{coqcode}
+\end{rocqcode}
 
-The main code mattern matches over the first \coqinline{rtree} and 
+The main code mattern matches over the first \rocqinline{rtree} and 
 pre-computes its tag and fields. The it calls a common piece of
-code \coqinline{eqb_body} that will test if the tags agree and proceed
+code \rocqinline{eqb_body} that will test if the tags agree and proceed
 if it is the case.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition rose_eqb A eqA : rtree A -> rtree A -> bool := 
   fix rec (x1 x2 : rose A) {struct x1} : bool :=
     match x1 with
@@ -2756,14 +2753,14 @@ Definition rose_eqb A eqA : rtree A -> rtree A -> bool :=
         (* 2 = tag (Node _ sib); sib = fields (Node _ sib) *)
         eqb_body 2 (eqb_fields A eqA rec) sib x2
     end.
-\end{coqcode}
+\end{rocqcode}
 
-When the tags agree, \coqinline{eqb_body} extracts the fields
-of the second rose tree and calls \coqinline{eqb_fields}.
+When the tags agree, \rocqinline{eqb_body} extracts the fields
+of the second rose tree and calls \rocqinline{eqb_fields}.
 Since the two fields have, respectively, type 
-\coqinline{fields_t t1} and \coqinline{fields_t t2} a cast is necessary.
+\rocqinline{fields_t t1} and \rocqinline{fields_t t2} a cast is necessary.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition eqb_body t1 eqb_fields v1 x2 :=
   let t2 := tag x2 in
   match pos_eq_dec t2 t1 with
@@ -2772,12 +2769,12 @@ Definition eqb_body t1 eqb_fields v1 x2 :=
     eqb_fields t1 f1 (match heq with eq_refl => f2 end)
   | right _ => false
   end.
-\end{coqcode}
+\end{rocqcode}
 
 Comparing the fieds amounts at calling the equality test for the
-right type, possibly using the recursive call to \coqinline{rose_eqb}.
+right type, possibly using the recursive call to \rocqinline{rose_eqb}.
 
-\begin{coqcode}
+\begin{rocqcode}
 Definition eqb_fields A eqA rec t :
   fields_t t -> fields_t t -> bool
 :=
@@ -2786,21 +2783,21 @@ Definition eqb_fields A eqA rec t :
   | 2%positive => λa b : list (rtree A) =>
                     list_eqb (rtree A) rec a b
   | _ => λ_ _ => true (* impossible, only 2 constructors *)
-\end{coqcode}
+\end{rocqcode}
 
 As we can see the two matches of the constructors are no nested, but rather
-chained. Both \coqinline{rose_eqb} and \coqinline{eqb_fields} have a number
+chained. Both \rocqinline{rose_eqb} and \rocqinline{eqb_fields} have a number
 of branches proportional to the number of constructors.
 
 The main downside is that, unless the quality tests gets extracted to
-OCaml, the type cast that uses the evidence provided by \coqinline{pos_eq_dec}
+OCaml, the type cast that uses the evidence provided by \rocqinline{pos_eq_dec}
 has to be evaluated. The reader interested in benchmarks
 can find them in~\cite{gregoire:hal-03800154}.
 
-\subsection{The role of Coq-Elpi in derive}
+\subsection{The role of Rocq-Elpi in derive}
 The Elpi language turned out to be instrumental in this research since
 it allowed to quickly and concisely write derivations. We believe that
-the automatic handling of names and holes was key. Only a few Coq APIs were
+the automatic handling of names and holes was key. Only a few Rocq APIs were
 really necessary: reading from and writing to the logical environment and
 invoke type inference. Although these API come with glue code that is far from
 trivial since they read/write inductive types in HOAS form.
@@ -2811,11 +2808,11 @@ in Rocq, and in particular in the APIs to manage universe constraints.
 \section{Hierarchy Builder}\label{sec:hb}
 
 The mathmatical components library is the largest an most widely used
-mathematical library for Coq. It is the pillar that was built for
+mathematical library for Rocq. It is the pillar that was built for
 tackling the mechanization of the Odd Order theorem~\cite{}.
 A key ingredient of this pillar is the hierarchy of interfaces around which
 the contents are orgnized and the fine tuning of the mechanisms that
-link the interfaces to their instances: the elaborator of Coq is
+link the interfaces to their instances: the elaborator of Rocq is
 programmed to automatically find a justification when an abstract theory
 is applicable to an instance.
 
@@ -2825,18 +2822,18 @@ the complexity of building the hierarchy and programming the elaborator
 could not be tamed by just explaining, exacly as assembly cannot be made
 amenable by just documenting it. Hierarchy Builder (HB) provides a high level,
 declarative language to describe the hierarchy and a ``compiler'' that
-translate this language down the foundational language of Coq and takes
+translate this language down the foundational language of Rocq and takes
 care of programming the elaborator to make the hierarchy work.
 
 The design of the language was brought to our attention in Spring 2019
 by Cohen Cyril, the result of fruitful discussions with other
 researchers in this domain in a Dagstuhl seminar. The implementation
 took six months~\cite{cohen_et_al:LIPIcs.FSCD.2020.34} and pushed
-Coq-Elpi to bind a large set of Coq APIs. The ``boilerplate'' code
-HB substitute with a metaprogram has to declare Coq modules, sections,
+Rocq-Elpi to bind a large set of Rocq APIs. The ``boilerplate'' code
+HB substitute with a metaprogram has to declare Rocq modules, sections,
 notations, implicit arguments, canonical structures \ldots in addition
 to records and functions between records. HB also motivated the possibility
-to pass Coq-Elpi programs arguments that are Coq declarations, such as the ones intruced by
+to pass Rocq-Elpi programs arguments that are Rocq declarations, such as the ones intruced by
 the Reord or Definition keywords.
 
 
@@ -2887,7 +2884,7 @@ was requiring the addition of very large boilerplate code, somewhat forcing
 the correlation between the two measures: the port to HB resulted in the
 removal of 5K lines of such boilerplate code.
 
-\subsection{The role of Coq-Elpi in Hierarchy Builder}
+\subsection{The role of Rocq-Elpi in Hierarchy Builder}
 
 During the first implementation of HB, version 1.0, Elpi as a language was
 really a technical advantage: its high level nature let us quickly experiment
@@ -2928,23 +2925,23 @@ data base) has as worse logaritmic complexity in the size of the interested
 part of program, i.e. the existing rules for the same predicate.
 
 To the best of our knowledge, today most of the time spent in HB is actually taken
-by calls to Coq API, typically to typecheck and define the terms that are
+by calls to Rocq API, typically to typecheck and define the terms that are
 automatically synthesized.
 
 \section{Other tools}
 
-Coq-Elpi found applications in other projects I did not participate
+Rocq-Elpi found applications in other projects I did not participate
 into directly. Here we mention some we are aware of.
 
 \subsection{Algebra Tactics}
 
-Algebra tactics is a port (and improvement) of the \coqinline{ring}, \coqinline{field} and
-\coqinline{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
+Algebra tactics is a port (and improvement) of the \rocqinline{ring}, \rocqinline{field} and
+\rocqinline{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
 These tactics are reflexive, i.e. a pre-processing phase called reification
 recognizes in a goal the syntax of an algebraic structure and reflects it into
 a datatypes that is then manipulated by a certified Gallina program.
 Given the hierarchy of structures, operations typical of a structure may be
-inherited from a substructure. Since the type theory of Coq does not feature
+inherited from a substructure. Since the type theory of Rocq does not feature
 subtyping, the cast of a structure to a substructure leaves a trace in
 the terms of Gallina, making the reification work more delicate.
 
@@ -2956,21 +2953,21 @@ instance \elpiinline{R} the tactic is applied to, possibly in the context
 
 \begin{elpicode}
 ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
-  coq.unify-eq { rmorphism->zmod C } U ok,
+  rocq.unify-eq { rmorphism->zmod C } U ok,
   rmorphism->ring C R, !,
   ring C In1 OutM1 Out1 VM, !,
   build.opp Out1 Out.  
 \end{elpicode}
 
-\subsubsection{The role of Coq-Elpi in Algebra Tactics}
+\subsubsection{The role of Rocq-Elpi in Algebra Tactics}
 
 The code crytically uses the possibility to call
-the \elpiinline{coq.unify-eq} deep inside the goal to identify
-terms up to (Coq) unification.
+the \elpiinline{rocq.unify-eq} deep inside the goal to identify
+terms up to (Rocq) unification.
 
 The algrbra tactics project comprises a few benchmarks including
 a five hundred lines long polynomial euqation in six variables.
-The \coqinline{ring} tactic takes about five seconds to solve it.
+The \rocqinline{ring} tactic takes about five seconds to solve it.
 
 While the standard, simpler, reification writtne in OCaml is an order of
 magnitude faster, the reification procedure written in Elpi is not the dominant
@@ -2984,11 +2981,11 @@ The most frequently asked question regarding the Mathematical Components
 library is: how do I make it compute.
 
 Almost all definitions in the MC library
-are computable, but are not immediately executable by Coq for one of
+are computable, but are not immediately executable by Rocq for one of
 the following two reasons. Either they are executable but are inefficient
 being optimized for proofs and not computations, or they are ``locked''
 behind an opaque module signature to enforce an abstraction barrier previnting
-the Coq type checker to potentially take an unreasonable amount of time.
+the Rocq type checker to potentially take an unreasonable amount of time.
 
 The answer to the FAQ is to transfer an expression about inefficient or
 locked operations to (equivalent) fast and unlocked ones. While defining
@@ -3006,17 +3003,17 @@ version focuses on relations that are equivalences.
 Trocq improves on that by studying the relations that are in between,
 like implication (i.e. type theoretic maps).
 It turns out that in many cases of practical interest the type
-theory of Coq, that does not internalize the principle of univalence, is
+theory of Rocq, that does not internalize the principle of univalence, is
 sufficient to represent the result of the parametricy translation
 for non bare-bone relations.
 
-\subsubsection{The role of Coq-Elpi in Trocq}
+\subsubsection{The role of Rocq-Elpi in Trocq}
 
 In his PhD disseration~\cite[Page 115]{enzo}, Crance
 highlights how naturally pen-and-paper Trocq rules can be transposed in Elpi.
 It is worth mentioning that Crance uses Constraints Handling Rules to
 store axiom-requirements when translating an expression, and only when
-all requirements are know he computes the minimum set of Coq axioms
+all requirements are know he computes the minimum set of Rocq axioms
 needed in order to represent the parametricity based translation.
 
 % \subsection{EIris: ???}
@@ -3026,23 +3023,23 @@ needed in order to represent the parametricity based translation.
 \subsection{BlueRock's BRiCk}
 
 BlueRock systems is a company developing, among other things, the BRiCk
-program logic for C++. It is a set of Coq libraries, partially based on Iris,
+program logic for C++. It is a set of Rocq libraries, partially based on Iris,
 to reason about existing C++ code: a \texttt{cpp2v} tool translate C++
 classes to a formal representation on which specification can be written.
 
-The employ Coq-Elpi to synthesize code automatically extending the
+The employ Rocq-Elpi to synthesize code automatically extending the
 derive utility described above. In particular they synthesize
 type classes instances for the EqDecision, Countable, Finite and Inhabited
 std++ classes, as well as a serialization one called ToBit. Finally
 they also synthesize Lenses, that is support code for record updates.
 
-We focus on another use they make of Coq-Elpi in the form of its
+We focus on another use they make of Rocq-Elpi in the form of its
 NES application.
 
 \subsubsection{N.E.S. -- Namespace Emulation System}
 
-It is folklore that Coq modules can, somehow, emulate name spaces.
-Coq modules are inspired by OCaml modules and are a closed entity: when
+It is folklore that Rocq modules can, somehow, emulate name spaces.
+Rocq modules are inspired by OCaml modules and are a closed entity: when
 a module is closed one cannot add to it any new entry. Sure one can
 define a new module and include the old one together with some additions,
 but the module is a new one, with a different name. Namespaces on the
@@ -3050,20 +3047,20 @@ contrary give an open ended notion of that: one can alwas add new items
 to an existing namespace.
 
 The key ingredient for emulating namespaces with modules is the presence,
-in Coq, of a so called ``nametab'': an environment of non-ambiguous names
+in Rocq, of a so called ``nametab'': an environment of non-ambiguous names
 that can be extended by importing in it the names from a module, even the
-names of modules themselves. It allows to create the illusion that \coqinline{A.x}
-and \coqinline{A.y} are items from the same module \coqinline{A} even if
-the two \coqinline{A}s have different (long) names, eg \coqinline{X1.A.x}
-and \coqinline{X2.A.y}.
+names of modules themselves. It allows to create the illusion that \rocqinline{A.x}
+and \rocqinline{A.y} are items from the same module \rocqinline{A} even if
+the two \rocqinline{A}s have different (long) names, eg \rocqinline{X1.A.x}
+and \rocqinline{X2.A.y}.
 
 NES emulates name spaces using the trick above. It was developed
 together with Cyril Cohen as a proof of concept, possibly an addition
 to Hierarchy Builder. We believe BRiCk uses it to mimick C++ namespaces.
 
-The basic features of NES can be seen here in the Coq code below:
+The basic features of NES can be seen here in the Rocq code below:
 
-\begin{coqcode}
+\begin{rocqcode}
 (* we place ourselves in a name space *)
 NES.Begin This.Is.A.Long.Namespace.
   (* we add some stuff to the name space *)
@@ -3084,17 +3081,17 @@ NES.End This.Is.A.Long.Namespace.
 (* we can access short names (shadow possible collisions) *)
 NES.Open This.Is.A.Long.Namespace.
 Print stuff. (* = 1 *)
-\end{coqcode}
+\end{rocqcode}
 
-It worth pointing out how the definition of \coqinline{more_stuff}
+It worth pointing out how the definition of \rocqinline{more_stuff}
 uses the contents of the name space, i.e. how the second definition
 of stuff does not cause a name capture (in another name space).
 
-\begin{coqcode}
+\begin{rocqcode}
 Eval lazy in more_stuff. (* = 1 *)
-\end{coqcode}
+\end{rocqcode}
 
-\subsubsection{The role of Coq-Elpi in BRiKs}
+\subsubsection{The role of Rocq-Elpi in BRiKs}
 
 Although BlueRock has made some of his code public, much of it is still
 private hence we cannot really speculate what ingredient of the Elpi
@@ -3104,14 +3101,14 @@ to our knowledge the largest Elpi code base out there, given that Hierarchy
 Builder is, all included, less than 5K lines of code.
 
 In recent years the formal methods team of BlueRock contributed valuable
-patches and early feedback to Elpi and Coq-Elpi.  
+patches and early feedback to Elpi and Rocq-Elpi.  
 
 \chapter{Conclusion}
 
 \section{Summary}
 
 In this document we presented the Elpi programming language, its implementation
-and its main application as an extension language for Coq.
+and its main application as an extension language for Rocq.
 
 \subsection{Elpi the language}
 
@@ -3130,7 +3127,7 @@ rule based. We identified three main advantages:
 \item rules as code unit facilitates considerably self manipulation~\ref{sec:tb}
 \end{itemize}
 
-We take the liberty to challange the reader to write the \coqinline{to_bool}
+We take the liberty to challange the reader to write the \rocqinline{to_bool}
 tool we show in section~\ref{sec:tb} in any other extension language and match
 it in size and functionality.
 
@@ -3153,7 +3150,7 @@ even formally, as the meta theory of the proof system.
 
 \subsection{Elpi the software}
 
-What we love the most about our job is to design and build tools~\cite{matita,ssr,coq}.
+What we love the most about our job is to design and build tools~\cite{matita,ssr,rocq}.
 Elpi is, to our eyes, a tool to build tools faster. It was a great fun to
 implement it, it is actually our first whole round programming language.
 The amount of time it took to produce a working implementation
@@ -3177,28 +3174,28 @@ $\mathcal{L}_\lambda^{\beta_0}$ occurs often in actual code and admits
 constant-time operations and constant-size data representation as the
 context of bound variables grows in size.
 
-\subsection{Coq-Elpi}
+\subsection{Rocq-Elpi}
 
 At the time of writing the size of Elpi is about 20K lines of code, about 10K
 for the runtime and 10K for the parser, static checker and ``compiler''.
-Coq-Elpi totals 13K: 5K for the HOAS of Coq terms, 5K for the bindings of about
-300 Coq APIs and 3K for the vernacular language to declare programs. The complicated
+Rocq-Elpi totals 13K: 5K for the HOAS of Rocq terms, 5K for the bindings of about
+300 Rocq APIs and 3K for the vernacular language to declare programs. The complicated
 part is the HOAS, but it is also what makes the language shine and enables
-each Coq API to require, on average, only 16 lines to be exposed to Elpi
+each Rocq API to require, on average, only 16 lines to be exposed to Elpi
 (documentation included).
 
 Unsurprisingly its development was pushed by the applications written in it,
 in particular Hierarchy-Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
 
-Coq-Elpi was developed in the open from the the very beginning, making the
-Coq development team aware of the effor. Their committment to
-provide patches to Coq-Elpi eavery time a Coq API did evolve made its
+Rocq-Elpi was developed in the open from the the very beginning, making the
+Rocq development team aware of the effor. Their committment to
+provide patches to Rocq-Elpi eavery time a Rocq API did evolve made its
 development over more than seven years sustainable. The contribution 
-from the Coq community was also very important, in particular from
+from the Rocq community was also very important, in particular from
 power users such as BlueRock systems that contributed a substantial amount
 of code.
 
-\subsection{Coq tools written in Elpi}
+\subsection{Rocq tools written in Elpi}
 
 HB unblocked MC, Derive
 
@@ -3229,7 +3226,7 @@ code specialization (a la mixtus)
 
 \cite{selsam2020tabledtypeclassresolution}
 
-\subsection{Integration in Coq}
+\subsection{Integration in Rocq}
 
 immediate uses of derive in stdlib
 

@@ -27,7 +27,7 @@ class XCoqLexer(RegexLexer):
 
     name = 'xCoq'
     url = 'http://coq.inria.fr/'
-    aliases = ['xcoq']
+    aliases = ['xcoq','rocq']
     filenames = ['*.v']
     mimetypes = ['text/x-coq']
     version_added = '1.5'

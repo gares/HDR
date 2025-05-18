@@ -1,5 +1,10 @@
 # HDR
 
+## TODO
+
+- [ ] Intro / english
+  -  
+
 ## Inscription
 
 https://univ-cotedazur.fr/recherche-innovation/doctorat-phd/informations-utiles-et-documentation/habilitation-a-diriger-les-recherches
