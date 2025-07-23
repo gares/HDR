@@ -2,8 +2,78 @@
 
 ## TODO
 
-- [ ] Intro / english
-  -  
+- [ ] 1.1.0 prologue - write
+- [ ] 1.1.1 beyond OOTHM - english
+- [ ] 1.1.2 The begining/showy day - english
+- [ ] 1.2 Elpi - write
+
+- [ ] 2.0 Elpi the language: de A a Z - english
+- [ ] 2.1 Elpi v.s. Prolog - english
+- [ ] 2.1.1 what matters - english
+- [ ] 2.2 Elpi v.s. λProlog - english
+- [ ] 2.2.1 incomplete terms - english
+- [ ] 2.3 Modes and Constraints - english
+- [ ] 2.4 Constraints Handling Rules - write
+- [ ] 2.5 Elpi = λProlog + CHR - write
+- [ ] 2.5.1 Operational semantics - write
+- [ ] 2.6.0 Syntactic sugar - english
+- [ ] 2.6.1 Namespaces - english
+- [ ] 2.6.2 Spilling - english
+- [ ] 2.7 A complete example: Hindley Milner type inference - english+
+- [ ] 2.7.1 A word on bidirectionality - english
+- [ ] 2.8.1 Misleading precedence of => - english
+- [ ] 2.8.2 Treacherous anonymous clauses - english
+- [ ] 2.8.3 Scope error as a (recondite) failure - english
+- [ ] 2.8.4 Symmetric CHR rules - english
+
+- [ ] 3.1 The first prototype - english
+- [ ] 3.2 Second attempt: a runtime for - write
+- [ ] 3.2.1 The Lλ fragment - write
+- [ ] 3.2.2 The Lβ λ fragment - write
+- [ ] 3.2.3 Indexing - write
+- [ ] 3.3 The API - write
+- [ ] 3.3.1 Quotations - write
+- [ ] 3.3.2 FFI - write
+- [ ] 3.4 Debugging - write
+- [ ] 3.4.1 Trace browser - write
+
+- [ ] 4 Rocq-Elpi - write
+- [ ] 4.1 Why extending Rocq in OCaml is hard - english
+- [ ] 4.2 HOAS of Rocq terms and contexts - english
+- [ ] 4.3 HOAS of holes (missing terms) - write
+- [ ] 4.4 Vernacular language integration - english
+- [ ] 4.4.1 Commands - english
+- [ ] 4.4.2 Tactics - english
+- [ ] 4.4.3 Databases, homoiconicity and rules - english
+- [ ] 4.5 Example: simple proof transfer - english
+
+- [ ] 5.1 Derive - english
+- [ ] 5.1.1 Parametricity - english
+- [ ] 5.1.2 Deep induction - english
+- [ ] 5.1.3 Natural equality tests - english
+- [ ] 5.1.4 Fast equality tests - english
+- [ ] 5.1.5 The role of Rocq-Elpi in derive - english
+- [ ] 5.2 Hierarchy Builder - english
+- [ ] 5.2.1 Mathematical Components 2.0 and M.C.A. - english
+- [ ] 5.2.2 The role of Rocq-Elpi in Hierarchy Builder - english
+- [ ] 5.3 Other tools - english
+- [ ] 5.3.1 Algebra Tactics - english
+- [ ] 5.3.2 Takt and TRocq: proof transfer tools - english
+- [ ] 5.3.3 BlueRock’s BRiCk - english
+
+- [ ] 6.1 Summary - english
+- [ ] 6.1.1 Elpi the language - english
+- [ ] 6.1.2 Elpi the software - english
+- [ ] 6.1.3 Rocq-Elpi - english
+- [ ] 6.1.4 Rocq tools written in Elpi - write
+- [ ] 6.2 Current and future work - write
+- [ ] 6.2.1 type class solver - write
+- [ ] 6.2.2 Static analysis - write
+- [ ] 6.2.4 Tabling - write
+- [ ] 6.2.5 Integration in Rocq - write
+- [ ] 6.2.5 Runtime - write
+- [ ] 6.2.6 Compiler - write
+- [ ] 6.2.7 Reasoning logic - write
 
 ## Inscription
 

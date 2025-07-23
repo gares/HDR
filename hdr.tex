@@ -345,7 +345,7 @@ selling point. Still, according to our experience, the vast majority of code
 written in Elpi does not need this feature. In~\cite{elpidet} we
 estimate that 96\% of the existing Elpi code computes functions!
 
-So, in conclusion, I believe that the most interesting
+So, in conclusion, we believe that the most interesting
 characteristic of Elpi is of being rule based.
 It trades the elaborate syntax offered by most
 programming languages with the notion of a smaller code unit.
@@ -526,7 +526,7 @@ or $\lambda$-tree syntax. The language also provides another kind
 of variables, meta-variables actually, that we call unification variables.
 These unification variables are equipped with a scope, a list of bound
 variables that can be used in their assignment. This is essential to
-avoid capturing variables by mistake, and it is well studiend in~\ref{miller92jsc}.
+avoid capturing variables by mistake, and it is well studiend in~\cite{miller92jsc}.
 
 The natural question is: \emph{can we reuse the unification variables of
 the programming language to represent holes in the syntax trees we manipulate?}
@@ -844,27 +844,24 @@ facilities: namespace and shorten. The former prefixes all
 names of the predicates contained in a block, the latter makes
 predicates accessible via a short name inside a file or a block
 
+In the following snippet the predicate \elpi{p} lives in the namespace
+\elpi{n} and is hence accessible via the long name \elpi{n.p} (outside of
+the name space).
+
 \begin{elpicode}
-namespace n1 {
+namespace n {
   pred p.
+  p :- ... p ...
 }
+q :- n.p
 \end{elpicode}
 
-elsewhere
+Long names can be shortened via the \elpi{shorten} directive.
 
 \begin{elpicode}
-shorten n1.{ p }.
+shorten n.{ p }. % shortens n.p naming n. implicit
 q :- p.
-\end{elpicode}
-
-note that a type/mode declaration declares the belonging to a namespace.
-
-\begin{elpicode}
-p.
-namespace n2 {
-  pred p.
-  q :- p.
-}
+% desugars to: q :- n.p.
 \end{elpicode}
 
 \subsection{Spilling}
@@ -972,7 +969,7 @@ point may not be what the programmer wants.
 
 If this and that are predicated, the latter becomes
 \elpi{(rev D TMP, that TMP)} meaning that
-D is reversed when TodoForLater will be executed, and
+\elpi{D} is reversed when \elpi{TodoForLater} will be executed, and
 not when the todo list is generated, as one may have wanted.
 
 According to our experience the closes execution point
@@ -1030,7 +1027,7 @@ type eq  term -> term -> term.
 \end{center}
 ~\\  
 ~\\  
-As in section~\ref{} we use an HOAS encoding of terms.
+As in section~\ref{sec:hello} we use an HOAS encoding of terms.
 Still we add a \elpi{global} term constructor to
 be able to set up a minimal environment for our examples.
 
@@ -1391,7 +1388,7 @@ filter [_|XS] F YS :- filter XS F YS.
 
 The code amounts to about 100 lines of Elpi. It is a toy, in the sense
 that its lacks code for error reporting, but its size is quite remarkable:
-it roughly mathes the length of a pen and paper presentation of the same
+it roughly mathces the length of a pen and paper presentation of the same
 algorithm.
 
 \subsection{A word on bidirectionality}
@@ -1565,7 +1562,7 @@ rule 2 on 2
 According to the rule set on the left hand side of the figure,
 rule 1 triggers twice since the second \elpi{c} constraint
 is active in both position 1 and 2. This is also the case
-in the second rule set, but since the rule remove one (copy) of
+in the second rule set, but since the rule removes one (copy) of
 \elpi{c} from the store and hence from the permutations set,
 the rule cannot trigger twice.
 
@@ -1830,7 +1827,7 @@ but while it became more correct we added entry points for the user.
 A post processing tool analyzes the trace reconstructung the
 stack and generating data suitable to display an interactive navigation
 
-\subsection{Trace browser}
+\subsection{Trace browser}\label{sec:trace}
 
 \includegraphics[width=.9\textwidth]{trace}
 
@@ -1860,7 +1857,7 @@ to set up a proper development environment, the host application is sufficient
 since Lua is an interpreter.\\
 Elpi tries to do the same for OCaml, and Rocq is the host application of interest.
 
-Even if I'm not a big fan of it, in academia the same role is often called
+Even if we are not a big fan of it, in academia the same role is often called
 meta-programming framework. Rocq's main data type, terms, are programs and Elpi
 programs do manipulate Rocq programs. In this sense Elpi programs live at the
 meta level.
@@ -1873,7 +1870,7 @@ It is much, much higher level than C. Why it is hard to extend Rocq then?
 The first difficulty is that the complexity of the main Rocq data type, terms,
 is not completely hidden by the algebraic data types provided by the programming
 language. The missing features are encoded and it is hard to completely hide
-it to the programer (via curated APIs). In particular Rocq terms feature binders
+it to the programer via curated APIs. In particular Rocq terms feature binders
 and holes. 
 
 Binders pose two problems of their own and interact badly with holes.
@@ -1882,30 +1879,44 @@ indexes, and it is just too easy to forget to shift a term.  The second program
 is that when a binder is crossed on must always remember something about it,
 typically the type of the bound variable. Hence the programs have to pass around
 typing contexts (aka environment). It is tempting to not do it upfront, but
-then one has to be disciplined. find mantra mc bride.
+expecting all developers, especially the casual ones, to be disciplined seems
+a lost battle. We are in good company with this~\cite[page 20]{mcbride}:
+``Mantra: $\Gamma$ is with me, wherever I go.''
 
-Holes are missing subterms and they come with metadata, a sequent.
+Holes are missing subterms and they come with metadata: a typing sequent.
 Since the same hole can occur non linearly a single sequent is stored on the side of terms.
 Moreover since binders may be reduced away each occurrence has an explicit
 substitution. So there is a state that accompanies the terms, a state to be
-threaded in a functional setting. This state also gathers univ constraints.
-Assignment also part of this state, see also ``evar sensitive''. This is
-a reified heap, we are back at memory management, pointer dereferencing (with no
-types), no gc. The only thing that is easy is backracking, since the map is
-purely functional.
+threaded in a functional setting. This state also gathers universe constraints,
+as required by Rocq typical ambiguity (writing \rocq{Type} with no
+explicit level).
+Assignments are also part of this state and gives rise to weird concepts
+like ``evar sensitive''. If one forgets to look at terms
+through the right assignment (eg the empty one) the behavior is
+hard to debug: it is like OCaml code that behaves differently depending
+if a reference \ocaml{x} was originally given the value 42, of
+if it was later updated to that value.
+The example is not an exageration, this state is really like
+a heap and if one has to manage it by hand it is like
+going back to manual memory management, pointer dereferencing (with no
+types), no gc.
 
-The second difficulty is no inherent in OCaml, but rather an artifact of the
-history of Rocq. The API are not curated. Exposing the API in a manual, althought
-not very demanding, way is key to rationalize them.
+The second difficulty is not inherent in OCaml, but rather an artifact of the
+history of Rocq. The APIs are not well curated. Exposing some of them to
+the extension language is a very good occasion to incrementally produce
+a coherent set of APIs.
 
+Last setting up the development environment and a development
+process. Even when a user is past the, inevitablae, frustration
+is setting up the right compiler and tools, an embedded
+interpreter still gives some advantagess even more if the
+language is rule based. One can iterate faster, without even
+restarting the host application, and sometimes even modify
+the code at a distance: even if the code is defined far away,
+in a library being used, one can still replace bits of it code
+here, where the problem shows up and conduct a must faster investigation.
 
-Last setting up the dev environment. I believe that can be eased with doc, but
-there is another advantage in a interpreter, that you can iterate faster. Eg
-in OCaml loading code is possible, but not unloading. This is even better in
-a rule based language where far from the place where a code is written one
-can add a rule to mask/improve/debug a piece of code.
-
-\section{HOAS of terms and contexts}\label{GALLINA}
+\section{HOAS of Rocq terms and contexts}\label{GALLINA}
 
 The main data type Rocq-Elpi programs work with is the one of
 terms. The first bit of terms worth describing are the pointers
@@ -2137,8 +2148,9 @@ The simple program above calls the \elpi{rocq.say} builtin whenever the
 command is passed a string. Since the entrypoint \elpi{main} has
 no rule for arguments of the form \elpi{int X}.
 
-The interested reader can look at a comprehensive tutorial on Elpi
-commands~\cite{tuto:commands}.
+The interested reader can look at the comprehensive tutorial on Elpi
+commands~\cite{tuto:commands} that being part of the Rocq-Elpi software
+distribution it is kept up to date.
 
 \subsection{Tactics}
 
@@ -2157,7 +2169,7 @@ Elpi Accumulate intro lp:{{
 }}.
 Goal ∀P, P -> P /\ P.
 elpi intro "p".
-Fail elpi intro "Hp".
+Fail elpi intro "p". (* Error: name already taken *)
 elpi intro "Hp".
 \end{rocqcode}
 
@@ -2503,16 +2515,16 @@ and succesfully solves the goal.
 
 \chapter{Rocq tools written in Elpi}
 
-In this chapter we survey the some tools developed on top of Rocq-Elpi.
+In this chapter we survey some tools developed on top of Rocq-Elpi.
 We put forward Derive and Hierarchy Builder, to which we contributed personally.
 Last we quickly survey other tools developed by our colleagues.
 
 At the end of each section we discuss which features of Elpi and Rocq-Elpi
-are key to the tool being discussed.
+are key to the tool being described.
 
 \section{Derive}\label{sec:derive}
 
-The derive application is a framework to automatic
+The derive application is a framework for automatic
 code generation, typically in response to the declaration of a new inductive
 data type.
 
@@ -2521,7 +2533,7 @@ Unfortunately it is also known to generate bad induction principles when
 containers (e.g. lists) are involved and often fail to generate useful
 equality tests.
 
-I saw the opportunity to improve on that starting with the L3 internship of
+We saw the opportunity to improve on that starting with the L3 internship of
 Luc Chabassier that wrote the first prototype in the summer of 2017.
 He succeeded in generating
 equality tests and their proofs in two months. While most of the credit goes to
@@ -2530,7 +2542,7 @@ research in this domain. Indeed the solution implemented by Luc, although
 correct, was not very satisfactory since it was not modular. Improving
 on that lead to~\cite{tassi:hal-01897468} that describes a skema to
 generate so called deep induction principles and uses them to prove
-equality tests correct. Before discussing that work I need to introduce
+equality tests correct. Before discussing that work we need to introduce
 the swiss army knife of boilerplate code generation: parametricity.
 
 \subsection{Parametricity}\label{sec:param1}
@@ -2612,7 +2624,7 @@ Lemma rtree_ind : ∀A (P : rtree A → U),
 \end{rocqcode}
 
 That principle is weak since no element of \rocq{l} in \rocq{Node A l}
-verifies \rocq{P}. In \cite{tassi:hal-01897468} I study the synthesis
+verifies \rocq{P}. In \cite{tassi:hal-01897468} we study the synthesis
 for a stronger principle where \rocq{P} holds deep inside \rocq{l}.
 
 \begin{rocqcode}
@@ -2685,10 +2697,11 @@ Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
   end.
 \end{rocqcode}
 
-Remark the following type assignments:
+Remark the following type assignments for the variabls and terms occurring
+in the last branch of the \rocq{match} on \rocq{x}:
 
 \begin{rocqcode}
-l : list (rtree A)
+l  : list (rtree A)
 Pl : is_list (rtree A) (is_rtree A PA) l
 IH : ∀r, is_rtree A PA r -> P r
 is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
@@ -2882,9 +2895,11 @@ in Rocq, and in particular in the APIs to manage universe constraints.
 
 \section{Hierarchy Builder}\label{sec:hb}
 
-The mathmatical components library is the largest an most widely used
-mathematical library for Rocq. It is the pillar that was built for
-tackling the mechanization of the Odd Order theorem~\cite{}.
+The Mathmatical Components library is the largest an most widely used
+mathematical library for Rocq according to the 2022 Rocq users
+survey~\cite{dealmeidaborges_et_al:LIPIcs.ITP.2023.12}.
+It is the pillar that was built for
+tackling the mechanization of the Odd Order theorem~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}.
 A key ingredient of this pillar is the hierarchy of interfaces around which
 the contents are orgnized and the fine tuning of the mechanisms that
 link the interfaces to their instances: the elaborator of Rocq is
@@ -2909,14 +2924,14 @@ HB substitute with a metaprogram has to declare Rocq modules, sections,
 notations, implicit arguments, canonical structures \ldots in addition
 to records and functions between records. HB also motivated the possibility
 to pass Rocq-Elpi programs arguments that are Rocq declarations, such as the ones intruced by
-the Reord or Definition keywords.
+the \rocq{Record} or \rocq{Definition} keywords.
 
 
 \subsection{Mathematical Components 2.0 and M.C.A.}
 
 Even if HB was, in principle, capable to describe all the interfaces of
 the Mathematical Components library, it was still a huge effort to port the
-library to HB.  We were lucky that developers and power users of
+library to the HB language.  We were lucky that developers and power users of
 Mathematical Components agreed to work on it during a week-long coding
 sprint~\cite{affeldt:hal-03463762}. The results surpassed our expectations:
 not only the library was ported, but many satellite projects moved to
@@ -2940,7 +2955,7 @@ One can also see that the size of the library shrunk visibly as the result of
 the porting, since the HB language hides boilerplaec code that has a size
 (when hand written) quadratic in the number of related interfaces.
 
-We want stress the link between the growth of the hierarchy of interfaces and
+We want to stress the link between the growth of the hierarchy of interfaces and
 the growth of the actual contents (definitions and theorems) of a formal
 library. Figure~\ref{fig:mca} shows the steady progress made by the
 Mathematical Components Analysis library (MCA).
@@ -2965,11 +2980,11 @@ During the first implementation of HB, version 1.0, Elpi as a language was
 really a technical advantage: its high level nature let us quickly experiment
 with different solutions. Once the design was finalize, we thought that rewriting
 the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
-changed in order to accommodate interfaces with parameters, with the objective
-to really apply the too to the Mathematical Components library. This huge rewriting
+changed in order to accommodate for interfaces with parameters, with the objective
+to really apply it to the Mathematical Components library. This huge rewriting
 turned out to possible since Elpi featured a type checker and that the change
 could be modelled as a data type change: the description of an interface moved from
-a flat list to a HOAS one, describing how bound parameters distribute over
+a flat list to a HOAS one, describing how formal (bound) parameters distribute over
 the sub interfaces. A posteriori we think we could have done the same
 refactoring to an OCaml program, but while it was natural to move to HOAS
 in Elpi, it is unclear if the right reflex would have emerged in OCaml where
@@ -2979,7 +2994,7 @@ The development and use in production of HB unraveled a few inefficiencies
 in the implementation of HB and Elpi. Luckily they were mostly due to
 a few very naive routines, in terms of computational complexity.
 
-All the inefficiencie in HB can be imputed to the skinny standard library
+All the inefficiencies in HB can be imputed to the skinny standard library
 of Elpi. For example, a hierarchy is essentially a Directed Acyclic Graph that
 describes an order relation. Topologically sorting a sub part of it is a
 frequent operation in HB and our first naive implementation was cubic.
@@ -2987,16 +3002,16 @@ Similarly, when we see hierarchy nodes as designated sets and
 edges as the superset relation, we often need to find all the designated
 sets included in a given one. An algorith properly exploiting the DAG
 can discard all the supersets of any set that is not included in the given one,
-while a naive algorithm just filter the designated sets, linearly.
+while a naive algorithm can only filter the designated sets, linearly.
 
 More surprisingly the inefficiencies found in Elpi were not in the runtime
 of the language, but rather in its compiler, and more specifically in
 its (lack of) incrementality. As exemplified in~\ref{sec:tb}, HB synthesizes
 and accumulates rules as it goes to represent its state. In MC alone
 the number of such rules reaches 40K, and any routine that was not incremental
-and/or a bad complexity had to be revised. In particular the version 2.0 of
+and/or had a bad complexity had to be revised. In particular the version 2.0 of
 Elpi has a fully incremental compiler: adding a rule to an existing program (or
-data base) has as worse logaritmic complexity in the size of the interested
+data base) has logaritmic complexity in the size of the interested
 part of program, i.e. the existing rules for the same predicate.
 
 To the best of our knowledge, today most of the time spent in HB is actually taken
@@ -3005,7 +3020,7 @@ automatically synthesized.
 
 \section{Other tools}
 
-Rocq-Elpi found applications in other projects I did not participate
+Rocq-Elpi found applications in other projects we did not participate
 into directly. Here we mention some we are aware of.
 
 \subsection{Algebra Tactics}
@@ -3053,7 +3068,7 @@ extreme goal (for an interactive theorem prover).
 \subsection{Takt and TRocq: proof transfer tools}
 
 The most frequently asked question regarding the Mathematical Components
-library is: how do I make it compute.
+library is: how do we make it compute.
 
 Almost all definitions in the MC library
 are computable, but are not immediately executable by Rocq for one of
@@ -3225,15 +3240,17 @@ even formally, as the meta theory of the proof system.
 
 \subsection{Elpi the software}
 
-What we love the most about our job is to design and build tools~\cite{matita,ssr,rocq}.
+What we love the most about our job is to design and build
+tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
 Elpi is, to our eyes, a tool to build tools faster. It was a great fun to
 implement it, it is actually our first whole round programming language.
 The amount of time it took to produce a working implementation
 would have been out of reach without an Inria position with no compulsory
 teaching duties and engineering support from the institure~\ref{sec:trace}.
 
-Even in this case we built on the shoulders of a giant. Elpi is written in
-OCaml that allows it deliver reasonable performances and ease of integration.
+
+We should also point out that we built on the shoulders of a giant. Elpi is written in
+OCaml that allows it to deliver reasonable performances and ease of integration.
 The possibility to use mutable data structures to represent unification
 variabls allows Elpi to avoid ``reifying'' the heap (the assignment) and
 hence identify the notion of garbage of Elpi data and OCaml data, in turn
@@ -3247,7 +3264,7 @@ the observation that De Bruijn levels enable an efficient implementation
 of a fragment of the language~\cite{dunchev15lpar}. The fragment
 $\mathcal{L}_\lambda^{\beta_0}$ occurs often in actual code and admits
 constant-time operations and constant-size data representation as the
-context of bound variables grows in size.
+context of bound variables grows in length.
 
 \subsection{Rocq-Elpi}
 
@@ -3279,6 +3296,8 @@ HB unblocked MC, Derive
 
 If only I had a century.
 
+users know functional programming
+
 \subsection{type class solver}
 
 Fissore's PhD: HO unif, compilation, indexing
@@ -3291,11 +3310,11 @@ optimizations for flattening list as in the app.
 \subsection{Static analysis}
 
 
-determinacy
+determinacy~\cite{elpidet}
 
-\subsection{Automation}
+% \subsection{Automation}
 
-code specialization (a la mixtus)
+% code specialization (a la mixtus)
 
 \subsection{Tabling}
 
