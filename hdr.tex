@@ -6,9 +6,13 @@
 \usepackage[linguistics]{forest}
 \usepackage{bussproofs}
 \usepackage{wrapfig}
-
+\usepackage{xspace}
 \usepackage{xpatch}
 \usepackage[firstpageonly=false]{draftwatermark}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathbbol}
+\usepackage{stackengine}
 
 \SetWatermarkText{Draft \today}
 
@@ -781,8 +785,12 @@ Constraints and CHR serve many purposes:
 
 \section{Elpi = $\lambda$Prolog + CHR}\label{sec:elpiLP+CHR}
 
-Elpi integrates the SLD search strategy typical of Prolog with
-CHR as depicted:
+Integration with SLD works as follows: each new constraint becomes
+a goal that is considered as the leftmost conjuct of the current
+resolution state. Since a new goal can in turn declare a new constraint,
+the CHR loop can continue. In other words constraint handling takes
+priority over SLD resolution.
+
 
 %\begin{figure}
   \includegraphics[width=0.8\textwidth]{chr.png}
@@ -790,11 +798,493 @@ CHR as depicted:
 %\end{figure}
 
 
-\subsection{Operational semantics}\label{sec:sem}
+\subsection{Abstract syntax and operational semantics}\label{sec:sem}
 
-TODO \cite{TASSI_2019}
+The objective of this section is to act as a reference for
+the semantics of Elpi.
+
+\newcommand{\vecL}[1]{\overrightarrow{\vphantom{t}#1}}
+\newcommand{\BASE}{\ensuremath{\mathbb{B}}}
+\newcommand{\PRED}[1][]{\ensuremath{\mathbb{F}#1}\xspace}
+\newcommand{\VAR}[1][]{\ensuremath{\mathbb{V}#1}\xspace}
+\newcommand{\CALLHD}[1][]{\ensuremath{\mathbb{C}#1}\xspace}
+\def\CALL{\CALLHD}
+\newcommand{\X}[1][]{\ensuremath{\mathcal{X}#1}\xspace}
+\newcommand{\T}[1][]{\ensuremath{tm#1}\xspace}
+\newcommand{\V}[1][]{\ensuremath{\mathcal{V}#1}\xspace}
+\newcommand{\CLAUSE}[1][]{\ensuremath{\mathbb{R}}#1\xspace}
+\newcommand{\ATOM}[1][]{\ensuremath{\mathbb{A}#1}\xspace}
+\newcommand{\A}[1][]{\ensuremath{\mathbb{A}#1}\xspace}
+\newcommand{\Ainst}[1][]{\ensuremath{\alpha#1}\xspace}
+\newcommand{\bool}[1][]{b}
+\newcommand{\B}[1][]{\ensuremath{\mathrm{B}}\xspace}
+\newcommand{\F}[1][]{\ensuremath{\mathbb{D}}\xspace}
+\newcommand{\subst}[1][]{\ensuremath{\sigma#1}\xspace}
+\newcommand{\alt}[1][]{\ensuremath{\mathcal{A}#1}\xspace}
+\newcommand{\alts}[1][]{\ensuremath{a#1}\xspace}
+\newcommand{\g}[1][]{\ensuremath{\mathcal{G}#1}\xspace}
+\newcommand{\clause}[1][]{\ensuremath{\mathcal{@}#1}\xspace}
+\newcommand{\pred}[1][]{\ensuremath{p#1}\xspace}
+\newcommand{\expr}[1][]{\texttt{e#1}\xspace}
+\newcommand{\vars}{\texttt{vars}}
+\newcommand{\run}{\texttt{run}}
+\newcommand{\fold}{\ensuremath{\mathbf{fold}}\xspace}
+\newcommand{\map}{\ensuremath{\mathbf{map}}\xspace}
+% \newcommand{\fail}{\texttt{fail}}
+\newcommand{\call}{\texttt{Call}}
+\newcommand{\cut}{\texttt{Cut}\xspace}
+\newcommand{\cst}{\texttt{Cst}\xspace}
+%\newcommand{\goal}{\texttt{Goal}}
+\newcommand{\unifiable}{\texttt{unifiable}\xspace}
+\newcommand{\matchable}{\texttt{matchable}\xspace}
+\newcommand{\nUnify}{\texttt{split}\xspace}
+\newcommand{\unify}{\texttt{unify}\xspace}
+\newcommand{\match}{\texttt{match}\xspace}
+\newcommand{\impl}{\texttt{=>}}
+\renewcommand{\pi}{\texttt{pi}}
+\newcommand{\cdash}{\texttt{:-}} % colon-dash
+\newcommand{\Cons}[1]{\ensuremath{#1::}}
+\newcommand{\ConsHd}[1]{\ensuremath{(#1::}\xspace}
+\newcommand{\ConsTl}[1]{\ensuremath{#1)}\xspace}
+\newcommand{\EmptyList}{\ensuremath{\varnothing}}
+\newcommand{\ConsHdNP}[1]{\ensuremath{#1::}\xspace}
+\newcommand{\ConsTlNP}[1]{\ensuremath{#1}\xspace}
+
+\newcommand{\EmptySubst}{\ensuremath{\varepsilon}}
+
+\newcommand{\prog}[1][]{\ensuremath{\mathcal{P}#1}\xspace}
+\newcommand{\progCut}{\ensuremath{\prog[^!]}\xspace}
+\newcommand{\evdash}{\ensuremath{\colondash}\xspace}
+\newcommand{\piimpl}{{\ensuremath{\forall\Rightarrow}}\xspace}
+\newcommand{\TYPE}[1][]{\ensuremath{\mathbb{T\!y}#1}}
+\newcommand{\TERM}[1][]{\ensuremath{\mathbb{T\!m}#1}}
+\newcommand{\SIGN}[1][]{\ensuremath{\mathbb{S}#1}}
+\newcommand{\func}[1][]{\ensuremath{\mathcal{D}#1}}
+\newcommand{\implCmd}[2]{\ensuremath{#1\ \impl\ #2}}
+\newcommand{\bchain}{\ensuremath{\mathcal{B}}}
+\newcommand{\cselect}{\ensuremath{\mathcal{U}}}
+% \newcommand{\bs}{\text{\textbackslash}}
+\newcommand{\bs}{\text{.}}
+\newcommand{\piCmd}[2]{\ensuremath{\pi\ #1 \bs\ #2}}
+% \newcommand{\piImplCmd}[3]{\piCmd{#1}{\implCmd{#2}{#3}}}
+\newcommand{\ground}{\texttt{ground}}
+\newcommand{\dom}{\texttt{vars}}
+\newcommand{\clauseCmd}[3]{\ensuremath{#1\ #2\ \cdash\ #3}}
+
+We assume a set \PRED of functors (term/predicate constructors), and a set \VAR of term variables
+($X,Y,\ldots$ for unification variables and $x,y,\ldots$ for bound variables).
+The non-terminal \CALL groups callable symbols ($c,d,\ldots$): either predicate names
+or variables.
+
+In the syntax of atoms \ATOM we single out the \cut operator (\elpi{!} in the concrete syntax) and the
+constraint-declaration \cst one (\elpi{declare_constraint} in the concrete syntax)
+since they have dedicated treatment in the operational semantics.
+The non-terminal $\TERM$, for terms, include predicate calls, functor applications and $\lambda$-abstraction.
+% For simplicity we glue together the
+% \elpi{pi} and \elpi{=>} in the same grammar production and we
+% rule out predicates inside data (like lists of predicates).
+
+%for regular data or \V{} for 
+% and polymorphic data.
+% We note $\Ainst \in \A$.
+% The usual =/2 operator is
+% encoded as a regular predicate \texttt{eq} with a single clause
+% \elpi{(eq X X :- .)} and signature\todo{dire che poly è solo su exp}
+% $\ctx\ \texttt{eq} = \dtype{\detI}{}{\expI\ \expI}$: a deterministic predicate\todo{should add var to static check}
+% with two outputs of the same type.
+We write \(\vecL{t}\) to denote \(t_1 \ldots t_n\) i.e. a (possibly
+empty) list of \(t\)s.
+Similarly, we write \(\vecL{tu}\) to denote the
+element-wise pairing (zipping) of \(\vecL{t}\) and \(\vecL{u}\) into a list of
+pairs. The zipping process continues up to the length of the shorter list.
+% \todo{check for dead cod here if we hide the proofs}
+
+We write
+$t[y/x]$ for the usual, capture avoiding, operation of replacing the variable $x$
+with $y$ inside $t$.
+We say that $\vars\ t$ is the set
+of free variables occurring in $t$ (the binders are \elpi{pi} and $\lambda$).
+When $\vars\ t = \EmptyList$ we say that
+$t$ is \ground.
+
+We call \emph{toplevel clauses} the ones that are in the initial program.
+%or equivalently that are asserted by the atoms in the query. 
+We call
+\emph{hypothetical clauses} the ones that are asserted by atoms in the premises
+of a clause.
+
+\begin{figure}
+  $$
+  \begin{array}{rlr}
+    \PRED & ::= p, q, \ldots, f, g, \ldots & \mathrm{functors}\\
+    \VAR & ::= \mathrm{X}, \mathrm{Y} \ldots x, y, \ldots & \mathrm{variable}\\
+    \CALLHD & ::= \PRED \mid  \VAR & \mathrm{callable}\\
+    \ATOM& ::= \cut \mid \cst\ (\CALLHD\ \vecL{\TERM})\ \vecL{\VAR} \mid \CALLHD\ \vecL{\TERM} \mid \piCmd{\VAR}{\ATOM} \mid \implCmd{{\CLAUSE}}{\ATOM} & \mathrm{atom} \\
+    \TERM & ::= \CALLHD\ \vecL{\TERM} \mid \lambda \VAR \bs\ \TERM & \mathrm{term}\\
+    \CLAUSE & ::= \clauseCmd{\CALLHD}{\vecL{\TERM}}{\vecL{\ATOM}} & \mathrm{rule}
+  \end{array}
+  $$
+  \caption{Abstract syntax}
+  \label{fig:syntax}
+\end{figure}
+
+\newenvironment{myRule}[1]{%
+  \begin{minipage}{.9\textwidth}
+    \centering
+    \begin{prooftree}%
+      } % Here will be put the body
+      {
+    \end{prooftree}
+    \vspace{2pt}
+  \end{minipage}
+}
+\newcommand{\arr}{\ensuremath{\rightsquigarrow}}
+\newcommand{\atsign}{\ensuremath{\mbox{\footnotesize\raisebox{-1pt}{\ensuremath{@}}}}}
+\makeatletter
+\newcommand{\customlabel}[2]{%
+  \protected@write \@auxout {}{\string \newlabel {#1}{{\ensuremath{#2}}{\thepage}{#2}{#1}{}} }%
+  \hypertarget{#1}{\ensuremath{#2}}
+}
+\makeatother
+\newcommand{\Keyword}[1]{\texttt{{\fontfamily{qcr}\selectfont #1}}}
+
+\newcommand{\kIF}{\Keyword{if}}
+\newcommand{\kTHEN}{\Keyword{then}}
+\newcommand{\kELSE}{\Keyword{else}}
+\newcommand{\kAS}{\Keyword{as}}
+\newcommand{\runCmdR}[3]{\ensuremath{\run\ (#3,\ #1)\ #2 \arr r}}
+\newcommand{\runCmd}[5]{\ensuremath{\run\ (#3,\ #1)\ #2 \arr (#4, #5)}}
+\newcommand{\runCmdQ}[4]{\ensuremath{\run\ #1\ #2 \arr (#3, #4)}}
+\newcommand{\runCmdQR}[2]{\ensuremath{\run\ #1\ #2 \arr r}}
+\newcommand{\runQuery}[2]{\ensuremath{\run\ (\EmptySubst,\ #1)\ #2 \arr \_}}
+\newcommand{\runCmdF}[3]{\ensuremath{\run\ (#3,\ #1)\ #2 \arr \bot}}
+\newcommand{\runCmdFQ}[2]{\ensuremath{\run\ #1\ #2 \arr \bot}}
+% \newcommand{\callCmd}[3]{\ensuremath{(\call\ #1\ #2\ #3)}\xspace}
+\newcommand{\callCmd}[2]{\ensuremath{(#1\ #2)}\xspace}
+\newcommand{\goalCmd}[3]{\ensuremath{(#1,\ #2,\ #3)}\xspace}
+\newcommand{\ruleName}[2]{\customlabel{#1}{\ensuremath{\mathrm{run}_{#2}}}}
+\newcommand{\RightLabelM}[1]{\RightLabel{\scriptsize #1}}
+
+\newcommand{\ruleFail}{\ruleName{rule:backtrack}{\circlearrowright }}
+\newcommand{\ruleAbort}{\ruleName{rule:abort}{\bot}}
+\newcommand{\ruleCall}{\ruleName{rule:call}{@}}
+\newcommand{\ruleCallF}{\ruleName{rule:callbacktrack}{\circlearrowright}}
+\newcommand{\ruleCallFH}{\ruleName{rule:callabort}{\bot}}
+\newcommand{\ruleCallB}{\ruleName{rule:call1}{@'}}
+\newcommand{\ruleBeta}{\ruleName{rule:beta}{\sigma}}
+\newcommand{\ruleBang}{\ruleName{rule:cut}{!}}
+\newcommand{\ruleCst}{\ruleName{rule:cst}{\bigtriangleup}}
+\newcommand{\ruleTcs}{\ruleName{rule:cst}{\bigtriangledown}}
+\newcommand{\ruleCHR}{\customlabel{rule:chr}{\ensuremath{\mathrm{run}_*}}}
+\newcommand{\ruleStop}{\ruleName{rule:stop}{\top}}
+\newcommand{\ruleUnif}{\ruleName{rule:unif}{=}}
+\newcommand{\ruleImpl}{\ruleName{rule:impl}{\Rightarrow}}
+\newcommand{\rulePi}{\ruleName{rule:pi}{\forall}}
+\newcommand{\ruleMatch}{\ruleName{rule:match}{m}}
+\newcommand{\rulePiImpl}{\ruleName{rule:piimpl}{{\piimpl}}}
+
+\newcommand{\ruleStopM}[1]{
+  \begin{myRule}{#1}
+    % STOP
+    \AxiomC{\phantom{\ensuremath{\bchain}}}
+    \RightLabelM{\ruleStop}
+    \UnaryInfC{\runCmd{\EmptyList}{\alts}{\subst}{\alts}{\subst}}
+  \end{myRule}
+}
+
+\newcommand{\ruleUnifM}[1]{
+  \begin{myRule}{#1}
+    % UNIF
+    \AxiomC{\unifyCmd{x}{y}{\subst}{\subst[']}}
+    \AxiomC{\runCmdR{\vecL{g}}{\alts}{\subst[']}}
+    \RightLabelM{\ruleUnif}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\_}{x = y}{\_}}\ConsTlNP{\vecL{g}}}{\alts}{\subst}}
+  \end{myRule}
+}
+
+\newcommand{\ruleMatchM}[1]{
+  \begin{myRule}{#1}
+    % MATCH
+    \AxiomC{\matchCmd{x}{y}{\subst}{\subst[']}}
+    \AxiomC{\runCmd{\vecL{g}}{\alts}{\subst[']}{\alts[']}{\subst['']}}
+    \RightLabelM{\ruleMatch}
+    \BinaryInfC{\runCmd{\ConsHdNP{\goalCmd{\_}{(x =_m y)}{\_}}\ConsTlNP{\vecL{g}}}{\alts}{\subst}{\alts[']}{\subst['']}}
+  \end{myRule}
+}
+
+\newcommand{\ruleFailM}[1]{
+  \begin{myRule}{#1}
+    % FAIL
+    \AxiomC{\unifyCmd{x}{y}{\subst}{\bot}}
+    \AxiomC{\runCmdQR{\alts}{al}}
+    \RightLabelM{\ruleFail}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\_}{x = y}{\_}}\ConsTlNP{\_}}{\ConsHd{\alts}\ConsTl{al}}{\subst}}
+  \end{myRule}%
+}
+
+\newcommand{\ruleAbortM}[1]{
+  \begin{myRule}{#1}
+    % FAIL
+    \AxiomC{\unifyCmd{x}{y}{\subst}{\bot}}
+    \RightLabelM{\ruleAbort}
+    \UnaryInfC{\runCmdF{\ConsHdNP{\goalCmd{\_}{x = y}{\_}}\ConsTlNP{\_}}{\EmptyList}{\subst}}
+  \end{myRule}%
+}
+
+\newcommand{\ruleBangM}[1]{
+  \begin{myRule}{#1}
+    % CUT
+    \AxiomC{\runCmdR{\vecL{g}}{\alts}{\subst}}
+    \RightLabelM{\ruleBang}
+    \UnaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\_}{\cut}{\alts}}\ConsTlNP{\vecL{g}}}{\_}{\subst}}
+  \end{myRule}
+}
+\newcommand{\ruleCstM}[1]{
+  \begin{myRule}{#1}
+    % suspend
+    \AxiomC{\ensuremath{\mathcal{CHR}\ m\ (\prog,c)_v\ \alts['] = (\vecL{g'}, m')}}
+    \AxiomC{\runCmdR{\vecL{g'} \atsign \vecL{g}}{\alts}{(s,m')}}
+    \RightLabelM{\ruleCst}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\cst\ c\ v}{\alts[']}}\ConsTlNP{\vecL{g}}}{a}{(s,m)}}
+  \end{myRule}
+}
+\newcommand{\ruleTcsM}[1]{
+  \begin{myRule}{#1}
+    % resume
+    \AxiomC{\ensuremath{c_v \in m \quad \exists v_i \in v, s\ v_i \not= v_i}}
+    \AxiomC{\runCmdR{\ConsHdNP{c} \atsign \vecL{g}}{\alts}{(s,m - (\prog,c)_v)}}
+    \RightLabelM{\ruleTcs}
+    \BinaryInfC{\runCmdR{\vecL{g}}{a}{(s,m)}}
+  \end{myRule}
+}
+% \newcommand{\ruleCHRM}[1]{
+%   \begin{myRule}{#1}
+%     % CHR
+%     \AxiomC{\ensuremath{\mathcal{CHR}\ m = (\vecL{g'}, m')}}
+%     \AxiomC{\runCmdR{\vecL{g'} \atsign \vecL{g}}{\alts}{(s,m')}}
+%     \RightLabelM{\ruleCHR}
+%     \BinaryInfC{\runCmdR{\vecL{g}}{\alts}{(s,m)}}
+%   \end{myRule}
+% }
+
+\newcommand{\ruleCallM}[1]{
+  \begin{myRule}{#1}
+    % CALL
+    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, al) = \ConsHdNP{\alts[']}\ConsTlNP{al'}$}
+    \AxiomC{\runCmdQR{\alts[']}{(al'\ \atsign\ al)}}
+    \RightLabelM{\ruleCall}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{al}{\subst}}
+  \end{myRule}
+}
+\newcommand{\ruleCallMF}[1]{
+  \begin{myRule}{#1}
+    % CALL
+    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, (a::al)) = \EmptyList$}
+    \AxiomC{\runCmdQR{a}{al}}
+    \RightLabelM{\ruleCallF}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{(a :: al)}{\subst}}
+  \end{myRule}
+}
+\newcommand{\ruleCallMFH}[1]{
+  \begin{myRule}{#1}
+    % CALL
+    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, \EmptyList) = \EmptyList$}
+    \RightLabelM{\ruleCallFH}
+    \UnaryInfC{\runCmdF{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{\EmptyList}{\subst}}
+  \end{myRule}
+}
+
+\newcommand{\ruleCallBeta}[1]{
+  \begin{myRule}{#1}
+    \AxiomC{$\subst (X\ \vecL{t}) = \pred\ \vecL{u}$}
+    \AxiomC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\pred\ \vecL{u}}{a}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
+    \RightLabelM{\ruleBeta}
+    \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{(X\ \vecL{t})}{a}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
+  \end{myRule}
+}
 
 
+\newcommand{\ruleCallBM}[1]{
+  \begin{myRule}{#1}
+    % CALLB
+    \AxiomC{$(\subst h)\ \vecL{t} =_\beta \pred\ \vecL{u}$}
+    \AxiomC{$\bchain(\prog, \pred\ \vecL{u}, \subst, \alts) = \ConsHdNP{g}\ConsTlNP{new\_alt}$}
+    \AxiomC{\runCmdR{(g\ \atsign\ \vecL{g})}{(new\_alt\ \atsign\ \alts)}{\subst}}
+    \RightLabelM{\ruleCallB}
+    \TrinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{(h\ \vecL{t})}{\_}}\ConsTlNP{\vecL{g}}}{\alts}{\subst}}
+  \end{myRule}
+}
+
+\newcommand{\env}{\ensuremath{\mathcal{E}}}
+
+\newcommand{\ruleImplM}[1]{
+  \begin{myRule}{#1}
+    % IMPL
+    \AxiomC{\runCmd{\ConsHdNP{(\goalCmd{(H + \prog)}{B}{\alts})}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}{\alts['']}{\subst[']}}
+    \RightLabelM{\ruleImpl}
+    \UnaryInfC{\runCmd{\ConsHdNP{\goalCmd{\prog}{(\implCmd{H}{B})}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}{\alts['']}{\subst[']}}
+  \end{myRule}
+}
+
+\newcommand{\rulePiM}[1]{
+  \begin{myRule}{#1}
+    % PI
+    \AxiomC{\runCmd{\ConsHdNP{\goalCmd{(x + \prog)}{B}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}{\alts['']}{\subst[']}}
+    \RightLabelM{\rulePi}
+    \UnaryInfC{\runCmd{\ConsHdNP{\goalCmd{\prog}{(\piCmd{x}{B})}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}{\alts['']}{\subst[']}}
+  \end{myRule}
+}
+
+% \newcommand{\rulePiImplM}[1]{
+%   \begin{myRule}{#1}
+%     % IMPL
+%     \AxiomC{$y \# \prog$}
+%     \AxiomC{\runCmdR{\ConsHdNP{\goalCmd{(y,h[y/x]) + \prog}{g[y/x]}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
+%     \RightLabelM{\rulePiImpl}
+%     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{(\piCmd{x}{\implCmd{h }{g}})}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
+%   \end{myRule}
+% }
+
+
+\newcommand{\unifyCmd}[5][]{\ensuremath{
+  \ifstrequal{#1}{1}
+    {\vecL{\unify\ #2\ #3}}
+    {\unify\ #2\ #3}\ #4 = #5}}
+\newcommand{\matchCmd}[5][]{\ensuremath{
+  \ifstrequal{#1}{1}
+  {\vecL{\match\ #2\ #3}}
+  {\match\ #2\ #3}\ #4 = #5}}
+
+We use $\EmptyList$ for the empty list and $x :: xs$ for prepending an element $x$
+to a list $xs$; $\atsign$ for list concatenation;
+$[e\ \kIF\ p|x \in \vec{x}]$ for list comprehension (we omit the filter when $p$ is true).
+We use the list processing combinator \fold %and \map 
+defined by the following equations:
+$$
+\begin{array}{lll}
+\fold\ \_\ \_\ \bot = \bot & \fold\ f\ (x :: xs)\ a = \fold\ f\ xs\ (f\ x\ a) & \fold\ \_\ \EmptyList\ a = a %\\
+% \map\ \_\ \EmptyList = \EmptyList & \map\ f\ (x :: xs) = f\ x :: \map\ f\ xs
+\end{array}
+$$
+
+\noindent
+
+% We denote with $\_\times\_$, $\_+\_$, $\vecL{\phantom{i}\_~}$ and $\_\to\_$ the product, disjoint union, list and
+% function space of types, respectively, and with $\B = \{ \top, \bot\}$ the booleans.
+% We omit the conversion between the (isomorphic) types $A \times B \to C$
+% and $A \to B \to C$, e.g. we may write $\map\ f\ \vecL{tu}$ instead of $\map\ (\lambda x.f\ (\text{fst}\ x)\ (\text{snd}\ x))\ \vecL{tu}$.
+
+A substitution $\subst$ of type $\Sigma$ is a pair $(s,m)$
+where $s$ is a mapping from unification variables
+\VAR to terms \TERM{} and $m$ is a constraint store.
+We write $s\ t$ the application of the substitution $s$
+to a term $t$, and $\subst\ t$ the  application of the first component
+of \susbt to $t$.
+
+% ,
+% and we remark that $t$ is \ground{} iff $\forall \subst, \subst t = t$.
+% We write $\dom\ \subst$ for the set of variables occurring
+% in the domain or in the codomain of \subst, i.e.
+% $\dom\ \subst = \{ X\ |\ \subst X \mathrm{\ is\ defined\ } \lor X \in \vars\ (\subst Y) \mathrm{\ for\ some\ Y} \}$.
+The empty substitution $\EmptySubst$ is so that $\dom\ \EmptySubst = \EmptyList$.
+
+We assume a function $\unify$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
+such that if $\unifyCmd{t_1}{t_2}{\subst}{\subst[']} \not= \bot$ 
+then \subst['] is the most general extension of \subst 
+such that $\subst['] t_1 = \subst['] t_2$.
+We assume a function $\match$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
+such that if $\matchCmd{t}{p}{\subst}{\subst[']} \not= \bot$
+then \subst[']  is the most general extension of  $\subst$
+such that $\subst t = \subst['] p$ and $\subst[']t = \subst t$,
+i.e. \match{} does not assign variables in $t$ but only in $p$ that acts as the pattern.
+
+A program $\prog = (\mathbb{N}, \mathcal{I})$ holds a set of names $\mathbb{N}$ and a
+mapping $\mathcal{I}$ from predicate names to an \emph{ordered list} of clauses.
+We write $x \# \prog$ to find a name fresh in $\mathbb{N}$.
+We write $\prog~\pred$ for the clauses of predicate \pred in $\mathcal{I}$
+and we write $x + \prog$ to add the name $x$ to $\mathbb{N}$
+and we write $h + \prog$ to prepend the extra clause $h$  to $\mathcal{I}$
+(hence $h$ has the highest priority in the new program).
+
+A goal $\g \subseteq \prog \times \ATOM\times \vecL{\alt}$
+is a triple made of a program, an atom and a list of
+so called \emph{cut-to} alternatives.
+An alternative $a \in \alt \subseteq \Sigma \times \vecL{\g}$ is a
+pair made of a substitution and a list of goals.
+
+\begin{figure}[!]
+    \centering
+
+  % \ruleCHRM{.4}
+  \ruleCstM{.4}
+  \ruleTcsM{.4}
+  \caption{Semantics: constraints}
+    \label{fig:basic-interp-c}
+\end{figure}
+
+  \begin{figure}[!]
+    \centering
+  \ruleBangM{.4}
+
+  \ruleCallMFH{0.44}
+  \vspace{0.3em}%
+
+  \ruleCallM{1}
+%
+  \ruleStopM{.37}
+  \ruleCallMF{0.58}
+
+
+  \rulePiM{1}
+  \ruleImplM{1}
+  \ruleCallBeta{1}
+  
+  \caption{Semantics: logic programming}
+    \label{fig:basic-interp-l}
+\end{figure}
+
+
+The operational, big step, semantics of Elpi is given by the function
+$$
+\run{} : \alt \times \vecL{\alt} \to (\vecL{\alt} \times \Sigma) + \bot
+$$
+in Figures~\ref{fig:basic-interp-c} and~\ref{fig:basic-interp-l}.
+We write \runCmd{\vecL{g}}{a}{\subst}{a'}{\subst'}
+when a goal list $\vecL{g}$ under a substitution \subst and alternatives $a$
+terminates with a substitution $\subst'$ and a remaining list of
+(still unexplored) alternatives $a'$. We write  \runCmdF{\vecL{g}}{a}{\subst}
+when the execution halts: fails to solve one of the given goals and runs out of
+alternatives. 
+An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
+
+\paragraph{Definition of $\bchain : TODO$}
+
+  $$
+  \begin{array}{l}
+  \bchain(\prog, \pred\, \vecL{t}, \vecL{g}, \subst, a) =\\
+  \qquad
+  \bigg[
+    %\bigg(
+    \subst['],
+    %\Big(
+    %\underbrace{
+      \big(\big[(\prog, g, a) \mid g \in\! \vecL{b}\big] \atsign\ \vecL{g}\big)
+    %}_{\mathrm{premises}} \atsign ~ \vecL{g}
+    \ \kIF\ \cselect(\vecL{tu}, \subst) = \subst['] \not= \bot
+    %\Big)
+    %\bigg)
+    ~\bigg|~
+    (\clauseCmd{\pred}{\vecL{u}}{\vecL{b}}) \in \prog\ \pred
+    \bigg]\vspace{1em}\\
+  \cselect(\vecL{tu}, \subst) = \fold\ \unify\ \vecL{tu_o}\ (\fold\ \match\ \vecL{tu_i}\ \subst)
+  \end{array}
+  $$
+  
+
+
+
+
+\paragraph{Definition of $\mathcal{CHR} : TODO$}
  
 Rule application follows the refined operational semantics~\cite{10.1007/978-3-540-27775-0_7}.
 It amounts to precise neting of iterations. The starting point is
@@ -813,11 +1303,8 @@ the constraint just declared via \elpi{declare_constraint}.
 \item move to the next rule
 \end{enumerate}
 
-Integration with SLD works as follows: each new constraint becomes
-a goal that is considered as the leftmost conjuct of the current
-resolution state. Since a new goal can in turn declare a new constraint,
-the CHR loop can continue. In other words constraint handling takes
-priority over SLD resolution.
+Handling of names and hypotetical rules see~\cite{TASSI_2019}.
+
 
 \section{Syntactic sugar}
 
