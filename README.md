@@ -66,7 +66,7 @@
 - [ ] 6.1.2 Elpi the software - english
 - [ ] 6.1.3 Rocq-Elpi - english
 - [ ] 6.1.4 Rocq tools written in Elpi - english
-- [ ] 6.2 Current and future work - english + rethink
+- [x] 6.2 Current and future work - english + rethink
 
 - [ ] citare commissione
 

@@ -3844,16 +3844,16 @@ Elpi is, to our eyes, a tool to build tools faster. It was a great fun to
 implement it, it is actually our first whole round programming language.
 The amount of time it took to produce a working implementation
 would have been out of reach without an Inria position with no compulsory
-teaching duties and engineering support from the institure~\ref{sec:trace}.
+teaching duties and engineering support from the institure. % (see~\ref{sec:trace}.
 
 
-We should also point out that we built on the shoulders of a giant. Elpi is written in
+We should also point out that we built on the shoulders of a third giant. Elpi is written in
 OCaml that allows it to deliver reasonable performances and ease of integration.
 The possibility to use mutable data structures to represent unification
 variabls allows Elpi to avoid ``reifying'' the heap (the assignment) and
 hence identify the notion of garbage of Elpi data and OCaml data, in turn
 making it possible to just use the mighty OCaml garbage collector for Elpi.
-At the same the rich type discipline of OCaml simplified the development of the
+At the same time the rich type discipline of OCaml simplified the development of the
 Foreign Function Interface in a generic way, a bit like ``printf'' signature
 depends on the format string. GADTs turned out to be essential for this purpose.
 
@@ -3903,59 +3903,51 @@ in their industrial applications.
 
 \section{Current and future work}
 
-If only I had a century, or maybe two. There are two axes to consider: Elpi as
-a language in its own and Rocq-Elpi as a framework for extending Rocq.
 
-On the Elpi side, as a language, it seems the most valuable aspect to improve
-is it appeal to programmers already experienced in functional languages.
-After all most of the newcomers already are while they are touching
-logic programming for the first time. Some of it is about syntax, a very
-delicate (although intellectually shallow) aspect of every language.
-Another part of it is about static analysis, something so present in modern
-functional languages that programmers hardly consider it an orthogonal aspect
-(e.g. an untyped language does not look familiar, even if functional).
+If only I had a century—or perhaps two.
 
-On the Rocq side is seems reasonable to work at a deeper integration with
-the system, i.e. make it an integral part of it. Most power users constantly
-ask to lower the (inevitable) friction of a language that is integrated to
-Rocq as a plugin and is hence limited by its public extension points and
-extensible syntax.
+There are two main directions to consider: Elpi as a language in its own right, and Rocq-Elpi as a framework for extending Rocq. On the Elpi side, the most valuable improvement would be to enhance its appeal to programmers already experienced in functional languages. Most newcomers to Elpi are already familiar with functional programming and are encountering logic programming for the first time. Some improvements concern syntax—a subtle, though not deeply technical, aspect of any language. Another important area is static analysis, which is so prevalent in modern functional languages that programmers often take it for granted; for example, an untyped language no longer feels familiar, even if it is functional.
 
-We develop a few aspects of the two axes above in more detail.
+On the Rocq side, it seems reasonable to aim for deeper integration with the system, making Elpi an integral part of Rocq itself. Power users frequently request a reduction in the inevitable friction caused by a language that is integrated as a plugin, and thus limited by Rocq’s public extension points and extensible syntax.
 
-\subsection{Static analysis and functional programming languages}
-Fissore integrated in Elpi 3.0 a determinacy checker~\cite{elpidet} and a new
-keyword \elpi{func} to be used in place of \elpi{pred} in the signature
-of predicates. This static check guarantees, essentially, that
-each call to a functional predicate \elpi{p} is operationally
-equivalent to a call to \elpi{once p} where.
+Below, I elaborate on a few aspects of these two directions.
+
+\subsection{Static analysis and functional programming languages} 
+
+Fissore
+integrated a determinacy checker into Elpi 3.0~\cite{elpidet}, along with a new
+keyword, \elpi{func}, to be used in place of \elpi{pred} in predicate
+signatures. This static check essentially guarantees that each call to a
+functional predicate \elpi{p} is operationally equivalent to a call to
+\elpi{once p}:
 
 \begin{elpicode}
 pred once i:pred.
 once P :- P, !.
 \end{elpicode}
 
-\noindent
-As expected \elpi{once} can be flagged as \elpi{func} since it never leaves
-any choice points behind it.
+\noindent As expected, \elpi{once} can be flagged as \elpi{func} since it never
+leaves any choice points behind.
 
-An interesting example to develop comes from the portfolio of functioanl programming.
+An interesting example comes from the functional programming repertoire:
 \begin{elpicode}
 func map (func A -> B), list A -> list B.
 map F [] [].
 map F [X|XS] [Y|YS] :- F X Y, map F XS YS.
 \end{elpicode}
-\noindent
-The signature reads: \elpi{map} is a function if its higher order argument
-\elpi{F} is. Since the syntax for \elpi{func} forces input arguments first,
-it paves the way to support a syntax for functioanl predicates body closer to
-functional languages, i.e. where expressions and statements are confused together.
 
-Spilling~\ref{sec:spilling} already goes in that direction, but one has
-to explicitly invoke it by using curly braces in place of round ones (that can
-be omitted when not needed by the parser).
-One wanders if this default can be reversed for functional predicates, enabling
-the previous program to be unambiguously written as follows:
+\noindent The signature states that \elpi{map} is a function if its
+higher-order argument \elpi{F} is. Since the syntax for \elpi{func} requires
+input arguments first, it paves the way for a syntax for functional predicate
+bodies that is closer to functional languages, where expressions and statements
+are intermingled.
+
+Spilling~\ref{sec:spilling} already moves in this direction, but one must
+explicitly invoke it by using curly braces instead of parentheses (which can be
+omitted when not needed by the parser). One wonders if this default could be
+reversed for functional predicates, enabling the previous program to be
+unambiguously written as follows:
+
 \begin{elpicode}
 func map (func A -> B), list A -> list B.
 map F [] R :- R = [].
@@ -3963,101 +3955,101 @@ map F [X|XS] R :- R = [F X|map F XS].
 % currently one has to write the following
 % map F [X|XS] R :- R = [{F X}|{map F XS}].
 \end{elpicode}
+
 \noindent
-And in turn make the \elpi{R :- R} part implicit, leaving us with
-the very familiar code below:
+In turn, the \elpi{R :- R} part could be made implicit, yielding the familiar
+code below:
+
 \begin{elpicode}
 func map (func A -> B), list A -> list B.
 map F [] = [].
 map F [X|XS] = [F X|map F XS].
 \end{elpicode}
-\noindent
-In a way we wonder is some syntactic sugar, driven by types and determinacy,
-could recover some of the benefits of functioanl languages, keeping the
-\emph{all} advantages of $\lambda$Prolog. MLTS~\cite{mlts} goes in that
-direction, keeping automatic binder management, but dropping the rule-based nature
-andhence automatic context management and easy (self) extensibility.
+
+\noindent In this way, we
+wonder whether some syntactic sugar, driven by types and determinacy, could
+recover some of the benefits of functional languages while retaining \emph{all}
+the advantages of $\lambda$Prolog. MLTS~\cite{mlts} goes in this direction,
+maintaining automatic binder management but dropping the rule-based nature, and
+thus automatic context management and easy (self-)extensibility.
 
 \subsection{Certified runtime}
 
-While over the years we accumulate confidence that the runtime is mostly correct,
-we would really like to machine-check some parts.
+Over the years, we have gained confidence that the runtime is mostly correct,
+but we would very much like to machine-check some parts.
 
-In the last
-ten years we found, and fixed, four bugs that we consider relevant (as in
-that could trigger in legitimate code) and a bit embarassing.
-Two were about beta reduction: a routine used all over the place had two
-code paths (hence two bugs) that could be wrong sometimes. The root cause
-was a misnamed variable: \elpi{extraargs} was not holding \emph{all}
-the extra arguments (the ones for which there is no lambda), tricking the
-programmer into discarding some arguments
-The other two bugs were wrong, luckily not very relevant in practice,
-optimizations in the higher order unification algorithm.
+In the past ten years, we have found and fixed four bugs that we consider
+relevant (i.e., they could be triggered in legitimate code) and somewhat
+embarrassing. Two were related to beta reduction: a routine used throughout the
+codebase had two code paths (and thus two bugs) that could sometimes be
+incorrect. The root cause was a misnamed variable: \elpi{extraargs} did not
+actually hold \emph{all} the extra arguments (those for which there is no
+lambda), which misled the programmer into discarding some arguments. The other
+two bugs were incorrect, but fortunately not very relevant in practice,
+optimizations in the higher-order unification algorithm.
 
-As we are mechanizing~\cite{elpidet} we started to move first steps in this
-direction, but we believe it would take a full PhD to complete the mechanization
-of the runtime.
+As we are mechanizing~\cite{elpidet}, we have begun to take the first steps in
+this direction, but we believe it would take a full PhD to complete the
+mechanization of the runtime.
 
 \subsection{Program logic}
 
-This is the part where 100 would not suffice to us, but there are smarter
-people out there that could tackle this. 
-Abella~\cite{abella} is a good starting point, since it comes with a
-program logic for plain $\lambda$Prolog. This program logic does not consider
-the cut operator. The big step semantics in~\ref{sec:sem} considers cut, and we
-believe could be made fully formal, but is not clear at all that it would
-be a good base for a program logic.
-In the ongoing mechanization of~\cite{elpidet} we were forced to define an
-equivalent semantics with a much more explicit description of the ongoing
-computation. While that facilitated proofs making invariants easier to express,
-it also departs from what the symbolic evaluation of a logic program looks like.
-In particular the computation state is much more complex than the list of alternatives
-used in~\ref{sec:sem}.
+This is the area where even a hundred years would not suffice for me, but there
+are smarter people who could tackle it. Abella~\cite{abella} is a good starting
+point, as it comes with a program logic for plain $\lambda$Prolog. This program
+logic does not consider the cut operator. The big-step semantics
+in~\ref{sec:sem} does consider cut, and we believe it could be made fully
+formal, but it is not clear that it would provide a good foundation for a
+program logic. In the ongoing mechanization of~\cite{elpidet}, we were forced
+to define an equivalent semantics with a much more explicit description of the
+ongoing computation. While this facilitated proofs by making invariants easier
+to express, it also departs from what the symbolic evaluation of a logic
+program looks like. In particular, the computation state is much more complex
+than the list of alternatives used in~\ref{sec:sem}.
 
 \subsection{Deeper integration in Rocq}
 
-There are plenty of ``prolog implementations'' in the Rocq code based, most
-of which are disguised into othe features. Some tactics to automatically prove
-tautologies are essentially exploring the proof space by backtracking. Type class
-resolution essentially amounts at executing a logic program~\cite{fctc}.
-Canonical Structure resolution is yet another, deterministic, logic program~\cite{tassi13}.
-The entire proof engine sits atop the logic programming monad à la LogicT~\cite{logicT}.
+There are plenty of "prolog implementations" in the Rocq codebase, most of
+which are disguised as other features. Some tactics to automatically prove
+tautologies essentially explore the search space by backtracking. Type class
+resolution essentially amounts to executing a logic program~\cite{fctc}.
+Canonical Structure resolution is yet another, deterministic, logic
+program~\cite{tassi13}. The entire proof engine sits atop a logic programming
+monad à la LogicT~\cite{logicT}.
 
-All these parts could take advantage of Elpi or at least some parts of it
-implementation, but it is unclear how realistic it is to replace them with
-Elpi based alternative in a production system such as Rocq.
+All these parts could benefit from Elpi, or at least from some of its
+implementation techniques, but it is unclear how realistic it would be to
+replace them with Elpi-based alternatives in a production system such as Rocq.
 
-Fissore has implemented as part of this PhD an alternative type class
-solver. It builds on an Elpi program that compiles type class instances
-into rules, that in turn are queried each time Rocq needs to resolve
-a type class instance~\cite{newtc,unifforfree}. While the approach seems
-promises the chances to replate the existing engine (with all its quirks)
-are low.
-Fissore also found it hard to find real and computationally demanding
-examples to justify the introduction of caching mechanisms such as
-tabling in Elpi~\cite{selsam2020tabledtypeclassresolution,brigittePHD}.
-He, or We, will probably implement a simple version of tabling in the
-future, but focussing on user experience (eg. preventing loops) rather
-than performance.
+As part of his PhD, Fissore has implemented an alternative type class solver.
+It is based on an Elpi program that compiles type class instances into rules,
+which are then queried each time Rocq needs to resolve a type class
+instance~\cite{newtc,unifforfree}. While the approach seems promising, the
+chances of replacing the existing engine (with all its quirks) are low. Fissore
+also found it difficult to find real and computationally demanding examples to
+justify the introduction of caching mechanisms such as tabling in
+Elpi~\cite{selsam2020tabledtypeclassresolution,brigittePHD}. He (or we) will
+probably implement a simple version of tabling in the future, but focusing on
+user experience (e.g., preventing loops) rather than performance.
 
-Pierre Roux, Quentin Vermande and Cyril Cohen have conducted substantial
-experiments in leaveraging Elpi in the elaboration process of Rocq, in
-particular to obtain well typed terms out of intuitively-correct but ill-typed
-ones, both in the context of arithmetical expressions and set theoretic ones.
-Some examples are pretty convincing and a deeper integration of Elpi in Rocq
-would enable generating sensible error messages when these elaborations
-mechanisms fail.
+Pierre Roux, Quentin Vermande, and Cyril Cohen have conducted substantial
+experiments leveraging Elpi in the elaboration process of Rocq, particularly to
+obtain well-typed terms from intuitively correct but ill-typed ones, both in
+the context of arithmetical and set-theoretic expressions. Some examples are
+quite convincing, and deeper integration of Elpi in Rocq would enable the
+generation of more informative error messages when these elaboration mechanisms
+fail.
 
-Last, according to out experience implementing the first Elpi proof
-of concept~\ref{sec:poc}, the Rocq proof engine could take advantage of
-the trail mechanism as implemented in Elpi. It tuns out that, for a
-typical Elpi workload, mutable terms and a trail (mutable cells to unset
-upon backtracking) provide way better performances than immutable terms
-paired with a substitution implemented as a functional map (a reified heap,
-really). If only because the OCaml garbage collector can do its job
-in the first case, while the substitution grows unattended in the latter case.
-Reworking the proof engine to validate this efficiency claim requires
-a subtantial engineering effort.
+Finally, based on our experience implementing the first Elpi proof of
+concept~\ref{sec:poc}, the Rocq proof engine could benefit from the trail
+mechanism as implemented in Elpi. It turns out that, for a typical Elpi
+workload, mutable terms and a trail (a log of mutable cells to unset upon
+backtracking) provide much better performance than immutable terms paired with
+a substitution implemented as a functional map (a reified heap, essentially).
+This is partly because the OCaml garbage collector can do its job in the former
+case, while the substitution grows unchecked in the latter. Reworking the proof
+engine to validate this efficiency claim would require substantial engineering
+effort.
 
 \nocite{*}
 \printbibliography[title={Our Bibliography}, keyword=me]
