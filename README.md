@@ -13,9 +13,9 @@
 - [ ] 2.2 Elpi v.s. λProlog - english
 - [ ] 2.2.1 incomplete terms - english
 - [ ] 2.3 Modes and Constraints - english
-- [ ] 2.4 Constraints Handling Rules - write
+- [ ] 2.4 Constraints Handling Rules - english
 - [ ] 2.5 Elpi = λProlog + CHR - write
-- [ ] 2.5.1 Operational semantics - write
+- [ ] 2.5.1 Operational semantics - english
 - [ ] 2.6.0 Syntactic sugar - english
 - [ ] 2.6.1 Namespaces - english
 - [ ] 2.6.2 Spilling - english

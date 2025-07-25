@@ -740,7 +740,7 @@ are \emph{frozen}: a unification variable \elpi{F} applied to \elpi{x} and
 \elpi{y} is persented to constraint handling rules as \elpi{uvar f [x,y]}
 for a fresh constant \elpi{f}. This lightweight form of reification
 make it so that CHR rules are used to match, rather than unify, constraints
-and that the user has access to the scope of frozen unification variables.
+and that the user has access to the scope of unification variables.
 Moreover each constraint is frozen to a distinct space of names, i.e.
 \elpi{E1} and \elpi{E2} are made disjoint.
 
@@ -917,9 +917,9 @@ element-wise pairing (zipping) of \(\vecL{t}\) and \(\vecL{u}\) into a list of
 pairs. %The zipping process continues up to the length of the shorter list.
 % \todo{check for dead cod here if we hide the proofs}
 
-% We write
-% $t[y/x]$ for the usual, capture avoiding, operation of replacing the variable $x$
-% with $y$ inside $t$.
+We write
+$t[x/y]$ for the usual, capture avoiding, operation of replacing the variable $x$
+with $y$ inside $t$.
 % We say that $\vars\ t$ is the set
 % of free variables occurring in $t$ (the binders are \elpi{pi} and $\lambda$).
 % When $\vars\ t = \EmptyList$ we say that
@@ -1122,7 +1122,7 @@ pairs. %The zipping process continues up to the length of the shorter list.
 
 \newcommand{\ruleCallBeta}[1]{
   \begin{myRule}{#1}
-    \AxiomC{$\subst (X\ \vecL{t}) = \pred\ \vecL{u}$}
+    \AxiomC{$\subst (X\ \vecL{t}) =_{\beta\eta} \pred\ \vecL{u}$}
     \AxiomC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\pred\ \vecL{u}}{a}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
     \RightLabelM{\ruleBeta}
     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{(X\ \vecL{t})}{a}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}
@@ -1155,7 +1155,7 @@ pairs. %The zipping process continues up to the length of the shorter list.
 \newcommand{\rulePiM}[1]{
   \begin{myRule}{#1}
     % PI
-    \AxiomC{\ensuremath{\runCmdR{\ConsHdNP{\goalCmd{(x + \prog)}{g}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}}
+    \AxiomC{\ensuremath{y \# \prog \quad \runCmdR{\ConsHdNP{\goalCmd{(y + \prog)}{g[x/y]}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}}
     \RightLabelM{\rulePi}
     \UnaryInfC{\ensuremath{\runCmdR{\ConsHdNP{\goalCmd{\prog}{(\piCmd{x}{g})}{\alts}}\ConsTlNP{\vecL{g}}}{\alts[']}{\subst}}}
   \end{myRule}
@@ -1183,7 +1183,7 @@ pairs. %The zipping process continues up to the length of the shorter list.
 
 We use $\EmptyList$ for the empty list and $x :: xs$ for prepending an element $x$
 to a list $xs$; $\atsign$ for list concatenation;
-$[e\ \kIF\ p|x \in \vec{x}]$ for list comprehension (we omit the filter when $p$ is true).
+$[e\ \kIF\ p\ |\ x \in \vec{x}]$ for list comprehension (we omit the filter when $p$ is true).
 
 \noindent
 
@@ -1250,16 +1250,14 @@ made of a constraint store, a substitution and a list of goals.
 \end{figure}
 
   \begin{figure}[!]
-    \centering
-  \ruleBangM{.4}
-
+  \centering
+  \ruleStopM{.37}
   \ruleCallMFH{0.44}
-  \vspace{0.3em}%
-
+  \ruleCallMF{0.58}
+  % \vspace{0.3em}%
+  \ruleBangM{.4}
   \ruleCallM{1}
 %
-  \ruleStopM{.37}
-  \ruleCallMF{0.58}
 
 
   \rulePiM{1}
@@ -1283,6 +1281,28 @@ terminates with an updated constraint store $\kappa'$, a substitution $\subst'$ 
 when the execution halts: fails to solve one of the given goals and runs out of
 alternatives. 
 %An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
+
+Rules in Figures~\ref{fig:basic-interp-c} and~\ref{fig:basic-interp-l}
+are applied in the given order. Rules~\ref{rule:suspend} and~\ref{rule:resume}
+cover the constraint part of the language: the former updates the constraint
+store when a new constraint is declared, while the latter resume a constraint
+as soon as the substituion \subst acts on its trigger.
+
+Rule~\ref{rule:stop} applies when all goals are solved and returns
+the substitution along with the still unexplored alternatives.
+Rule~\ref{rule:callabort} applies when no rule applies to the
+current goal and not alternative is avilable.
+Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
+popping the last alternative (going back to the most recent choice point).
+Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
+saved by $\bchain$ (see its description below).
+Rule~\ref{rule:call} backchains all applicable rules generating new
+alternatives, the first one of which becomes the new goal.
+Rule~\ref{rule:beta} takes into account the higher order programming part
+of $\lambda$Prolog: unification variables can be used to pass
+predicates around.
+Rule~\ref{rule:pi} introduces a fresh name into the program
+while rule~\ref{rule:impl} introduces a new rule into the program.
 
 \paragraph{Definition of $\bchain$ (backchain)}
 
@@ -1310,7 +1330,7 @@ an alternative for each rules that applies to the given goal.
   $$
 
 It is worth pointing out that each new goal (in each alternative)
-carrier the same cut-to alternative and that the value passed to
+carries the same cut-to alternative and that the value passed to
 $\bchain$ by rule \ref{rule:call} is the list of alternatives
 before the backchaining happened, i.e. it does not contain any
 alternative being created nor any alternative created in the future
@@ -1343,27 +1363,57 @@ $$
 Constraint rule application follows the refined operational
 semantics~\cite{10.1007/978-3-540-27775-0_7} that amounts to a precise nesting of iterations.
 
-The starting point is the so called ``active constraint'' $A$ that, in the context of Elpi, is
-the constraint just declared as $\cst\ A\ t$ by the rule~\ref{rule:delay}.
+The starting point is the so called ``active constraint'' that, in the context of Elpi, is
+the constraint just declared as $\cst\ c\ t$ by the rule~\ref{rule:delay}.
 
+$$
+\mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts) = (\vecL{g}, k')\ \mathrm{where}
+$$
 \begin{enumerate}
-\item for each rule $P_1 \ldots P_x\ \backslash\ P_{x+1} \ldots P_n\ |\ C \Leftrightarrow G$
+\item add the active constraint $(\prog,\ c,\ t)$ to $k$ to obtain $k'$
+\item for each rule $P_1 \ldots P_x\ \backslash\ P_{x+1} \ldots P_n\ |\ Q \Leftrightarrow g$
 \item for each position $0 < j \leq n$
-\item for each permutation of $C_1 \ldots C_n$ constraints having $C_j = A$
-\item match all $C_i$ with $P_i$ and run $C$. If it succeeds:
+\item for each permutation of $C_1 \ldots C_n$ constraints in $k'$ having $C_j = (\prog,\ c,\ t)$
+\item match all $C_i$ with $P_i$ and run $Q$. If it succeeds:
   \begin{itemize}
-    \item remove $C_{x+1} \ldots C_n$ from $\mathcal{C}$
+    \item remove $C_{x+1} \ldots C_n$ from $k'$
     \item remove all permutations involving $C_{x+1} \ldots C_n$
-    \item return $G$ as a new goal
+    \item add $g$ to $\vecL{g}$
   \end{itemize}
 \item move to the next rule
 \end{enumerate}
 
-TODO: explain freezing
-TODO: explain sequents, filtering, only hyp in ctx, ctx sorted
-TODO: explain trigger overlap
-Handling of names and hypotetical rules see~\cite{TASSI_2019}.
-
+This description how CHR rules update the constraint store is
+essentially the standard operational semantics~\cite{10.1007/978-3-540-27775-0_7}
+adapted to constraints that are composed of a program $\prog$ and
+an applicative term $c$. As anticipated in~\ref{sec:modes} adapting CHR to Elpi, or
+better its $\lambda$Prolog part, requires some extra care. In particular
+a constraint $((\mathbb{N},\mathcal{I}),\ c,\ t)$ represents a $\lambda$Prolog goal:
+$$
+\mathbb{N} \triangleright  \mathcal{I} \vdash c
+$$
+\noindent
+where $\mathbb{N}$ is the set of nominal constants introduced by \elpi{pi}
+and $\mathcal{I}$ is the set of rules available to solve $c$.
+Pragmatically, only hypothetical rules are stored in the constraint since all
+static rules are common to all constraints. In addition to that the
+user can specify a filer to discard rules for predicates of no interest for
+the constraint (typically rules for predicates unrelated to $c$).
+Moreover, for simplicity, $\mathcal{I}$ is presented as a list: if the
+user wants to compare these ``contexts'' as sets he has to implement the
+quotienting in the rule's guard $Q$. Once more pragmatically, unless
+the user explicitly opts out, step 4 only considers the permutations of
+constaints with a trigger that overlaps with the trigger $t$ of the active
+constraint: according to our experience this is more often than not what
+the user needs and drastically cuts down the number of permutations to consider.
+Finally the system enfoces the disjointness of names used in each constraint, that
+is step 1 really adds $((\mathbb{N'},\mathcal{I'}),\ c',\ t)$ to $k$
+where each name in $\mathbb{N'}$ is fresh in $k$, and where
+$\mathcal{I'}$ and $c'$ are obtained by subtituting each name in
+$\mathbb{N}$ with the corresponding one in $\mathbb{N}'$.
+We point the interested
+reader to~\cite{TASSI_2019} for a more formal description of the
+operational semantics of the $\mathcal{CHR}$ procedure.
 
 \section{Syntactic sugar}
 
@@ -1466,10 +1516,10 @@ code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
   
 
 In order to run the spilled code in a context with the bound variable
-x, the expression must be put under a \elpi{pi y\\ }. Similarly
+\elpi{x}, the expression must be put under a \elpi{pi y}. Similarly
 the temporary variable needs to be abstracted over the variable, so
-that we can identify the original one x with the one abstracted by
-\elpi{pi} y.
+that we can identify the original one \elpi{x} with the one abstracted by
+\elpi{pi y}.
 
 Note that spilling does not need to cross a \elpi{pi}, but
 needs to make the quantified variable visible to the result of
@@ -1523,7 +1573,7 @@ is more often than not what the programmer expects.
 
 \section{A complete example: Hindley Milner type inference}\label{sec:milner}
 
-The most significan type inference algorith is the one crafted by
+The most significant type inference algorith is the one crafted by
 Milner the ML language~\cite{MILNER1978348}. The flavor we 
 study here covers equality type variables, the \texttt{''a} abstraction
 (in standard ML syntax) for decidable types, i.e. types that can be
@@ -1531,7 +1581,7 @@ effectively compared unlike the function space.
 
 It makes a good use case for Elpi because:
 \begin{itemize}
-  \item it manipulates syntax trees with binders, namely lambd abstraction
+  \item it manipulates syntax trees with binders, namely lambda abstraction
     and let binding
   \item it manipulates types containing unification variables (i.e. holes).
     The key step in the algorithm is to turn (existentially quantified)
@@ -1558,16 +1608,16 @@ $$
 \end{array}
 $$
 \end{minipage}
-\begin{minipage}{0.55\textwidth}
+\begin{minipage}{0.60\textwidth}
 \vspace{0.5em}
 %elpi:hm.elpi
 \begin{elpicodelj}
-kind term type.
-type global  string -> term.
-type app term -> term -> term.
-type lam (term -> term) -> term.
-type let term -> (term -> term) -> term.
-type eq  term -> term -> term.
+kind term   type.
+type global string -> term.
+type app    term -> term -> term.
+type lam    (term -> term) -> term.
+type let    term -> (term -> term) -> term.
+type eq     term -> term -> term.
 \end{elpicodelj}
 \end{minipage}
 \end{center}
@@ -1605,14 +1655,14 @@ $$
 \begin{minipage}{0.5\textwidth}
 %elpi:hm.elpi
 \begin{elpicodelj}
-kind tye type.
+kind tye   type.
 type (-->) tye -> tye -> tye.  
 type int   tye.
 type bool  tye.
 type list  tye -> tye.
 type pair  tye -> tye -> tye.
 
-kind ty type.
+kind ty     type.
 type all    bool -> (tye -> ty) -> ty.
 type mono   tye -> ty.
 \end{elpicodelj}
@@ -1674,7 +1724,7 @@ $$
 \end{array}
 $$
 
-The Elpi code departs the pen and paper presentation by instantiatin, at once,
+The Elpi code departs from the pen and paper presentation by instantiating, at once,
 all skema variables by fresh unification variables, possibly constraining them
 to be an eq type
 
@@ -1712,12 +1762,17 @@ The auxiliary constraint \elpi{theta} is used to gather the
 The use of constraints here is handy but not essential. One could thread a state,
 the list of all type variables used so far paired with their equality type status.
 The constraint store offers a global state carried on the side of the goals
-and constraint handling rules the possibility to organize it, like grouping
+and constraint handling rules offer the possibility to organize the state, like grouping
 all entries into a list.
 
 The declarative code for the type inference algorithm is given below.
-While the rules for lambda abstraction and application are the same
+The rules for lambda abstraction and application are the same
 for simply typed lambda calculus~\ref{inf:stlc}.
+The rule for variables finds in $\Gamma$ a skema and assigns to the variable
+any valid instance. The rule for let pushes into the context a type
+$\overline{\Gamma}(\tau)$ for a let-bound expression of type $\tau$ in $\Gamma$.
+Finally the rule for equality tests if the type of the expressions admits
+an equality test.
 
 \begin{center}
 \begin{minipage}{0.45\textwidth}
@@ -1741,11 +1796,9 @@ $$
 $$
 \end{center}
 
-The rule for variables finds in $\Gamma$ a skema and assigns to the variable
-any valid instance. The rule for let pushes into the context a type
-$\overline{\Gamma}(\tau)$ for a let-bound expression of type $\tau$ in $\Gamma$.
-Finally the rule for equality tests if the type of the expressions admits
-an equality test.
+Elpi rules are very close to pen and paper ones. The only difference is that
+the rule for variable is extended, on purpose, to any term so that it
+can apply to global constants as well.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1769,12 +1822,8 @@ of (eq LHS RHS) (mono bool) :-
 of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
 \end{elpicode}
 
-Elpi rules are very close to pen and paper ones. The only difference is that
-the rule for variable is extended, on purpose, to any term so that it
-can apply to global constants as well.
-
-We have already described how \elpi{specialize} relates to $\sqsubseteq$,
-what is left to describe is the $\overline{\Gamma}$ operation.
+We have already described how \elpi{specialize} relates to $\sqsubseteq$.
+What is left to describe is the $\overline{\Gamma}$ operation.
   
 $$
 \overline{\Gamma}(\tau) = \forall\ \hat{\alpha}\ .\ \tau \quad\quad \hat{\alpha} = \textrm{free}(\tau) - \textrm{free}(\Gamma)
@@ -1797,9 +1846,9 @@ gammabar (mono T) TS :- declare_constraint (gammabar (mono T) TS) [_].
 
 constraint of ?- gammabar eqbar theta rm-eqbar {
   rule  \ (theta L)
-          (G ?- gammabar T TS)     % matched and removed
+          (G ?- gammabar T TS)              % matched and removed
         | (generalize L G T POLYT ToRemove) % guard + syntesis
-      <=> (TS = POLYT, rm-eqbars ToRemove, theta []).             % new goal
+      <=> (TS = POLYT, rm-eqbars ToRemove, theta []). % new goal
   rule \ (eqbar X) (rm-eqbar X).
 }
 
@@ -1818,6 +1867,7 @@ generalize Theta Gamma (mono T) PolyT ToQuantify :-
   bind ToQuantify Theta T PolyT.
 \end{elpicode}
 
+\noindent
 The code to implement $\overline{\Gamma}(\tau)$ performs thwo tasks:
 
 \begin{itemize}
@@ -1840,8 +1890,10 @@ there and was updated at every \elpi{eqbar} addition; now all
 \elpi{eqbar} are there, and \elpi{theta} gets added and combined
 with the all.
 
-The code for computing free type variables is as expected.
+The definition of free type variables, Figure~\ref{img:free}, is not
+surprising but it is worth to point out two details of the corresponding Elpi code.
 
+\begin{figure}
 $$
 \begin{array}{ll}
   \text{free}(\ \mathtt{int}\ ) &=\ \emptyset\\
@@ -1854,8 +1906,8 @@ $$
   \text{free}(\ \Gamma\ ) &=\ \bigcup\limits_{x:\sigma \in \Gamma}\text{free}(\ \sigma\ )\\
 \end{array}
 $$
-
-Two details of the corresponding Elpi code are worth pointing out.
+\caption{Free type variable\label{img:free}}
+\end{figure}
 
 The former is that the context is a list of propositions. The \elpi{prop}
 type gather all predicates, not just \elpi{of}. We don't need to add
@@ -1891,7 +1943,7 @@ free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 
 The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is
 the code to bind (locally used) unification variables to universal quantifications.
-The key is the \elpi{copy} predicate~\cite{}, that reflects substitution
+The key is the \elpi{copy} predicate, that implements substitution
 by traversing a type expression. Since this subtitution is not the built-in
 one (i.e. not function application), we can alter its behavior by loading
 into the program context some ad-hoc rules. In particular for
