@@ -3839,68 +3839,30 @@ formally—as the meta-theory of the proof system.
 
 \subsection{Elpi the software}
 
-What we love the most about our job is to design and build
-tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
-Elpi is, to our eyes, a tool to build tools faster. It was a great fun to
-implement it, it is actually our first whole round programming language.
-The amount of time it took to produce a working implementation
-would have been out of reach without an Inria position with no compulsory
-teaching duties and engineering support from the institure. % (see~\ref{sec:trace}.
 
+What we enjoy most about our work is designing and building tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
+To us, Elpi is a tool for building tools more efficiently. Implementing Elpi was great fun; in fact, it is our first fully-fledged programming language. The time required to produce a working implementation would have been prohibitive without an Inria position free from compulsory teaching duties and with engineering support from the institute. % (see~\ref{sec:trace}).
 
-We should also point out that we built on the shoulders of a third giant. Elpi is written in
-OCaml that allows it to deliver reasonable performances and ease of integration.
-The possibility to use mutable data structures to represent unification
-variabls allows Elpi to avoid ``reifying'' the heap (the assignment) and
-hence identify the notion of garbage of Elpi data and OCaml data, in turn
-making it possible to just use the mighty OCaml garbage collector for Elpi.
-At the same time the rich type discipline of OCaml simplified the development of the
-Foreign Function Interface in a generic way, a bit like ``printf'' signature
-depends on the format string. GADTs turned out to be essential for this purpose.
+It is also important to acknowledge that we stood on the shoulders of a third giant: Elpi is written in OCaml, which enables both reasonable performance and ease of integration with Rocq. The ability to use mutable data structures to represent unification variables allows Elpi to avoid "reifying" the heap (the assignment), thereby aligning the notion of garbage in Elpi data with that in OCaml data. This makes it possible to rely on the powerful OCaml garbage collector for Elpi. At the same time, OCaml's rich type system simplified the development of the Foreign Function Interface in a generic way, somewhat analogous to how the signature of "printf" depends on the format string. GADTs proved to be essential for this purpose.
 
-The main contribution to the implementation of $\lambda$Prolog is
-the observation that De Bruijn levels enable an efficient implementation
-of a fragment of the language~\cite{dunchev15lpar}. The fragment
-$\mathcal{L}_\lambda^{\beta_0}$ occurs often in actual code and admits
-constant-time operations and constant-size data representation as the
-context of bound variables grows in length.
+The main contribution to the implementation of $\lambda$Prolog is the observation that De Bruijn levels enable an efficient implementation of a fragment of the language~\cite{dunchev15lpar}. The fragment $\mathcal{L}_\lambda^{\beta_0}$ occurs frequently in real code and supports constant-time operations and constant-size data representation as the context of bound variables grows in length.
 
 \subsection{Rocq-Elpi}
 
-At the time of writing the size of Elpi is about 20K lines of code, about 10K
-for the runtime and 10K for the parser, static checker and ``compiler''.
-Rocq-Elpi totals 13K: 5K for the HOAS of Rocq terms, 5K for the bindings of about
-300 Rocq APIs and 3K for the vernacular language to declare programs. The complicated
-part is the HOAS, but it is also what makes the language shine and enables
-each Rocq API to require, on average, only 16 lines to be exposed to Elpi
-(documentation included).
 
-Unsurprisingly its development was pushed by the applications written in it,
-in particular Hierarchy Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
+At the time of writing, Elpi comprises about 20,000 lines of code: approximately 10,000 for the runtime and 10,000 for the parser, static checker, and "compiler." Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order abstract syntax (HOAS) of Rocq terms, 5,000 for the bindings of about 300 Rocq APIs, and 3,000 for the vernacular language used to declare programs. The most complex part is the HOAS, but it is also what makes the language stand out, enabling each Rocq API to require, on average, only 16 lines to be exposed to Elpi (including documentation).
 
-Rocq-Elpi was developed in the open from the the very beginning, making the
-Rocq development team aware of the effor. Their committment to
-provide patches to Rocq-Elpi eavery time a Rocq API did evolve made its
-development over more than seven years sustainable. The contribution 
-from the Rocq community was also very important, in particular from
-power users such as BlueRock systems that contributed a substantial amount
-of code.
+Unsurprisingly, its development was driven by the applications written in it, particularly Hierarchy Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
+
+Rocq-Elpi was developed as an open source project from the very beginning, keeping the Rocq development team informed of the effort. Their commitment to providing patches to Rocq-Elpi whenever a Rocq API evolved made its development sustainable over more than seven years. Contributions from the Rocq community were also very important, especially from power users such as BlueRock Systems, who contributed a substantial amount of code.
 
 \subsection{Rocq tools written in Elpi}
 
-Quite a number of tools for Rocq were written in Elpi, either by me or by
-Rocq power users.
+A significant number of tools for Rocq have been written in Elpi, either by myself or by Rocq power users.
 
-Among them the most impactful in the Rocq community is
-Hierarchy Builder, since it ``unblocked'' the development
-of the Mathematical Components library, a very widely used piece of Rocq code.
-Its ``ssreflect'' component is the most widely depended-upon Rocq package,
-and in turn it makes Hierarchy Builder (and Rocq-Elpi) very important pieces
-of the Rocq ecosystem.
+Among these, the most impactful for the Rocq community is Hierarchy Builder, as it "unblocked" the development of the Mathematical Components library—a widely used piece of Rocq code. Its "ssreflect" component is the most widely depended-upon Rocq package, which in turn makes Hierarchy Builder (and Rocq-Elpi) very important parts of the Rocq ecosystem.
 
-It it worth mentioning the existence of a substantial amount of
-closed-source Elpi code used internally by BlueRock systems. We wish them luck
-in their industrial applications.
+It is also worth mentioning the existence of a substantial amount of closed-source Elpi code used internally by BlueRock Systems. We wish them success in their industrial applications.
 
 \section{Current and future work}
 
