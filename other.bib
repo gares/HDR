@@ -273,3 +273,68 @@ keywords = {Coq, Type equivalence, parametricity, proof assistants, univalence}
   pages={625 - 665},
   url={https://api.semanticscholar.org/CorpusID:8571809}
 }
+
+@inproceedings{mlts,
+author = {G\'{e}rard, Ulysse and Miller, Dale and Scherer, Gabriel},
+title = {Functional programming with λ-tree syntax},
+year = {2019},
+isbn = {9781450372497},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3354166.3354177},
+doi = {10.1145/3354166.3354177},
+abstract = {We present the design of a new functional programming language, MLTS, that uses the λ-tree syntax approach to encoding bindings appearing within data structures. In this approach, bindings never become free nor escape their scope: instead, binders in data structures are permitted to move to binders within programs. The design of MLTS includes additional sites within programs that directly support this movement of bindings. In order to formally define the language's operational semantics, we present an abstract syntax for MLTS and a natural semantics for its evaluation. We shall view such natural semantics as a logical theory within a rich logic that includes both nominal abstraction and the ∇-quantifier: as a result, the natural semantics specification of MLTS can be given a succinct and elegant presentation. We present a typing discipline that naturally extends the typing of core ML programs and we illustrate the features of MLTS by presenting several examples. An on-line interpreter for MLTS is briefly described.},
+booktitle = {Proceedings of the 21st International Symposium on Principles and Practice of Declarative Programming},
+articleno = {12},
+numpages = {16},
+location = {Porto, Portugal},
+series = {PPDP '19}
+}
+
+@INPROCEEDINGS{abella,
+  author = {Andrew Gacek},
+  title = {The {A}bella Interactive Theorem Prover (System
+                  Description)},
+  year = 2008,
+  month = {August},
+  booktitle = {Proceedings of IJCAR 2008},
+  pages = {154--161},
+  publisher = {Springer},
+  series = {Lecture Notes in Artificial Intelligence},
+  volume = 5195,
+  editor = {A. Armando and P. Baumgartner and G. Dowek},
+  pdf = {http://arxiv.org/pdf/0803.2305.pdf},
+  slides = {http://abella-prover.org/slides/gacek08ijcar-slides.pdf}
+}
+@inproceedings{logicT,
+author = {Kiselyov, Oleg and Shan, Chung-chieh and Friedman, Daniel P. and Sabry, Amr},
+title = {Backtracking, interleaving, and terminating monad transformers: (functional pearl)},
+year = {2005},
+isbn = {1595930647},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/1086365.1086390},
+doi = {10.1145/1086365.1086390},
+abstract = {We design and implement a library for adding backtracking computations to any Haskell monad. Inspired by logic programming, our library provides, in addition to the operations required by the MonadPlus interface, constructs for fair disjunctions, fair conjunctions, conditionals, pruning, and an expressive top-level interface. Implementing these additional constructs is easy in models of backtracking based on streams, but not known to be possible in continuation-based models. We show that all these additional constructs can be generically and monadically realized using a single primitive msplit. We present two implementations of the library: one using success and failure continuations; and the other using control operators for manipulating delimited continuations.},
+booktitle = {Proceedings of the Tenth ACM SIGPLAN International Conference on Functional Programming},
+pages = {192–203},
+numpages = {12},
+keywords = {streams, logic programming, control delimiters, continuations, Prolog, Haskell},
+location = {Tallinn, Estonia},
+series = {ICFP '05}
+}
+@InProceedings{fctc,
+author="Sozeau, Matthieu
+and Oury, Nicolas",
+editor="Mohamed, Otmane Ait
+and Mu{\~{n}}oz, C{\'e}sar
+and Tahar, Sofi{\`e}ne",
+title="First-Class Type Classes",
+booktitle="Theorem Proving in Higher Order Logics",
+year="2008",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="278--293",
+abstract="Type Classes have met a large success in Haskell and Isabelle, as a solution for sharing notations by overloading and for specifying with abstract structures by quantification on contexts. However, both systems are limited by second-class implementations of these constructs, and these limitations are only overcomed by ad-hoc extensions to the respective systems. We propose an embedding of type classes into a dependent type theory that is first-class and supports some of the most popular extensions right away. The implementation is correspondingly cheap, general and integrates well inside the system, as we have experimented in Coq. We show how it can be used to help structured programming and proving by way of examples.",
+isbn="978-3-540-71067-7"
+}

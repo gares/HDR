@@ -65,15 +65,10 @@
 - [ ] 6.1.1 Elpi the language - english
 - [ ] 6.1.2 Elpi the software - english
 - [ ] 6.1.3 Rocq-Elpi - english
-- [ ] 6.1.4 Rocq tools written in Elpi - write
-- [ ] 6.2 Current and future work - write
-- [ ] 6.2.1 type class solver - write
-- [ ] 6.2.2 Static analysis - write
-- [ ] 6.2.4 Tabling - write
-- [ ] 6.2.5 Integration in Rocq - write
-- [ ] 6.2.5 Runtime - write
-- [ ] 6.2.6 Compiler - write
-- [ ] 6.2.7 Reasoning logic - write
+- [ ] 6.1.4 Rocq tools written in Elpi - english
+- [ ] 6.2 Current and future work - english + rethink
+
+- [ ] citare commissione
 
 ## Inscription
 
