@@ -62,10 +62,10 @@
 - [ ] 5.3.3 BlueRock’s BRiCk - english
 
 - [x] 6.1 Summary - english
-- [ ] 6.1.1 Elpi the language - english
-- [ ] 6.1.2 Elpi the software - english
-- [ ] 6.1.3 Rocq-Elpi - english
-- [ ] 6.1.4 Rocq tools written in Elpi - english
+- [x] 6.1.1 Elpi the language - english
+- [x] 6.1.2 Elpi the software - english
+- [x] 6.1.3 Rocq-Elpi - english
+- [x] 6.1.4 Rocq tools written in Elpi - english
 - [x] 6.2 Current and future work - english + rethink
 
 - [ ] citare commissione
