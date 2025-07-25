@@ -3795,45 +3795,46 @@ patches and early feedback to Elpi and Rocq-Elpi.
 
 \section{Summary}
 
-In this document we presented the Elpi programming language, its implementation
-and its main application as an extension language for Rocq.
+
+In this document, we have presented the Elpi programming language, its
+implementation, and its main application as an extension language for Rocq.
 
 \subsection{Elpi the language}
 
-The Elpi programming language stands on the shoulders of two giants, two
-languages born in the '90s and extensively studied: $\lambda$Prolog and
-Constraint Handling Rules. The former plays the main part as most of
-Elpi programs manipulae syntax trees with binders. The latter is key to
-scale the programming comfort of $\lambda$Prolog to syntax trees with holes
-without tainting the language with many of non logical, introspection, features.
- 
-Throuout this document we stressed how the \emph{key} feature of Elpi is being
-rule based. We identified three main advantages:
+The Elpi programming language is built upon two foundational languages from the
+1990s that have been extensively studied: $\lambda$Prolog and Constraint
+Handling Rules (CHR). $\lambda$Prolog plays the primary role, as most Elpi
+programs manipulate syntax trees with binders. CHR is essential for scaling the
+programming comfort of $\lambda$Prolog to syntax trees with holes, without
+burdening the language with numerous non-logical introspection features.
+
+Throughout this document, we have emphasized that the \emph{key} feature of Elpi
+is its rule-based nature. We have identified three main advantages:
 \begin{itemize}
-\item dynamic rules make the language scale so well to syntax with binders (section~\ref{sec:hello})
-\item static rules makes it easy to write code that is easily extensible (section~\ref{sec:homo})
-\item rules as code unit facilitates considerably self manipulation~\ref{sec:tb}
+\item Dynamic rules allow the language to scale effectively to syntax with binders (see section~\ref{sec:hello}).
+\item Static rules make it easy to write code that is easily extensible (see section~\ref{sec:homo}).
+\item Treating rules as code units greatly facilitates self-manipulation (see section~\ref{sec:tb}).
 \end{itemize}
 
-We take the liberty to challange the reader to write the \rocq{to_bool}
-tool we show in section~\ref{sec:tb} in any other extension language and match
-it in size and functionality.
+We invite the reader to attempt writing the \rocq{to_bool} tool shown in
+section~\ref{sec:tb} in any other extension language, and to match it in both
+size and functionality.
 
-We want to stress the importance of the cleananness of $\lambda$Prolog (and CHR)
-played in the design of Elpi. Building on sound foundations draws a clear
-line between syntactic sugar and ``hacks''. In particular the parallel between the
-execution of $\lambda$Prolog code and proof search in intuitionistic
-proof theory made it crystal clear that we had to avoid introducing ad-hoc
-introspection primitives such as the ones in~\cite[Section 8 and later]{10.1145/3236788}
-to imeplemt the type inference algorithm for a form of standard ML we give in
-section~\ref{sec:milner} or the the type checker for the simply
-typed $\lambda$-calculus we describe in~\ref{sec:chrui}.
-The former needs to look at the typing context, i.e. the hypothetical rules
-of the current goal, akin to a proof rule that look at the proof three of a premise.
-The latter is even worse, since it finds two (suspended) proof branches for
-similar goals and proviso some extra conditions joins them. Explaining
-these ``proof search'' steps at a meta level at which CHR operates is possible,
-even formally, as the meta theory of the proof system.
+We also wish to highlight the importance of the clarity provided by
+$\lambda$Prolog (and CHR) in the design of Elpi. Building on sound foundations
+draws a clear distinction between syntactic sugar and "hacks." In particular,
+the parallel between the execution of $\lambda$Prolog code and proof search in
+intuitionistic proof theory made it evident that we should avoid introducing ad
+hoc introspection primitives, such as those described in~\cite[Section 8 and
+later]{10.1145/3236788}, to implement the type inference algorithm for a form
+of Standard ML (see section~\ref{sec:milner}) or the type checker for the
+simply typed $\lambda$-calculus (see section~\ref{sec:chrui}). The former
+requires examining the typing context, i.e., the hypothetical rules of the
+current goal, akin to a proof rule that inspects the proof tree of a premise.
+The latter is even more complex, as it finds two (suspended) proof branches for
+similar goals and, under certain conditions, joins them. Explaining these
+"proof search" steps at the meta-level at which CHR operates is possible—even
+formally—as the meta-theory of the proof system.
 
 
 \subsection{Elpi the software}

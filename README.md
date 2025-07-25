@@ -61,7 +61,7 @@
 - [ ] 5.3.2 Takt and TRocq: proof transfer tools - english
 - [ ] 5.3.3 BlueRock’s BRiCk - english
 
-- [ ] 6.1 Summary - english
+- [x] 6.1 Summary - english
 - [ ] 6.1.1 Elpi the language - english
 - [ ] 6.1.2 Elpi the software - english
 - [ ] 6.1.3 Rocq-Elpi - english
