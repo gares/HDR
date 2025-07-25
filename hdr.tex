@@ -1460,7 +1460,7 @@ q :- p.
 % desugars to: q :- n.p.
 \end{elpicode}
 
-\subsection{Spilling}
+\subsection{Spilling}\label{sec:spilling}
 
 We argue that the names we give to the objects we manipulate
 are the most important form of documentation and badly chosen
@@ -3875,7 +3875,7 @@ each Rocq API to require, on average, only 16 lines to be exposed to Elpi
 (documentation included).
 
 Unsurprisingly its development was pushed by the applications written in it,
-in particular Hierarchy-Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
+in particular Hierarchy Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
 
 Rocq-Elpi was developed in the open from the the very beginning, making the
 Rocq development team aware of the effor. Their committment to
@@ -3887,14 +3887,72 @@ of code.
 
 \subsection{Rocq tools written in Elpi}
 
-HB unblocked MC, Derive
+Quite a number of tools for Rocq were written in Elpi, either by me or by
+Rocq power users.
 
+Among them the most impactful in the Rocq community is
+Hierarchy Builder, since it ``unblocked'' the development
+of the Mathematical Components library, a very widely used piece of Rocq code.
+Its ``ssreflect'' component is the most widely depended-upon Rocq package,
+and in turn it makes Hierarchy Builder (and Rocq-Elpi) very important pieces
+of the Rocq ecosystem.
+
+It it worth mentioning the existence of a substantial amount of
+closed-source Elpi code used internally by BlueRock systems. We wish them luck
+in their industrial applications.
 
 \section{Current and future work}
 
-If only I had a century.
+If only I had a century, or maybe two. There are two axes to consider: Elpi as
+a language in its own and Rocq-Elpi as a framework for extending Rocq.
 
-users know functional programming
+On the Elpi side, as a language, it seems the most valuable aspect to improve
+is it appeal to programmers already experienced in functional languages.
+After all most of the newcomers already are while they are touching
+logic programming for the first time. Some of it is about syntax, a very
+delicate (although intellectually shallow) aspect of every language.
+Another part of it is about static analysis, something so present in modern
+functional languages that programmers hardly consider it an orthogonal aspect
+(e.g. an untyped language does not look familiar, even if functional).
+
+On the Rocq side is seems reasonable to work at a deeper integration with
+the system, i.e. make it an integral part of it. Most power users constantly
+ask to lower the (inevitable) friction of a language that is integrated to
+Rocq as a plugin and is hence limited by its public extension points and
+extensible syntax.
+
+We develop a few aspects of the two axes above in more detail.
+
+\subsection{Static analysis}
+In Elpi 3.0 we integrated a determinacy checker~\cite{elpidet} and a new
+keyword \elpi{func} to be used in place of \elpi{pred} in the signature
+of predicates. The static checker guarantees, essentially, that
+each call to a functional predicate \elpi{p} is operationally
+equivalent to a call to \elpi{once p} where.
+
+\begin{elpicode}
+pred once i:pred.
+once P :- P, !.
+\end{elpicode}
+
+An indeed \elpi{once} can be flagged as \elpi{func} since it never leaves
+any choice points behind it.
+
+An interesting example comes from the portfolio of functioanl programming.
+\begin{elpicode}
+func map (func A -> B), list A -> list B.
+map F [] [].
+map F [X|XS] [Y|YS] :- F X Y.
+\end{elpicode}
+\noindent
+The signature reads: \elpi{map} is a function if its higher order argument
+\elpi{F} is. Since the syntax for \elpi{func} forces input arguments first,
+it paves the way to support, for functioanl predicates body, closer to
+functional languages, i.e. where expressions and commands are confused together.
+
+Spilling~\ref{sec:spilling} already goes in that direction, but one has
+to explicitly invoke it.
+
 
 \subsection{type class solver}
 
@@ -3904,15 +3962,6 @@ deep, helps with terms encoding, eg ...
 like 2 times slower on simple code with a few rules.
 optimizations for flattening list as in the app.
 
-
-\subsection{Static analysis}
-
-
-determinacy~\cite{elpidet}
-
-% \subsection{Automation}
-
-% code specialization (a la mixtus)
 
 \subsection{Tabling}
 
