@@ -2455,8 +2455,8 @@ to set up a proper development environment, the host application is sufficient
 since Lua is an interpreter.\\
 Elpi tries to do the same for OCaml, and Rocq is the host application of interest.
 
-Even if we are not a big fan of it, in academia the same role is often called
-meta-programming framework. Rocq's main data type, terms, are programs and Elpi
+In academia the same role is often called meta-programming framework.
+Rocq's main data type, terms, are programs and Elpi
 programs do manipulate Rocq programs. In this sense Elpi programs live at the
 meta level.
 
@@ -2488,16 +2488,17 @@ substitution. So there is a state that accompanies the terms, a state to be
 threaded in a functional setting. This state also gathers universe constraints,
 as required by Rocq typical ambiguity (writing \rocq{Type} with no
 explicit level).
-Assignments are also part of this state and gives rise to weird concepts
-like ``evar sensitive''. If one forgets to look at terms
-through the right assignment (eg the empty one) the behavior is
+Assignments are also part of this state and the bugs that stem from the
+programmer forgetting it even gave rise to weird concepts among Rocq developers
+like ``evar sensitive'' (evar is the name for holes). If one forgets to look at terms
+through the right assignment (eg uses the empty one) the behavior is
 hard to debug: it is like OCaml code that behaves differently depending
-if a reference \ocaml{x} was originally given the value 42, of
+if a reference \ocaml{x} was originally given the value 42, or
 if it was later updated to that value.
-The example is not an exageration, this state is really like
+The example is not an exageration, the state accompaning holes is really like
 a heap and if one has to manage it by hand it is like
 going back to manual memory management, pointer dereferencing (with no
-types), no gc.
+types), no garbage collecion. Does not sound that different from C.
 
 The second difficulty is not inherent in OCaml, but rather an artifact of the
 history of Rocq. The APIs are not well curated. Exposing some of them to
@@ -2506,13 +2507,15 @@ a coherent set of APIs.
 
 Last setting up the development environment and a development
 process. Even when a user is past the, inevitablae, frustration
-is setting up the right compiler and tools, an embedded
+of setting up the right compiler and tools, an embedded
 interpreter still gives some advantagess even more if the
 language is rule based. One can iterate faster, without even
 restarting the host application, and sometimes even modify
-the code at a distance: even if the code is defined far away,
-in a library being used, one can still replace bits of it code
-here, where the problem shows up and conduct a must faster investigation.
+the code at a distance: if the code is defined far away,
+in a library being used, one can replace bits of it code
+here by replacing a rule defined there with a new one
+defined here where the problem shows up and in the end
+conduct a much faster investigation.
 
 \section{HOAS of Rocq terms and contexts}\label{GALLINA}
 
@@ -2566,7 +2569,7 @@ This choice, over binary application as in~\ref{sec:hello}, eases
 the access to the head: according to our experience the vast majority
 of rules is discriminated by the head constant of the terms they work on.
 
-The pattern matching constructor packs together the scrutinee,
+The Rocq pattern matching constructor packs together the scrutinee,
 a term used to uniformly assign a type to branches and a list of
 branches. The fixpoint operator is a binder, for the recursive call,
 and carries the index of the decreasing argument. Finally a single
@@ -2593,7 +2596,7 @@ pred def  i:term, o:name, o:term, o:term.         % Var Name Ty Bo
 The first argument of each is, by convention, a bound variable, and is
 expected to be passed as an input in order to retrieve the associaed
 pretty pringing information, the type and in the case of
-abbreviation the body. In the light of that code that crosses a binder
+abbreviation the body. In the light of that, code that crosses a binder
 is expected to either declare a \elpi{decl} or a \elpi{def}
 hypothetical rule for the bound variable as follows:
 
@@ -2617,6 +2620,7 @@ MLCode(Pred("rocq.typecheck",
     (fun t ety diag _ proof_context _ state ->
       let sigma = get_sigma state in
       let sigma, ty = Typing.type_of proof_context.env sigma t in
+      let state, assignments = set_sigma ~depth state sigma in
       ...
 \end{ocamlcode}
 
@@ -2625,56 +2629,75 @@ are read back in the \ocaml{proof_context.env} Rocq context,
 that is also passed to the type checker in order to synthesize the
 type of \ocaml{t}, and later (in the omitted code) to unify
 the inferred type with the expected one \ocaml{ety} when provided.
-The \ocaml{ioargC} lifts a contextual conversion to the option
+The \ocaml{B.ioargC} adaptor lifts a contextual conversion to the option
 type: if actual data is provided, then it is converted.
+The \ocaml{B.diagnostic} datum is either the Elpi value
+\elpi{ok} or \elpi{error "message"}, hence a call \elpi{rocq.typecheck T Ty ok}
+asserts that \elpi{T} is well typed of type \elpi{Ty}.
 
 The only missing piece is \ocaml{sigma}, the environment assigning
-type judgements to holes.
+type judgements to holes, i.e. the call to the \ocaml{get_sigma} and
+\ocaml{set_sigma} API.
 
 \section{HOAS of holes (missing terms)}
 
 Each Rocq hole as an entry in \ocaml{sigma} that looks like a
-typing sequent. In Elpi we represent it as a constraint \elpi{evar}.
+typing sequent. We show a simplified code from the sources of Rocq:
+
+\begin{ocamlcode}
+type evar_body =
+  | Evar_empty : evar_body
+  | Evar_defined : constr -> evar_body
+type evar_info = {
+  evar_concl : constr;
+  evar_hyps : named_context_val;
+  evar_body : evar_body;
+  ...
+}
+type evar_map = {
+  (* Existential variables *)
+  defn_evars : evar_info Map.t;
+  undf_evars : evar_info Map.t;
+  (** Universes *)
+  universes  : UState.t;
+  ...
+}
+\end{ocamlcode}
+
+In Elpi we represent this data, to which we refer as \ocaml{sigma},
+as a set of constraints \elpi{evar}.
+Such constraint links a ``raw'' Elpi unification variable \elpi{RawEv},
+a type and the ``elaborated'' Elpi unification variable \elpi{Ev} (the meaning
+is clarified below).
+The constraint should live in a context of hypothetical rules
+\elpi{Ctx} assigning types to bound variables. In other words
+each evar is represented by the result of suspending a qury as follows
 
 \begin{elpicode}
-pred declare-evar i:list prop, i:term, i:term, i:term. % Ctx RawEvar Ty Evar
-declare-evar Ctx RawEv Ty Ev :-
-  declare_constraint (declare-evar Ctx RawEv Ty Ev) [RawEv].
-
-constraint declare-evar evar def decl {
-  rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
-}
+  pi x1\ .. pi xn\ Ctx => evar RawEv Ty Ev
 \end{elpicode}
 
-Note how \elpi{declare-evar} uses the CHR meta level to craft
-a goal with a precise context \elpi{Ctx}, no matter the context
-under which \elpi{declare-evar} is generated. Ineed a Rocq API
-that is called deep inside a term and that encounters a new hole has
-will add to Rocq's sigma an entry for it, but also generate a
-\elpi{declare-evar}, and hence an \elpi{evar} constraint
-in Elpi.
+\noindent in a program with the following suspension rules:
 
-The code above also relates a Rocq hole \elpi{Ev} and an
-Elpi unification variable \elpi{RawEv}. We want the following
-invariants to be hardwired on \elpi{Ctx => evar RawEv Ty Ev}.
+\begin{elpicode}
+pred evar i:term, i:term, o:term. % RawEv Ty Ev
+evar X Ty R :- var X, var R,      !, declare_constraint (evar X Ty R) [X, R].
+evar X Ty R :- var X, not(var R), !, rocq.typecheck R Ty ok, X = R.
+evar X Ty R :- not(var X), var R, !, rocq.elaborate-skeleton X Ty R ok.
+\end{elpicode}
+
+\noindent
+The code above enforces the following constraints:
 
 \begin{itemize}
-  \item \elpi{Ev} can only be assigned to a \elpi{R} if
+  \item \elpi{Ev} can be assigned to a term \elpi{R} only if
         \elpi{R} has type \elpi{Ty} in context \elpi{Ctx}
-  \item \elpi{RawEv} can only be assigned to a \elpi{X} if
+  \item \elpi{RawEv} can only be assigned to a term \elpi{X} if
         \elpi{X} elaborates to a term \elpi{R} such that
         the previous condition holds
 \end{itemize}
 
-The code below implements the desired invariants
-
-\begin{elpicode}
-pred evar i:term, i:term, o:term. % Evar Ty RefinedSolution
-evar (uvar as X) Ty R :- declare_constraint (evar X Ty R) [X, R].
-evar X Ty R :- not(var R), !, rocq.typecheck R Ty ok, X = R.
-evar X Ty R :- not(var X), var R, !, rocq.elaborate-skeleton X Ty R ok.
-\end{elpicode}
-
+\noindent
 In the code above \elpi{rocq.elaborate-skeleton} is an API
 very similar to \elpi{rocq.typecheck} but that does not modify
 its input in place. It rather uses its input as a skeleton term that is
@@ -2683,9 +2706,40 @@ explicit coercions to implement type casts. The API corresponds to the code
 that Rocq runs on any input term written by the user, while \elpi{rocq.typecheck}
 corresponds to code internally used by Rocq tactics to build well typed terms.
 
-The extensible state~\ref{sec:API} offered by Elpi carries a Rocq-Elpi specific
-bidirectional map linked Rocq unification variables and Elpi holes.
-It is built using this commodity Elpi API:
+In order to declare a new \elpi{evar} constraint in any moment, even if
+the current $\lambda$Prolog program has more names andhypothetical rules
+that needed, we resort to the following predicate:
+
+\begin{elpicode}
+pred declare-evar i:list prop, i:term, i:term, i:term.
+declare-evar Ctx RawEv Ty Ev :-
+  declare_constraint (declare-evar Ctx RawEv Ty Ev) [_].
+
+constraint declare-evar evar def decl {
+  rule \ (declare-evar Ctx RawEv Ty Ev)
+     <=> (Ctx => evar RawEv Ty Ev).
+}
+\end{elpicode}
+
+\noindent
+Note how \elpi{declare-evar} uses a CHR rule to craft
+a new goal with a precise context \elpi{Ctx}, no matter the context
+under which \elpi{declare-evar} is generated. Ineed a Rocq API
+that is called deep inside a term and that encounters a new hole
+will add to Rocq's sigma an entry for it, but also generate a
+\elpi{declare-evar}, and hence an \elpi{evar} constraint
+in Elpi. This is possible thanks to the type of
+contextual conversion, that comprises a list of extra goals to be
+generated in response to the conversion.
+
+The only missing bit the \ocaml{get_sigma} and \ocaml{set_sigma} APIs.
+Their role is synchronize updates to \ocaml{sigma} in both directions.
+The former, \ocaml{get_sigma}, is the simplest since a Rocq
+datum of type \ocaml{evar_map} is stored into the extensible state
+of Elpi.
+
+To implement the other one we take advantage of an API offered by Elpi:
+a bidirectional map linking Rocq unification variables and Elpi holes.
 
 \begin{ocamlcode}
 module FlexibleData : sig
@@ -2697,12 +2751,19 @@ module FlexibleData : sig
     val add : Elpi.t -> Host.t -> t -> t
     val elpi   : Host.t -> t -> Elpi.t
     val host : Elpi.t -> t -> Host.t
+    val fold : (Host.t -> Elpi.t -> term option -> 'a -> 'a) -> t -> 'a -> 'a
+    ...
 \end{ocamlcode}
 
-TODO extra goals in API
-
-TODO sigma in Elpi, sigma in Rocq, going from both.
-
+\noindent
+The extensible state contains two instances of the bidirectional map above,
+one for ``raw'' holes and one for ``elaborated'': a Rocq \ocaml{Evar.t}
+is linked to one of each.
+In order to propagate and update to \ocaml{sigma} performed by Rocq we 
+fold over the set of linked evars to check if the were assigned. If so
+we remove the corresponding \elpi{evar} constraint and we also generate
+the corresponding assignement as an Elpi unification problem between the
+hole and the Rocq term.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3850,7 +3911,7 @@ The main contribution to the implementation of $\lambda$Prolog is the observatio
 \subsection{Rocq-Elpi}
 
 
-At the time of writing, Elpi comprises about 20,000 lines of code: approximately 10,000 for the runtime and 10,000 for the parser, static checker, and ``compiler.'' Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order abstract syntax (HOAS) of Rocq terms, 5,000 for the bindings of about 300 Rocq APIs, and 3,000 for the vernacular language used to declare programs. The most complex part is the HOAS, but it is also what makes the language stand out, enabling each Rocq API to require, on average, only 16 lines to be exposed to Elpi (including documentation).
+At the time of writing, Elpi comprises about 20,000 lines of code: approximately 10,000 for the runtime and 10,000 for the parser, static checker, and ``compiler.'' Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order abstract syntax (HOAS) of Rocq terms that amounts, 5,000 for the bindings of about 300 Rocq APIs, and 3,000 for the vernacular language used to declare programs. The most complex part is the HOAS, but it is also what makes the language stand out, enabling each Rocq API to require, on average, only 16 lines to be exposed to Elpi (including documentation).
 
 Unsurprisingly, its development was driven by the applications written in it, particularly Hierarchy Builder (section~\ref{sec:hb}) and Derive (section~\ref{sec:derive}).
 

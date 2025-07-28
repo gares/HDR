@@ -37,10 +37,10 @@
 - [ ] 3.4 Debugging - write
 - [ ] 3.4.1 Trace browser - write
 
-- [ ] 4 Rocq-Elpi - write
+- [ ] 4 Rocq-Elpi - english
 - [ ] 4.1 Why extending Rocq in OCaml is hard - english
 - [ ] 4.2 HOAS of Rocq terms and contexts - english
-- [ ] 4.3 HOAS of holes (missing terms) - write
+- [ ] 4.3 HOAS of holes (missing terms) - english
 - [ ] 4.4 Vernacular language integration - english
 - [ ] 4.4.1 Commands - english
 - [ ] 4.4.2 Tactics - english
