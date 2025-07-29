@@ -11,6 +11,7 @@
 \usepackage[firstpageonly=false]{draftwatermark}
 \usepackage{amsfonts}
 \usepackage{amssymb}
+\usepackage{amsmath}
 \usepackage{mathbbol}
 \usepackage{stackengine}
 
@@ -1283,10 +1284,15 @@ alternatives.
 %An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
 
 Rules in Figures~\ref{fig:basic-interp-c} and~\ref{fig:basic-interp-l}
-are applied in the given order. Rules~\ref{rule:suspend} and~\ref{rule:resume}
+are applied in the given order. Rules~\ref{rule:delay} and~\ref{rule:resume}
 cover the constraint part of the language: the former updates the constraint
 store when a new constraint is declared, while the latter resume a constraint
-as soon as the substituion \subst acts on its trigger.
+as soon as the substituion \subst acts on its trigger. The second rule
+is in accordance with~\cite{Michaylov1993HigherOrderLP} that too investigates
+how to mix higher-order logic programming with constraint programming.
+The rule attaches to the resumeg goal the current alternatives as cut-to
+alternatives, but that will never be used since constraints are applicative
+terms (i.e. not the cut operator).
 
 Rule~\ref{rule:stop} applies when all goals are solved and returns
 the substitution along with the still unexplored alternatives.
@@ -2178,62 +2184,491 @@ sensible warning for this problem.
 
 \section{The first prototype}\label{sec:poc}
 
-The first Elpi was written by Tassi in about 3 months, with the objective
+The first Elpi was written by me in about three months, with the objective
 of understanding the $\lambda$Prolog language and some of the techniques
 adopted to implement it, like the suspension calculus~\cite{NADATHUR200235}.
-This was Elpi-POC
+This was Elpi-POC.
 
 Terms were purely functional, to ease backtracking. This feature comes
 with a reputation of making things hard, so we played conservative.
 
-Suspension calculus did look similar to exp-substitutions, but until the very
-last last paper in the pile on my desk it was not clear is was actually isomorphic
-to $\lambda_\rho$. While explicit substitutions are often presented as a way to
-obtain better performances, in practice they fail to deliver. In Rocq two
-people tried. In elpi-POC, in our limited tests, disabling them resulted in
-a faster runtime.  bla bla about lazyness.
-
 Elpi-POC was an easy playground to understand which features were needed in
 order to manipulate terms with holes: a safeguard against instantiating them by
-mistake (modes) and a was to attach metadata to holes (constraints).
+mistake (modes) and a way to attach metadata to holes (constraints).
 
-Elpi-POC was functional enough to let us write an elaborator for CIC
-and plug it into Matita. It was working, but it was too slow. Line 20K times
-slower than reasonable.
+Elpi-POC was functional enough to let us write an elaborator for dependent type
+theory and plug it into Matita~\cite{DBLP:conf/cade/AspertiRCT11}. It was working,
+but it was too slow, very slow. Like 20,000 times slower than reasonable.
 
 Reason number one was the purely functional heap, with no GC. Introducing 
-instructions to clear memory (in an unsafe way) was enough to see order of
-magnitude fade.
+instructions to clear memory (in an unsafe way) was enough to see one order of
+magnitude of slowness fade away
 
-\section{Second attempt: a runtime for $L_{\lambda}^{\beta}$}
+Also, while the suspension calculus did not seem to help.
+Suspension calculus did look similar to explicit substitutions, but until the very
+last last paper in the pile on my desk it was not clear is was actually isomorphic
+to $\lambda_\sigma$~\cite{expsubst}. While explicit substitutions are often presented as a way to
+obtain better complexity, in practice they fail to deliver better performance.
+In Rocq two people tried using explicit substitutions in many places
+with similar conclusion. In elpi-POC, in our limited tests, disabling them resulted in
+a faster runtime.  Our analysis is that, in practice, the extra machinery to
+delay substitutions and pack the together rarely triggers (as an optimization to achieve better complexity)
+but has a constant memory overhead. Most of the times one fires all redexes in
+one go and immediately after he needs to inspect the result.
 
-imperative terms with a trail did not cause bugs, but a sensible speedup.
-DBL made HO code sensibly faster \cite{dunchev15lpar}.
+Still, it was clear that the operation of crossing a binder
+and replacing the bound name by a fresh constant (i.e. a fresh name) was
+very frequent and was in need of a faster implementation.
+
+\newcommand{\thefragment}{\ensuremath{L_{\lambda}^{\beta}}\xspace}
+\newtheorem{definition}{Definition}
+
+\section{Runtime}
+
+The runtime of Elpi was developed in close collaboration with Caudio
+Sacerdoti Cohen and Cvetan Dunchev around 2015 and is described in~\cite{dunchev15lpar}.
+
+In this section we sum up the main ingerdients of that runtime.
+
+\subsection{Impreative terms, frames and trail}
+
+In logic programming computation makes progress by assining unification
+variables. The operation of assining and retrieving the assignment, if any,
+has to be efficient. Even if not very frequently, at least not in out use cases,
+assignments have to undone to implement backtracking.
+Our experience with the first Elpi prototype suggested that purely functional
+terms and an explicit assignment map was not a viable solution pushing us
+toward an implementation closer to standard Prolog runtimes~\cite{wam}
+although we did not even consider targeting the Warren Abstract Machine (WAM)
+as the system Teyjus does~\cite{teyjus} since we felt it was beyhond our
+engineering capabilities. As a result our terms are mutable and we store
+a log of assignments to undo them.
+
+The data type of terms is as follows:
+
+\begin{ocamlcode}
+type constant = int (* De Bruijn levels *)
+type term =
+  (* Pure terms *)
+  | Const of constant
+  | Lam of term
+  | App of constant * term * term list
+
+  (* Optimizations *)
+  | Cons of term * term
+  | Nil
+  | Discard
+
+  (* FFI *)
+  | Builtin of builtin_predicate * term list
+  | CData of CData.t
+
+  (* Heap terms: unif variables in the query *)
+  | UVar of uvar_body * (*depth:*)int * (*argsno:*)int
+  | AppUVar of uvar_body * (*depth:*)int * term list
+
+  (* Stack terms: unif variables in the rules *)
+  | Arg of (*id:*)int * (*argsno:*)int
+  | AppArg of (*id*)int * term list
+
+and uvar_body = {
+  mutable contents : term;
+  mutable uid : int; (* negative if it blocks a constraint *)
+}
+\end{ocamlcode}
+
+\noindent
+Pure terms represent the $\lambda$ calculus part of the language, where
+the \ocaml{Const} node is for both globally and locally bound names
+(a.k.a. global constants and bound variables). We detail
+the representation in terms of De Brijn levels in~\ref{sec:dbl}.\\
+Optimized terms are just lists and the discard sink-hole \elpi{_}.\\
+The FFI part is for calling built-in predicates and for opaque data,
+that we detail in~\ref{FFI}.\\
+What is left are node for unification variables, and we postpone
+the description of \ocaml{UVar} and \ocaml{Arg} to~\ref{sec:llambo}
+since they are optimized versions of the nodes \ocaml{AppUVar} and \ocaml{AppArg}.
+
+The nodes \ocaml{AppUVar} and \ocaml{AppArg} represent applied unification
+variables with the difference that the former, that we call \emph{uvar},
+is heap-allocated while the latter, that we call \emph{arg},
+is stack-allocated and is used to represent the parameters (a.k.a. arguments)
+of rules.
+
+Each uvar contains a mutable slot for a term, plus a unique identifier used
+by the FFI and a boolean flag to signal if it acts as a trigger for a constraint.
+Each arg contains the index of a slot in the activation frame (a term array)
+that is allocated each time a rule is used.
+The choice of distinguishing between the two comes from the WAM that in turn
+is inspired to standard programming languages in this respect: using a rule
+in the program corresponds to a function call that is usually implemented via
+the allocation of an activation frame on the stack.\\
+To be honest, in our runtime everything is allocated into the OCaml heap but
+the stack frame becomes garbage (collectable by the garbage collector) as
+soon as the sub goals for a rule are generated. As in the WAM there is the
+invariant is that no heap term points to the stack.
+Heap terms are longer lived, typically kept alive by an uvar present in the
+initial query.
+
+The \emph{depth} of an uvar is an integer representing the number of
+\elpi{pi} generated fresh names existing when the uvar is created. We will write
+$X^n$ the uvar $X$ with depth $n$. This is already an optimized representation
+of unification variables since one could also use the list of explicit
+argument to put these \elpi{pi} generated names in scope. This representation is
+also used in Teyjus~\cite{DBLP:journals/corr/abs-0911-5203}.
+
+When the \ocaml{contents} field of an \ocaml{uvar_body} assigned by
+the unifier, the same \ocaml{uvar_body} is also logged in the trail.
+
+\begin{ocamlcode}
+type trail_item =
+| UVarAssignement of uvar_body
+| ConstraintAddition of cst
+| ConstraintRemoval  of cst
+type trail = trail_item list
+\end{ocamlcode}
+
+\noindent
+The trail also features two other kind of events one may need to undo, namely
+the addition or removal of a constraint to the store, be we are not going to
+provide any more detail on this. We rather focus on the higher-order part
+of the language, the \ocaml{Const} node.
+
+\subsection{Levels, not indexes}\label{sec:dbl}
+
+In his famous paper~\cite{DEBRUIJN1994375} De Bruijn
+introduced two, dual, naming schemas for $\lambda$-terms:
+the one based on depth indexes (DBI) and the one based on levels (DBL).
+In the former a variable is named $n$ if its binder is found by crossing $n$
+binders going in the direction of the root. In the latter a variable named
+$n$ is bound by the $n$-th binder one encounters in the path from the root
+to the variable occurrence. 
+
+Below we write the term $\lambda x.(\lambda y.\lambda z.f\ x\ y\ z)\ x$ and its
+reduct in the two notations: we subscript the variable name by the index/level
+that represents it.\\
+
+\noindent
+\begin{tabular}{ll}
+DBI: & $\lambda x.(\lambda y.\lambda z.f\ x_2\ y_1\ z_0)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_1\ x_1\ z_0$\\
+DBL: & $\lambda x.(\lambda y.\lambda z.f\ x_0\ y_1\ z_2)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_0\ x_0\ z_1$\\
+\end{tabular}
+~\\
+
+Indexes are the most widely adopted representation since most programming
+languages based on the lambda calculus perform weak reduction, that in turn does
+substitute closed term for the topmost variables. In DBI notation closed terms
+are invariant by lifting, unlike the $x_0$ and $x_2$ that had to become a $x_1$.\\
+With Levels $x_0$ did not require any shifting, but the variable $z$, bound
+under the redex, had to be adjusted since the number of binders before it
+decreased.
+
+By convention we name bound variables in De Bruijn Level representation as $c_i$
+where $i$ is the level, starting from $0$. Global constants, like $f$ are
+represented by negative numbers (and are never shifted).
+
+In $\lambda$Prolog $\beta$-reduction plays two very different roles even if
+they are coalesced into a single concept: substitution.
+
+In evaluating a redex $(\lambda x.M)\ N$ one can substitute an arbitrary term,
+and this power is very handy in implementing substitution for the object
+language. For example the following two lines implement weak head reduction
+for the $\lambda$ calculus as encoded in~\ref{sec:hello} by simply recognizing
+a redex and delegating to the $\beta$-reduction of $\lambda$Prolog the work
+of pluggin $N$ inside $M$ whereever needed:
+
+\begin{elpicode}
+whd (app Hd Arg) Reduct :- whd Hd (lam F), !, whd (F Arg) Reduct.
+whd X Reduct :- Reduct = X.
+\end{elpicode}
+
+Still, according to our experience, the most widely used form of substution
+is the one of a name by another one, i.e. the one called
+\emph{binder mobility}~\cite{Miller2018MechanizedMR}. For example the
+type checker in~\ref{sec:hello}, displayed below with an
+explicit $\eta$-expasion around \elpi{F}, replaces the name \elpi{x} with
+the name \elpi{c}.
+
+\begin{elpicode}
+of (app H A) T :- of H (arr S T), of A S.
+of (lam (x\ F x)) (arr S T) :- pi (c\ of c S => of (F c) T).
+\end{elpicode}
+
+\noindent
+As per~\cite{10.1093/logcom/1.4.497} this restricted form of $\beta$-reduction
+is called $\beta_0$-reduction and it is suffient to execute $\lambda$Prolog
+code in the $L_{\lambda}$ fragment, and in particular the code of
+of the \elpi{of} predicate above.
+
+If we represent the second rule in DBL notation at depth $n$, i.e.
+we imagine we crossed $n$ object level binders with that rule, we have:
+
+\begin{elpicode}
+of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
+  pi (c\ of ~$c_n$~ ~$S^n$~ => of (~$F^n$~ ~$c_n$~) ~$T^n$~).
+\end{elpicode}
+
+\noindent
+Note how the first bound variable in the data, $x$, is represented with
+the same De Bruijn level as the first \elpi{pi} quantified variable in
+the rule body. Once \elpi{pi} and \elpi{=>} have been executed,
+obtaining the $\beta_0$-normal form of \elpi{F ~$c_n$~} amounts to
+replace (in the term bound to \elpi{F}) all occurrence of $x_n$ with
+$c_n$ (note the \emph{same} $n$). This amounts to the identity, i.e. it
+is for free!
+
+This observation convinced us to choose DBL as the notation for variables
+and to identify the \thefragment fragment, a restriction of the $L_{\lambda}$.
 
 \subsection{The $L_{\lambda}$ fragment}
-\subsection{The $L_{\lambda}^{\beta}$ fragment}
 
-\cite{Michaylov1993HigherOrderLP}
+In~\cite{10.1093/logcom/1.4.497} Miller identifies a stable fragment of
+$\lambda$Prolog in which Higher-Order unification is decidable and
+generates most general unifiers. This fragment is large enough to cover
+many $\lambda$Prolog programs and is the base for both Teyjus (version 2)
+and Elpi.
 
-built in lists.
+\begin{definition}[$L_{\lambda}$ fragment]
+A term is in the $L_{\lambda}$
+iff every occurrence of a unification variable $X^j$ is applied to
+$c_{a_1} \ldots c_{a_n}$ for $c_{a_i} \not= c_{a_j}$ and $j \leq a_i$
+\end{definition}
 
-CHR is still naive.
+\noindent
+In other words unification variables must be applied to a duplicate free
+list of names, only.
+In this fragment all $\beta$-reductions are in fact $\beta_0$-reductions
+that, in ``some cases'' can be implemented in constant times when terms are
+represented in DBL notation.
 
-The compiler performs very little optimizations. In recent years its speed
-in extending existing programs became relevant, since state is encoded as rules.
+It is natural to investigate better which cases admit the efficient $\beta_0$-reduction
+implementation described before. For example, this piece of code does not
+admit it:
+
+\begin{elpicode}
+of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
+  pi (d\ pi (c\ of ~$c_{n+1}$~ ~$S^n$~ => of (~$F^n$~ ~$c_{n+1}$~) ~$T^n$~)).
+\end{elpicode}
+
+\noindent
+Intuitively the program postulates more fresh names than the bound ones
+in the data being traversed, causing $x_n$ to be replaced by $c_{n+1}$
+in the recursive call.
+It is only when the bound variables in the data perfectly align with the fresh
+names postulated in order to move the binding from the data to the program that
+the optimization can kick in. In this respect \elpi{(~$F^n$~ ~$c_{n+1}$~)}
+presents an anomaly.
+
+\subsection{The \thefragment fragment}\label{sec:llambo}
+
+In~\cite{dunchev15lpar} we further restrict $L_{\lambda}$ as follows:
+
+\begin{definition}[\thefragment fragment]
+A term is in the reduction-free fragment \thefragment
+iff every occurrence of a unification variable $X^j$
+is applied to $c_j \ldots c_{j + k-1}$ for $k \leq 0$.
+\end{definition}
+
+% We allow $k = 0$ to accept variables that are not applied. 
+Note that $X^j\ c_j \ldots c_{j + k-1}$ is equivalent to
+a $Y^{j+k-1}$, and that a solution $t$ for $X$ can be always
+represented as a term closed in the context $c_0\ldots c_{j+k-1} \vdash t$.
+
+On the contrary the very same solution $t$ would require
+binders if the variables was, say, $Z^0\ c_1\ c_0 \ldots c_{j+k-1}$ (note the first two arguments are flipped).
+In this case one the solution would have been $\vdash \lambda b \lambda a\lambda c \ldots. t$.
+
+Moreover, if an unification variable can be put in its compact form $X^n$,
+then checking if a fresh name $c_m$ is in scope is a trivial as checking
+$m < n$, no need to look for $c_m$ in the list of distinct arguments
+the $L_{\lambda}$ fragment allows for.
+
+Unification variables in \thefragment have an optimized representation in
+Elpi, namely:
+
+\begin{ocamlcode}
+  ...
+  | UVar of uvar_body * (*depth:*)int * (*argsno:*)int
+  | Arg of (*id:*)int * (*argsno:*)int
+\end{ocamlcode}
+
+\noindent
+where \ocaml{argsno} is the length of list of explicit arguments, e.g.
+two in $X^n\ c_n\ c_{n+1}$.
+
+It is also worth pointing out that, in DBL notation, the variables
+bound by the context are invariant by shifting, hence ``moving around''
+\ocaml{UVar} node is always efficient, unlike the more general case
+of \ocaml{AppUVar} where the arguments may need shifting.
+
+For quite some time the Elpi runtime only had higher-order unification
+implemented for the \thefragment fragment (although it always had full
+$\beta$-reduction). The Elpi test suite, that includes most of the
+$\lambda$Prolog programs we could find online, was passing.
+At some point I extended unification to the full $L_{\lambda}$ fragment.
 
 \subsection{Indexing}
+
+The runtime is equipped with three indexing algorithms, but before
+presenting them it is worth pointing out another advantage of the DBL notation.
+The again the rule to type check a lambda abstraction:
+
+\begin{elpicode}
+of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
+  pi (c\ of ~$c_n$~ ~$S^n$~ => of (~$F^n$~ ~$c_n$~) ~$T^n$~).
+\end{elpicode}
+
+\noindent
+Once \elpi{pi} is executed $c_n$ enters the context and becomes invariant
+by shifting, i.e. whereever it occurs it is represented as the number $n$.
+This simplifies indexing, since the hypothetical rule can be
+indexed no $c_n$ with no further complication.
+
 \subsubsection{Patricial tree (over bits)}
 
-predicate to index
-symbol to clauses
+This index is the most standard one, like Prolog it is used to index one
+argument at depth 1. Unlike standard Prolog the user can chose which argument
+to index.
 
-special bucket for flex arg or flex input arg
+Functors are represented as integers, from \ocaml{-1} to \ocaml{min_int}
+and these integers are indexed using a Patricia tree implementation by
+Jean-Christophe Filliatre\footnote{\url{https://usr.lmf.cnrs.fr/~jcf/software.fr.html}}.
+
+The only detail worth mentioning is that, in order to answer queries where
+the indexed argument is flexible, or when it must be flexible (the \elpi{uvar}
+keyword), the index for each predicate is accompanied by two list of
+rules, the ones to be returned in these two corner cases.
+
+This index proved to be fast, but does not work well when the discriminating
+functor is deep and this is quite frequent when the rules talk about
+object  terms.\\
+For example the Rocq term \rocq{nat} is represented as, roughly,
+\elpi{global (indt "nat")} while the term \rocq{x + 0} is represented as\\
+\elpi{app [global (const "plus"), x, global (indc "O")]}.
 
 \subsubsection{Hash map}
 
-multiple arg, variable depth. similar perf
+If more than one argument needs indexing, or one argument needs
+be indexed deeper, Elpi provides index based on the idea of
+unification hashes\footnote{\url{http://blog.ndrix.com/2013/03/prolog-unification-hashes.html}}.
 
+The hash value, a list of bits, is generated hierarchically and up to the
+specified depth. Unification variables in a rule head are mapped to a
+sequence of 1, while they are mapped to a sequence of 0 when they are part of
+the query. Constants are mapped
+to a hash value, a sequence of both 1 and 0. If the bit wise conjunction \ocaml{&}
+of the hash of the query and the hash of the head of a rule is equal to the hash of
+the query, then the rule is a match.
+
+Intuitively:
+\begin{itemize}
+\item in a rule 1 means ``I provide this piece of info''
+\item in the query 1 means ``I demand this piece of info''
+\end{itemize}
+
+A flexible argument in the query is made of 0s, hence it demands nothing, since \ocaml{0 & x = 0}
+for any bit \ocaml{x} of the rule. Conversely a flexible argument in the rule is made of 1s,
+hence it provides anything, since \ocaml{x & 1 = x} for any bit \ocaml{x} of the query.
+
+For example consider the following code featuring a fast path:
+\begin{elpicode}
+kind nat type.
+type o nat.
+type s nat -> nat.
+:index (2) "Hash"
+pred mult i:nat, o:nat, o:nat.
+mult o X o.                                % rule 1
+mult (s (s o)) X C :- plus X X C.          % rule 2
+mult (s A) B C :- mult A B R, plus B R C.  % rule 3
+\end{elpicode}
+
+\noindent And imagine we index over 8 bits, and that the hash of \elpi{o} is
+\ocaml{1001 1011} while the one of \elpi{s} is \ocaml{1011 0010}.
+
+Hashes of each argument are obtained by combining the
+hashes of the subterms, trimmed to fit word size.
+
+\begin{tabular}{lrl}
+rule & argument & hash\\
+\hline
+1 & o & 1001 1011 \\
+2 & s (s o) & 0010 0010 \\
+3 & s A & 0010 1111 \\
+\end{tabular}
+
+Now given a query
+
+\begin{tabular}{lrl}
+query argument & hash & matches\\
+\hline
+s o & 0010 1011 & 3 \\
+s X & 0010 0000 & 2, 3 \\
+X & 0000 0000 & 1, 2, 3\\
+\end{tabular}
+
+In our (limited) testing unification hashes are on-par with the standard
+indexing technique, but they provide grater flexibility. The only downside is
+that hard to predict collisions can happen (the entire hash must fit one word).
+
+\subsubsection{Discrimination tree}
+
+Fissore integrated in Elpi 3.0 an index based on discrimination trees,
+implemented following Pfenning's class on automated theorem
+proving\footnote{\url{https://www.cs.cmu.edu/~fp/courses/99-atp/lectures/lecture28.html}}.
+
+The discrimination tree is essentially a trie of paths, and a path is a
+linearization of a term (a tree). Paths are a sort of skip lists, i.e.
+each node holds a pointer to its sibling (in the corresponding tree).
+By concatenating paths one can easily apply the index to multiple arguments.
+
+The main optimization is to flatten lists, i.e. a tree like\\
+\elpi{app [global (const "plus"), x, global (indc "O")]}
+is represented as if the \elpi{app} node had 3 siblings. Special care
+is taken to handle open lists (when the tail is a unification variable).
+
+For the majority of $\lambda$Prolog programs discrimination tree are slower
+than the simpler, shallower, ones presented before but still find some 
+applications. Some Elpi applications like Hierarchy-Builder, see~\ref{sec:hb},
+make use of the program as a data base, accumulating to it tens of
+thousands rules for the same predicate, with arguments not
+very different from the term above.
+All these rules can be discriminated
+by a as-deep-as-needed index while they would result in an impractical number of collisions
+with the other indexing techniques.
+
+Another application is the determinacy checker added by Fissore~\cite{elpidet}
+and in particular the test for rule with an overlapping head, that can be
+performed easily and efficiently by indexing all heads with a discrimination
+tree.
+
+A possible application, yet to be explored, is to use discrimination trees
+to implement a caching mechanism in the spirit of tabling.
+
+\section{Compiler}
+
+The compiler main job is to elaborate the syntactic sugar, i.e. namespaces
+and spilling, and run a pretty standard type checker and, since Elpi
+3.0, a determinacy checker.
+
+The compiler performs very little optimizations. in particular is pre-processes
+clauses by identifying the variables, so to know in advance the size of the
+activation frame. This procedure is also needed at runtime when hypothetical
+rules are loaded via implication.
+
+One little optimization is to recognize lists and represent them with dedicated,
+more compact, nodes in the syntax tree.
+
+A component that is worth mentioning is the linker. Elpi supports
+separate compilation, i.e. programs can be made of units that are
+compiled at different point in time. In particular some Elpi programs
+generate rules, see for example~\ref{sec:tb}, that are then compiled
+and linked to the program next time it is executed.
+A but unexpectedly this component became very important for the performance
+of the compiler itself, since some relevant Elpi applications like Hierarchy-Builder,
+see~\ref{sec:hb}, accumulate over time more than 40,000 rules. It was
+important to craft a linker that is as incremental as possible, i.e. its
+computational complexity does (mainly) the unit extending the base
+program, and not on  the base program itself.
 
 \section{The API}\label{sec:API}
 

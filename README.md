@@ -69,6 +69,7 @@
 - [ ] 6.2 Current and future work - english + rethink
 
 - [ ] citare commissione
+- [ ] clause -> rule
 
 ## Inscription
 
