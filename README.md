@@ -27,12 +27,12 @@
 - [ ] 2.8.4 Symmetric CHR rules - english
 
 - [ ] 3.1 The first prototype - english
-- [ ] 3.2 Second attempt: a runtime for - write
-- [ ] 3.2.1 The Lλ fragment - write
-- [ ] 3.2.2 The Lβ λ fragment - write
-- [ ] 3.2.3 Indexing - write
-- [ ] 3.3 The API - write
-- [ ] 3.3.1 Quotations - write
+- [ ] 3.2 Second attempt: a runtime for - english
+- [ ] 3.2.1 The Lλ fragment - english + rethink
+- [ ] 3.2.2 The Lβ λ fragment - english + rethink
+- [ ] 3.2.3 Indexing - english
+- [ ] 3.3 The API - english
+- [ ] 3.3.1 Quotations - english
 - [ ] 3.3.2 FFI - write
 - [ ] 3.4 Debugging - write
 - [ ] 3.4.1 Trace browser - write
@@ -70,6 +70,7 @@
 
 - [ ] citare commissione
 - [ ] clause -> rule
+- [ ] URL elpi
 
 ## Inscription
 
