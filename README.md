@@ -50,9 +50,9 @@
 - [x] 5.1 Derive - english
 - [x] 5.1.1 Parametricity - english
 - [x] 5.1.2 Deep induction - english
-- [ ] 5.1.3 Natural equality tests - english
-- [ ] 5.1.4 Fast equality tests - english
-- [ ] 5.1.5 The role of Rocq-Elpi in derive - english
+- [x] 5.1.3 Natural equality tests - english
+- [x] 5.1.4 Fast equality tests - english
+- [x] 5.1.5 The role of Rocq-Elpi in derive - english
 - [ ] 5.2 Hierarchy Builder - english
 - [ ] 5.2.1 Mathematical Components 2.0 and M.C.A. - english
 - [ ] 5.2.2 The role of Rocq-Elpi in Hierarchy Builder - english

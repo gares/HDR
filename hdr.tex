@@ -4378,36 +4378,36 @@ in Rocq, particularly in the APIs for managing universe constraints.
 
 \section{Hierarchy Builder}\label{sec:hb}
 
-The Mathmatical Components library is the largest an most widely used
-mathematical library for Rocq according to the 2022 Rocq users
-survey~\cite{dealmeidaborges_et_al:LIPIcs.ITP.2023.12}.
-It is the pillar that was built for
-tackling the mechanization of the Odd Order theorem~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}.
-A key ingredient of this pillar is the hierarchy of interfaces around which
-the contents are orgnized and the fine tuning of the mechanisms that
-link the interfaces to their instances: the elaborator of Rocq is
-programmed to automatically find a justification when an abstract theory
-is applicable to an instance.
 
-The Achilles'heel of the library is the barrier to entry, and while
-documentation as in \cite{assia_mahboubi_2022_7118596} surely helps,
-the complexity of building the hierarchy and programming the elaborator
-could not be tamed by just explaining, exacly as assembly cannot be made
-amenable by just documenting it. Hierarchy Builder (HB) provides a high level,
-declarative language to describe the hierarchy and a ``compiler'' that
-translate this language down the foundational language of Rocq and takes
-care of programming the elaborator to make the hierarchy work.
+The Mathematical Components library is the largest and most widely used
+mathematical library for Rocq, according to the 2022 Rocq users
+survey~\cite{dealmeidaborges_et_al:LIPIcs.ITP.2023.12}. It is the foundation
+built to tackle the mechanization of the Odd Order theorem
+~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}. A key ingredient of this
+foundation is the hierarchy of interfaces around which the contents are
+organized, and the fine-tuning of the mechanisms that link the interfaces to
+their instances: the Rocq elaborator is programmed to automatically find a
+justification when an abstract theory is applicable to an instance.
 
-The design of the language was brought to our attention in Spring 2019
-by Cohen Cyril, the result of fruitful discussions with other
-researchers in this domain in a Dagstuhl seminar. The implementation
-took six months~\cite{cohen_et_al:LIPIcs.FSCD.2020.34} and pushed
-Rocq-Elpi to bind a large set of Rocq APIs. The ``boilerplate'' code
-HB substitute with a metaprogram has to declare Rocq modules, sections,
-notations, implicit arguments, canonical structures \ldots in addition
-to records and functions between records. HB also motivated the possibility
-to pass Rocq-Elpi programs arguments that are Rocq declarations, such as the ones intruced by
-the \rocq{Record} or \rocq{Definition} keywords.
+The Achilles' heel of the library is its barrier to entry. While documentation
+such as \cite{assia_mahboubi_2022_7118596} is certainly helpful, the
+complexity of building the hierarchy and programming the elaborator cannot be
+overcome by explanation alone, just as assembly language cannot be made
+accessible merely by documenting it. Hierarchy Builder (HB) provides a high-
+level, declarative language to describe the hierarchy and a ``compiler'' that
+translates this language into the foundational language of Rocq, taking care of
+programming the elaborator to make the hierarchy work.
+
+The design of the language was brought to our attention in Spring 2019 by Cyril
+Cohen, as a result of fruitful discussions with other researchers in this
+domain at a Dagstuhl seminar. The implementation took six months
+~\cite{cohen_et_al:LIPIcs.FSCD.2020.34} and pushed Rocq-Elpi to bind a large
+set of Rocq APIs. The ``boilerplate'' code that HB replaces with a metaprogram
+must declare Rocq modules, sections, notations, implicit arguments, canonical
+structures, \ldots, in addition to records and functions between records. HB
+also motivated the ability to pass Rocq-Elpi programs arguments that are Rocq
+declarations, such as those introduced by the \rocq{Record} or
+\rocq{Definition} keywords.
 
 
 \subsection{Mathematical Components 2.0 and M.C.A.}
