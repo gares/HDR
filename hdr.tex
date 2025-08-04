@@ -3275,62 +3275,61 @@ In academia, the same role is often called a meta-programming framework. Rocq's
 main data type, terms, are programs, and Elpi programs manipulate Rocq
 programs. In this sense, Elpi programs operate at the meta level.
 
+
 \section{Why extending Rocq in OCaml is hard}
 
-Luckily OCaml features automatic memory management, types and algebraic data.
-It is much, much higher level than C. Why it is hard to extend Rocq then?
+Fortunately, OCaml features automatic memory management, types, and algebraic
+data. It is much, much higher level than C. So why is it hard to extend Rocq?
 
-The first difficulty is that the complexity of the main Rocq data type, terms,
-is not completely hidden by the algebraic data types provided by the programming
-language. The missing features are encoded and it is hard to completely hide
-it to the programer via curated APIs. In particular Rocq terms feature binders
-and holes. 
+The first difficulty is that the complexity of Rocq's main data type, terms,
+is not completely hidden by the algebraic data types provided by the
+programming language. The missing features are encoded, and it is hard to
+completely hide them from the programmer via curated APIs. In particular,
+Rocq terms feature binders and holes.
 
-Binders pose two problems of their own and interact badly with holes.
-The first problem is that they are typically encoded with numbers, De Bruijn
-indexes, and it is just too easy to forget to shift a term.  The second program
-is that when a binder is crossed on must always remember something about it,
-typically the type of the bound variable. Hence the programs have to pass around
-typing contexts (aka environment). It is tempting to not do it upfront, but
-expecting all developers, especially the casual ones, to be disciplined seems
-a lost battle. We are in good company with this~\cite[page 20]{mcbride}:
+Binders pose two problems of their own and interact poorly with holes. The
+first problem is that they are typically encoded with numbers (De Bruijn
+indexes), and it is all too easy to forget to shift a term. The second
+problem is that when a binder is crossed, one must always remember something
+about it, typically the type of the bound variable. Hence, programs have to
+pass around typing contexts (aka environments). It is tempting not to do this
+upfront, but expecting all developers -- especially casual ones -- to be disciplined
+seems a lost battle. We are in good company with this~\cite[page 20]{mcbride}:
 ``Mantra: $\Gamma$ is with me, wherever I go.''
 
-Holes are missing subterms and they come with metadata: a typing sequent.
-Since the same hole can occur non linearly a single sequent is stored on the side of terms.
-Moreover since binders may be reduced away each occurrence has an explicit
-substitution. So there is a state that accompanies the terms, a state to be
-threaded in a functional setting. This state also gathers universe constraints,
-as required by Rocq typical ambiguity (writing \rocq{Type} with no
-explicit level).
-Assignments are also part of this state and the bugs that stem from the
-programmer forgetting it even gave rise to weird concepts among Rocq developers
-like ``evar sensitive'' (evar is the name for holes). If one forgets to look at terms
-through the right assignment (eg uses the empty one) the behavior is
-hard to debug: it is like OCaml code that behaves differently depending
-if a reference \ocaml{x} was originally given the value 42, or
-if it was later updated to that value.
-The example is not an exageration, the state accompaning holes is really like
-a heap and if one has to manage it by hand it is like
-going back to manual memory management, pointer dereferencing (with no
-types), no garbage collecion. Does not sound that different from C.
+Holes are missing subterms and come with metadata: a typing sequent. Since the
+same hole can occur non-linearly, a single sequent is stored on the side of
+terms. Moreover, since binders may be reduced away, each occurrence has an
+explicit substitution. So there is a state that accompanies the terms -- a state
+to be threaded in a functional setting. This state also gathers universe
+constraints, as required by Rocq's typical ambiguity (writing \rocq{Type} with
+no explicit level).
+Assignments are also part of this state, and the bugs that stem from the
+programmer forgetting it even gave rise to odd concepts among Rocq developers
+like ``evar sensitive'' (evar is the name for holes). If one forgets to look at
+terms through the right assignment (e.g., uses the empty one), the behavior is
+hard to debug: it is like OCaml code that behaves differently depending on
+whether a reference \ocaml{x} was originally given the value 42, or if it was
+later updated to that value.
+The example is not an exaggeration: the state accompanying holes is really like
+a heap, and if one has to manage it by hand, it is like going back to manual
+memory management, pointer dereferencing (with no types), and no garbage
+collection. It does not sound that different from C.
 
 The second difficulty is not inherent in OCaml, but rather an artifact of the
-history of Rocq. The APIs are not well curated. Exposing some of them to
-the extension language is a very good occasion to incrementally produce
-a coherent set of APIs.
+history of Rocq. The APIs are not well curated. Exposing some of them to the
+extension language is a very good opportunity to incrementally produce a
+coherent set of APIs.
 
-Last setting up the development environment and a development
-process. Even when a user is past the, inevitablae, frustration
-of setting up the right compiler and tools, an embedded
-interpreter still gives some advantagess even more if the
-language is rule based. One can iterate faster, without even
-restarting the host application, and sometimes even modify
-the code at a distance: if the code is defined far away,
-in a library being used, one can replace bits of it code
-here by replacing a rule defined there with a new one
-defined here where the problem shows up and in the end
-conduct a much faster investigation.
+Finally, there is the challenge of setting up the development environment and
+process. Even when a user is past the inevitable frustration of setting up the
+right compiler and tools, an embedded interpreter still offers some
+advantages -- especially if the language is rule-based. One can iterate faster,
+without even restarting the host application, and sometimes even modify the
+code at a distance: if the code is defined far away, in a library being used,
+one can replace bits of its code here by replacing a rule defined there with a
+new one defined here, where the problem shows up, and in the end conduct a
+much faster investigation.
 
 \section{HOAS of Rocq terms and contexts}\label{GALLINA}
 
