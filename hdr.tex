@@ -3579,27 +3579,27 @@ assignment as an Elpi unification problem between the hole and the Rocq term.
 
 \section{Vernacular language integration}
 
-That vernacular language of Rocq lets one organize the formalized knowledge,
-in particular give names to Gallina terms and attach meta data to them.
-Rocq-Elpi extends the vernacular language with a few commands to declare, run
+
+The vernacular language of Rocq allows one to organize formalized knowledge,
+in particular to give names to Gallina terms and attach metadata to them.
+Rocq-Elpi extends the vernacular language with a few commands to declare, run,
 and modify Elpi programs.
 
-For convenience programs are divided into commands and tactics. Both run
-Elpi code, but the entry point is different and moreover tactics can only
-be executed in Rocq proof mode.
+For convenience, programs are divided into commands and tactics. Both run Elpi
+code, but the entry point is different; moreover, tactics can only be executed
+in Rocq proof mode.
 
 \subsection{Commands}
 
-A command is declared with \rocq{Elpi Command} followed by a name.
-Initially a command only contains the glue code for Rocq, like the
-HOAS data type of terms and the builtin predicates. Extra code
-can be added to a command via the \rocq{Elpi Accumulate}.
-Accumulated code can have two natures: static code (e.g. from a file
-or a string) and dynamic code (from a database, see~\cref{sec:homo}).
+A command is declared with \rocq{Elpi Command} followed by a name. Initially,
+a command only contains the glue code for Rocq, such as the HOAS data type of
+terms and the builtin predicates. Extra code can be added to a command via
+\rocq{Elpi Accumulate}. Accumulated code can be either static (e.g., from a
+file or a string) or dynamic (from a database; see~\cref{sec:homo}).
 
-A command \texttt{hello} is executed with \rocq{Elpi hello} followed
-by arguments. The \elpi{argument} data type has constructors
-for builtin data type such as strings or number as well as Gallina terms.
+A command \texttt{hello} is executed with \rocq{Elpi hello} followed by
+arguments. The \elpi{argument} data type has constructors for built-in data
+types such as strings or numbers, as well as Gallina terms.
 
 \begin{rocqcode}
 Elpi Command hello.
@@ -3611,19 +3611,19 @@ Fail Elpi hello 46.
 \end{rocqcode}
 
 The simple program above calls the \elpi{rocq.say} builtin whenever the
-command is passed a string. Since the entrypoint \elpi{main} has
-no rule for arguments of the form \elpi{int X}.
+command is passed a string. Since the entry point \elpi{main} has no rule for
+arguments of the form \elpi{int X}, the second calls fails.
 
-The interested reader can look at the comprehensive tutorial on Elpi
-commands~\cite{tuto:commands} that being part of the Rocq-Elpi software
-distribution it is kept up to date.
+Interested readers can consult the comprehensive tutorial on Elpi commands
+~\cite{tuto:commands}, which is part of the Rocq-Elpi software distribution.
 
 \subsection{Tactics}
 
-Tactics are built in a similar way, with the main difference being that
-the entry point is called \elpi{solve} that receives as
-argument not only the arguments passed to the tactic, but also the goal
-on which the tactic operates.
+
+Tactics are built in a similar way, with the main difference being that the
+entry point is called \elpi{solve}, which receives as arguments not only the
+arguments passed to the tactic, but also the goal on which the tactic
+operates.
 
 \begin{rocqcode}
 Elpi Tactic intro.
@@ -3639,14 +3639,18 @@ Fail elpi intro "p". (* Error: name already taken *)
 elpi intro "Hp".
 \end{rocqcode}
 
-In the example above the tactic expects to receive a string \elpi{ID};
-it checks that no Rocq proof variable is already using the same name, and
-finally refines the goal with a lambda abstraction, that is the proof term
-for logical rule of introduction of universal quantification or implication.
-  
-The interested reader can look at a longer tutorial on Elpi tactics~\cite{tuto:tactics}
-and also to eltac~\cite{app:eltac}, a collection of Rocq tactics rewritten in Elpi for
-didactic purpose.
+
+In the example above, the tactic expects to receive a string \elpi{ID}; it
+checks that no Rocq proof variable is already using the same name, and finally
+refines the goal with a lambda abstraction, which is the proof term for the
+logical rule of introduction of universal quantification or implication.
+Note that the check for the name being free is just for convenience: a
+collision would not result in name capture in Elpi, and when translated back
+to Rocq, the deepest variable would be forcibly renamed to avoid capture in Rocq too.
+
+Interested readers can consult a longer tutorial on Elpi tactics
+~\cite{tuto:tactics}, as well as eltac~\cite{app:eltac}, a collection of Rocq
+tactics rewritten in Elpi for didactic purposes.
 
 \subsection{Databases, homoiconicity and rules}\label{sec:homo}
 
