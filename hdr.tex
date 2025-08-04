@@ -4228,6 +4228,7 @@ Definition rtree_eq A (A_eq : A → A → bool) :=
     end.
 \end{rocqcode}
 
+
 What is remarkable is that the correctness proof for \rocq{rtree_eq}
 reuses the correctness proof for \rocq{list_eq}.
 
@@ -4247,8 +4248,9 @@ Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
          (list_eq_correct (rtree A) (rtree_eq A eqA) sib Psib)).
 \end{rocqcode}
 
-The proof also uses two auxiliary lemmas that are not particularly interesting,
-we point the reader to~\cite{tassi:hal-01897468} for details about them.
+The proof also relies on two auxiliary lemmas that are not particularly
+interesting; we refer the reader to~\cite{tassi:hal-01897468} for further
+details.
 
 \begin{rocqcode}
 correct_Node : ∀A eqA (l : list (rose A)),
@@ -4258,11 +4260,10 @@ correct_Node : ∀A eqA (l : list (rose A)),
 correct_Leaf : ∀A eqA (a : A),
   correct_at A eqA x ->
     correct_at (rose A) (rose_eq A eqA) (Leaf A x)
-  \end{rocqcode}
-  
-The final theorem can be obtained by satisfying the extra the extra
-premise of the deep induction hypothesis, namely that each rose tree
-is a rose tree.
+\end{rocqcode}
+
+The final theorem can be obtained by satisfying the extra premise of the deep
+induction hypothesis, namely that each rose tree is a rose tree.
 
 \begin{rocqcode}
 Definition rose_eq_OK A eqA :
