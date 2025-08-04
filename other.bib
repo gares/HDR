@@ -546,3 +546,149 @@ author = {Tim Sheard and Emir Pasalic},
 keywords = {Meta-programming, Meta-language, Equality types},
 abstract = {We report our experience with exploring a new point in the design space for formal reasoning systems: the development of the programming language Ωmega. Ωmega is intended as both a practical programming language and a logic. The main goal of Ωmega is to allow programmers to describe and reason about semantic properties of programs from within the programming language itself, mainly by using a powerful type system. We illustrate the main features of Ωmega by developing an interesting meta-programming example. First, we show how to encode a set of well-typed simply typed λ-calculus terms as an Ωmega data-type. Then, we show how to implement a substitution operation on these terms that is guaranteed by the Ωmega type system to preserve their well-typedness.}
 }
+@article{10.1145/2775051.2676980,
+author = {Jung, Ralf and Swasey, David and Sieczkowski, Filip and Svendsen, Kasper and Turon, Aaron and Birkedal, Lars and Dreyer, Derek},
+title = {Iris: Monoids and Invariants as an Orthogonal Basis for Concurrent Reasoning},
+year = {2015},
+issue_date = {January 2015},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {50},
+number = {1},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/2775051.2676980},
+doi = {10.1145/2775051.2676980},
+abstract = {We present Iris, a concurrent separation logic with a simple premise: monoids and invariants are all you need. Partial commutative monoids enable us to express---and invariants enable us to enforce---user-defined *protocols* on shared state, which are at the conceptual core of most recent program logics for concurrency. Furthermore, through a novel extension of the concept of a *view shift*, Iris supports the encoding of *logically atomic specifications*, i.e., Hoare-style specs that permit the client of an operation to treat the operation essentially as if it were atomic, even if it is not.},
+journal = {SIGPLAN Not.},
+month = jan,
+pages = {637–650},
+numpages = {14},
+keywords = {separation logic, partial commutative monoids, invariants, higher-order logic, fine-grained concurrency, compositional verification, atomicity}
+}
+
+@inproceedings{10.1145/2676726.2676980,
+author = {Jung, Ralf and Swasey, David and Sieczkowski, Filip and Svendsen, Kasper and Turon, Aaron and Birkedal, Lars and Dreyer, Derek},
+title = {Iris: Monoids and Invariants as an Orthogonal Basis for Concurrent Reasoning},
+year = {2015},
+isbn = {9781450333009},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/2676726.2676980},
+doi = {10.1145/2676726.2676980},
+abstract = {We present Iris, a concurrent separation logic with a simple premise: monoids and invariants are all you need. Partial commutative monoids enable us to express---and invariants enable us to enforce---user-defined *protocols* on shared state, which are at the conceptual core of most recent program logics for concurrency. Furthermore, through a novel extension of the concept of a *view shift*, Iris supports the encoding of *logically atomic specifications*, i.e., Hoare-style specs that permit the client of an operation to treat the operation essentially as if it were atomic, even if it is not.},
+booktitle = {Proceedings of the 42nd Annual ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {637–650},
+numpages = {14},
+keywords = {separation logic, partial commutative monoids, invariants, higher-order logic, fine-grained concurrency, compositional verification, atomicity},
+location = {Mumbai, India},
+series = {POPL '15}
+}
+
+@inproceedings{10.1007/978-3-662-54434-1_26,
+author = {Krebbers, Robbert and Jung, Ralf and Bizjak, Ale\v{s} and Jourdan, Jacques-Henri and Dreyer, Derek and Birkedal, Lars},
+title = {The Essence of Higher-Order Concurrent Separation Logic},
+year = {2017},
+isbn = {978-3-662-54433-4},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+url = {https://doi.org/10.1007/978-3-662-54434-1_26},
+doi = {10.1007/978-3-662-54434-1_26},
+abstract = {Concurrent separation logics (CSLs) have come of age, and with age they have accumulated a great deal of complexity. Previous work on the Iris logic attempted to reduce the complex logical mechanisms of modern CSLs to two orthogonal concepts: partial commutative monoids (PCMs) and invariants. However, the realization of these concepts in Iris still bakes in several complex mechanisms—such as weakest preconditions and mask-changing view shifts—as primitive notions.In this paper, we take the Iris story to its (so to speak) logical conclusion, applying the reductionist methodology of Iris to Iris itself. Specifically, we define a small, resourceful base logic, which distills the essence of Iris: it comprises only the assertion layer of vanilla separation logic, plus a handful of simple modalities. We then show how the much fancier logical mechanisms of Iris—in particular, its entire program specification layer—can be understood as merely derived forms in our base logic. This approach helps to explain the meaning of Iris’s program specifications at a much higher level of abstraction than was previously possible. We also show that the step-indexed “later” modality of Iris is an essential source of complexity, in that removing it leads to a logical inconsistency. All our results are fully formalized in the Coq proof assistant.},
+booktitle = {Programming Languages and Systems: 26th European Symposium on Programming, ESOP 2017, Held as Part of the European Joint Conferences on Theory and Practice of Software, ETAPS 2017, Uppsala, Sweden, April 22–29, 2017, Proceedings},
+pages = {696–723},
+numpages = {28},
+location = {Uppsala, Sweden}
+}
+
+@phdthesis{rob,
+  title        = {Applications of Foundational Proof Certificates in theorem proving},
+  author       = {Roberto Blanco},
+  year         = 2017,
+  month        = {December},
+  address      = {Paris},
+  note         = {Available at \url{https://theses.fr/2017SACLX111}},
+  school       = {École polytechnique, Université Paris-Saclay},
+  type         = {PhD thesis}
+}
+
+@inproceedings{matteo,
+  TITLE = {{FPC-Coq: using ELPI to elaborate external proof evidence into Coq proofs (system description)}},
+  AUTHOR = {Roberto Blanco, Matteo Manighetti and Dale Miller},
+  BOOKTITLE = {{Coq Workshop 2020}},
+  YEAR = {2020},
+  MONTH = Jul,
+}
+
+@inproceedings{alberto,
+  author       = {Matteo Manighetti and
+                  Dale Miller and
+                  Alberto Momigliano},
+  editor       = {Ugo de'Liguoro and
+                  Stefano Berardi and
+                  Thorsten Altenkirch},
+  title        = {Two Applications of Logic Programming to Coq},
+  booktitle    = {26th International Conference on Types for Proofs and Programs, {TYPES}
+                  2020, March 2-5, 2020, University of Turin, Italy},
+  series       = {LIPIcs},
+  volume       = {188},
+  pages        = {10:1--10:19},
+  publisher    = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+  year         = {2020},
+  url          = {https://doi.org/10.4230/LIPIcs.TYPES.2020.10},
+  doi          = {10.4230/LIPICS.TYPES.2020.10},
+  timestamp    = {Wed, 21 Aug 2024 22:46:00 +0200},
+  biburl       = {https://dblp.org/rec/conf/types/Manighetti0M20.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}
+
+
+@article{Marek_2016, title={All about Proofs, Proofs for All, Bruno Woltzenlogel Paleoand David Delahaye , Eds., College Publications, Series Mathematical Logic and Foundations, vol. 55., 2015. Paperback, ISBN 978-1-84890-166-7, vii + 240 pages.}, volume={16}, DOI={10.1017/S1471068415000125}, number={2}, journal={Theory and Practice of Logic Programming}, author={Marek, Victor W.}, year={2016}, pages={236–241}}
+
+@article{RABE20131,
+title = {A scalable module system},
+journal = {Information and Computation},
+volume = {230},
+pages = {1-54},
+year = {2013},
+issn = {0890-5401},
+doi = {https://doi.org/10.1016/j.ic.2013.06.001},
+url = {https://www.sciencedirect.com/science/article/pii/S0890540113000631},
+author = {Florian Rabe and Michael Kohlhase},
+abstract = {Symbolic and logic computation systems ranging from computer algebra systems to theorem provers are finding their way into science, technology, mathematics and engineering. But such systems rely on explicitly or implicitly represented mathematical knowledge that needs to be managed to use such systems effectively. While mathematical knowledge management (MKM) “in the small” is well-studied, scaling up to large, highly interconnected corpora remains difficult. We hold that in order to realize MKM “in the large”, we need representation languages and software architectures that are designed systematically with large-scale processing in mind. Therefore, we have designed and implemented the Mmt language – a module system for mathematical theories. Mmt is designed as the simplest possible language that combines a module system, a foundationally uncommitted formal semantics, and web-scalable implementations. Due to a careful choice of representational primitives, Mmt allows us to integrate existing representation languages for formal mathematical knowledge in a simple, scalable formalism. In particular, Mmt abstracts from the underlying mathematical and logical foundations so that it can serve as a standardized representation format for a formal digital library. Moreover, Mmt systematically separates logic-dependent and logic-independent concerns so that it can serve as an interface layer between computation systems and MKM systems.}
+}
+
+@inproceedings{10.1007/978-3-642-12251-4_1,
+author = {Pientka, Brigitte},
+title = {Beluga: programming with dependent types, contextual data, and contexts},
+year = {2010},
+isbn = {3642122507},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+url = {https://doi.org/10.1007/978-3-642-12251-4_1},
+doi = {10.1007/978-3-642-12251-4_1},
+abstract = {The logical framework LF provides an elegant foundation for specifying formal systems and proofs and it is used successfully in a wide range of applications such as certifying code and mechanizing meta-theory of programming languages. However, incorporating LF technology into functional programming to allow programmers to specify and reason about formal guarantees of their programs from within the programming language itself has been a major challenge.In this paper, we present an overview of Beluga, a framework for programming and reasoning with formal systems. It supports specifying formal systems in LF and it also provides a dependently typed functional language that supports analyzing and manipulating LF data via pattern matching. A distinct feature of Beluga is its direct support for reasoning with contexts and contextual objects. Taken together these features lead to a powerful language which supports writing compact and elegant proofs.},
+booktitle = {Proceedings of the 10th International Conference on Functional and Logic Programming},
+pages = {1–12},
+numpages = {12},
+location = {Sendai, Japan},
+series = {FLOPS'10}
+}
+@inproceedings{DBLP:conf/cade/PientkaC15,
+  author       = {Brigitte Pientka and
+                  Andrew Cave},
+  editor       = {Amy P. Felty and
+                  Aart Middeldorp},
+  title        = {Inductive Beluga: Programming Proofs},
+  booktitle    = {Automated Deduction - {CADE-25} - 25th International Conference on
+                  Automated Deduction, Berlin, Germany, August 1-7, 2015, Proceedings},
+  series       = {Lecture Notes in Computer Science},
+  volume       = {9195},
+  pages        = {272--281},
+  publisher    = {Springer},
+  year         = {2015},
+  url          = {https://doi.org/10.1007/978-3-319-21401-6\_18},
+  doi          = {10.1007/978-3-319-21401-6\_18},
+  timestamp    = {Tue, 14 May 2019 10:00:39 +0200},
+  biburl       = {https://dblp.org/rec/conf/cade/PientkaC15.bib},
+  bibsource    = {dblp computer science bibliography, https://dblp.org}
+}

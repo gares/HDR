@@ -2505,7 +2505,11 @@ as a $Y^{j+k}$ by assining to $X^j$ the term $\lambda c_j \ldots c_{j + k-1}. Y^
 Moreover, for a unification variable in the compact form $X^n$,
 checking if a name $c_m$ is in scope is a trivial as checking
 $m < n$, no need to look for $c_m$ in the list of distinct arguments
-the \theotherfragment fragment allows for. Finally, all global symbols, being
+the \theotherfragment fragment allows for.
+When scope checking fails for a variable it is easy to
+prune it, i.e. $X^n = Y^m$ with $n < m$ can be solved by assigning to $Y^m$
+a fresh $Z^n$.
+Finally, all global symbols, being
 represented by a negative integers, also pass the scope check.
 
 It is also worth pointing out that, in DBL notation, the variables
@@ -2527,6 +2531,7 @@ another one or computing the intersection of two for pruning flexible terms
 and keep execution going.
 It only around 2016 that I extended the unification procedure
 to the full \theotherfragment fragment.
+
 
 \subsection{Indexing}
 
@@ -2719,7 +2724,7 @@ to implement a caching mechanism in the spirit of tabling, i.e. to index
 \emph{all} the goals that are generated during an expensive computation.
 I it hard to imagine a shallow index to perform well in this scenario.
 
-\section{Compiler}
+\section{Compiler}\label{sec:compiler}
 
 First of all, the Elpi compiler is not a traditional compiler generating (virtual)
 machine code. Still, before being executed, Elpi programs go trough several
@@ -3885,7 +3890,7 @@ necessary for the second rule
 
 \begin{elpicode}
 pi P Q p q PP QQ\
-  tb (app[global (indt "/\"), P, Q])
+  tb (app[global (indt "and"), P, Q])
      (app[global (con "andP"), P, Q, p, q, PP, QQ]) :-
   [!, tb P PP, tb Q QQ].
 \end{elpicode}
@@ -3982,11 +3987,15 @@ error message. Then it register a test for the missing predicate
 and succesfully solves the goal.
 
 
-\chapter{Rocq tools written in Elpi}
+\chapter{Applications written in Elpi}
 
-In this chapter we survey some tools developed on top of Rocq-Elpi.
-We put forward Derive and Hierarchy Builder, to which we contributed personally.
-Last we quickly survey other tools developed by our colleagues.
+In this chapter we survey some tools developed on top of Rocq-Elpi or Elpi alone.
+
+We put forward the Derive and Hierarchy-Builder Rocq packages
+to which we contributed personally.
+
+Later we quickly survey other tools developed by our colleagues, some of which
+do not use Rocq.
 
 At the end of each section we discuss which features of Elpi and Rocq-Elpi
 are key to the tool being described.
@@ -4353,12 +4362,16 @@ can find them in~\cite{gregoire:hal-03800154}.
 
 \subsection{The role of Rocq-Elpi in derive}
 The Elpi language turned out to be instrumental in this research since
-it allowed to quickly and concisely write derivations. We believe that
+it allowed to quickly and concisely write derivations. Some of the derivations
+like the one for deep inductive principles, were not know before, and the ease
+of experimentation was intrumental to discover them.
+
+We believe that
 the automatic handling of names and holes was key. Only a few Rocq APIs were
 really necessary: reading from and writing to the logical environment and
 invoke type inference. Although these API come with glue code that is far from
 trivial since they read/write inductive types in HOAS form.
-Performance was no crytical: all bottlenecks turned out to be inefficiencies
+Performance was not crytical: all bottlenecks turned out to be inefficiencies
 in Rocq, and in particular in the APIs to manage universe constraints.
 
 
@@ -4447,7 +4460,7 @@ removal of 5K lines of such boilerplate code.
 
 During the first implementation of HB, version 1.0, Elpi as a language was
 really a technical advantage: its high level nature let us quickly experiment
-with different solutions. Once the design was finalize, we thought that rewriting
+with different solutions. Once the design was finalized, we thought that rewriting
 the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
 changed in order to accommodate for interfaces with parameters, with the objective
 to really apply it to the Mathematical Components library. This huge rewriting
@@ -4475,13 +4488,15 @@ while a naive algorithm can only filter the designated sets, linearly.
 
 More surprisingly the inefficiencies found in Elpi were not in the runtime
 of the language, but rather in its compiler, and more specifically in
-its (lack of) incrementality. As exemplified in~\cref{sec:tb}, HB synthesizes
-and accumulates rules as it goes to represent its state. In MC alone
-the number of such rules reaches 40K, and any routine that was not incremental
+its (lack of) incrementality. As mentioned in~\cref{sec:compiler} and exemplified
+in~\cref{sec:tb}, HB synthesizes
+and accumulates rules as it goes to represent its state. In the Mathematical
+Components library alone
+the number of such rules reaches 40 000, and any routine that was not incremental
 and/or had a bad complexity had to be revised. In particular the version 2.0 of
 Elpi has a fully incremental compiler: adding a rule to an existing program (or
 data base) has logaritmic complexity in the size of the interested
-part of program, i.e. the existing rules for the same predicate.
+part of existing program, i.e. the existing rules for the same predicate.
 
 To the best of our knowledge, today most of the time spent in HB is actually taken
 by calls to Rocq API, typically to typecheck and define the terms that are
@@ -4522,13 +4537,13 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
 
 The code crytically uses the possibility to call
 the \elpi{rocq.unify-eq} deep inside the goal to identify
-terms up to (Rocq) unification.
+terms up to Rocq's unification.
 
 The algrbra tactics project comprises a few benchmarks including
-a five hundred lines long polynomial euqation in six variables.
+a five hundred lines long polynomial equation in six variables.
 The \rocq{ring} tactic takes about five seconds to solve it.
 
-While the standard, simpler, reification writtne in OCaml is an order of
+While the standard, simpler, reification written in OCaml is an order of
 magnitude faster, the reification procedure written in Elpi is not the dominant
 factor in the five seconds, making it usable, in practice, even on such an
 extreme goal (for an interactive theorem prover).
@@ -4537,20 +4552,20 @@ extreme goal (for an interactive theorem prover).
 \subsection{Takt and TRocq: proof transfer tools}
 
 The most frequently asked question regarding the Mathematical Components
-library is: how do we make it compute.
+library is: how do we make it compute?
 
-Almost all definitions in the MC library
+Almost all definitions in the library
 are computable, but are not immediately executable by Rocq for one of
 the following two reasons. Either they are executable but are inefficient
 being optimized for proofs and not computations, or they are ``locked''
 behind an opaque module signature to enforce an abstraction barrier previnting
 the Rocq type checker to potentially take an unreasonable amount of time.
 
-The answer to the FAQ is to transfer an expression about inefficient or
+The answer to the F.A.Q. is to transfer an expression about inefficient or
 locked operations to (equivalent) fast and unlocked ones. While defining
 such operations and proving the correspondence is feasible, and sometimes
-even part of the MC library, the tooling to automatically perform
-the transfer never really existed in a easy to use form.
+even already part of the library, the tooling to automatically perform
+the transfer never really existed in a easy-to-use form.
 
 The Trakt tool~\cite{DBLP:conf/cpp/Blot0CPKMV23} and its successor
 Trocq~\cite{10.1007/978-3-031-57262-3_10} fill this space. Both
@@ -4581,15 +4596,17 @@ needed in order to represent the parametricity based translation.
 
 \subsection{BlueRock's BRiCk}
 
-BlueRock systems is a company developing, among other things, the BRiCk
-program logic for C++. It is a set of Rocq libraries, partially based on Iris,
+BlueRock systems\footnote{\url{https://www.bluerock.io/}} is a company
+developing, among other things, the BRiCk program logic for C++.
+It is a set of Rocq libraries, partially based on Iris~\cite{10.1145/2676726.2676980,10.1007/978-3-662-54434-1_26},
 to reason about existing C++ code: a \texttt{cpp2v} tool translate C++
 classes to a formal representation on which specification can be written.
 
-The employ Rocq-Elpi to synthesize code automatically extending the
-derive utility described above. In particular they synthesize
-type classes instances for the EqDecision, Countable, Finite and Inhabited
-std++ classes, as well as a serialization one called ToBit. Finally
+They employ Rocq-Elpi to synthesize code automatically extending the
+derive utility described in~\cref{sec:derive}. In particular they synthesize
+type classes instances for the \rocq{EqDecision}, \rocq{Countable},
+\rocq{Finite} and \rocq{Inhabited} std++ classes, as well as a serialization
+one called \rocq{ToBit}. Finally
 they also synthesize Lenses, that is support code for record updates.
 
 We focus on another use they make of Rocq-Elpi in the form of its
@@ -4599,7 +4616,7 @@ NES application.
 
 It is folklore that Rocq modules can, somehow, emulate name spaces.
 Rocq modules are inspired by OCaml modules and are a closed entity: when
-a module is closed one cannot add to it any new entry. Sure one can
+a module is closed one cannot add to it any new item. Sure one can
 define a new module and include the old one together with some additions,
 but the module is a new one, with a different name. Namespaces on the
 contrary give an open ended notion of that: one can alwas add new items
@@ -4654,13 +4671,51 @@ Eval lazy in more_stuff. (* = 1 *)
 
 Although BlueRock has made some of his code public, much of it is still
 private hence we cannot really speculate what ingredient of the Elpi
-language plays which role.
+language plays which role. For sure the large set of APIs provided by
+Rocq-Elpi plays a role here.
+
 The company made public that they run about 6.5K lines of Elpi, that is
 to our knowledge the largest Elpi code base out there, given that Hierarchy
 Builder is, all included, less than 5K lines of code.
 
 In recent years the formal methods team of BlueRock contributed valuable
 patches and early feedback to Elpi and Rocq-Elpi.  
+
+\subsection{Proofcert}
+
+Elpi was born, by coincidence, during the
+ProofCert\footnote{\url{https://team.inria.fr/parsifal/proofcert/}}
+project lead by Miller, that aimed at devising a foundation to allow to
+integrate a broad spectrum of formal methods to establish formal
+properties of computer systems. The project was geared around the
+notion of foundational proof certificates (FPC)~\cite{Marek_2016}
+that has a reference implementation in $\lambda$Prolog.
+In his PhD disseration~\cite{rob} Blanco studied some
+applications of FPC and run their implementatio with both Teyjus and Elpi.
+Blanco is likely the first Elpi user. Later, Manighetti, Blanco,
+Miller and Momigliano linked FPC with Rocq by translating proof
+evicence from one system to the other in Rocq-Elpi~\cite{matteo,alberto}.
+
+While Elpi played a very minor role in Blanco's PhD, the glue
+between $\lambda$Prolog and Rocq provided by Rocq-Elpi was instrumental
+for the later works.
+
+\subsection{MLTS}
+
+As part of his PhD, G\'{e}rard designed an implemented~\cite{mlts}, a
+functional programming language with support for binder mobility
+called MLTS.
+His implementation relies on Elpi for animating the rules defining
+its semantics, and it made a prototype available in the browser by
+transpiling Elpi to javascript.\footnote{\url{https://voodoos.github.io/mlts/}}
+
+In  G\'{e}rard's PhD Elpi only played a technological role: by being
+a relatively simple, self contained, interpreter written in OCaml,
+Elpi could be transpiled to a javascript library quite easily.
+
+At the same time G\'{e}rard's PhD was quite inspirational to us, since
+bridging the gap between the logic and functional paradigms, bringing
+automatic binder management to the latter, seems at reach with his work.
 
 \chapter{Conclusion}
 
@@ -4852,6 +4907,37 @@ to express, it also departs from what the symbolic evaluation of a logic
 program looks like. In particular, the computation state is much more complex
 than the list of alternatives used in~\cref{sec:sem}.
 
+\subsection{Elpi as a foundational language}
+
+We have always seen, and still see, Elpi as a programming language
+that puts ``practical'' before ``foundational''.
+
+One of the reasons is surely
+that we felt in the ``marmitte'' of the calculus of
+Inductive contructions very early in our career, possibly because
+the French and Italian schools are quite close in that respect.
+So, maybe uncousciously, the foundationa language has always
+been Rocq to me, leaving to Elpi the role of being practical.
+
+At the same our voyage in the neighborhood of computation logic
+gave us the opportunity to see other ways look at programming
+languages with support for binders, i.e. as frameworks to formally
+describe the object of interest and possibly reason about it.
+
+FINISH
+
+ and
+MMT~\cite{RABE20131}
+
+
+Metarocq pain.
+
+Beluga\cite{DBLP:conf/cade/PientkaC15,10.1007/978-3-642-12251-4_1}
+
+Isabelle.
+ Twelf.
+
+
 \subsection{Deeper integration in Rocq}
 
 There are plenty of ``prolog implementations'' in the Rocq codebase, most of
@@ -4895,6 +4981,10 @@ This is partly because the OCaml garbage collector can do its job in the former
 case, while the substitution grows unchecked in the latter. Reworking the proof
 engine to validate this efficiency claim would require substantial engineering
 effort.
+
+\subsubsection{Rocq framework}
+
+TODO
 
 \nocite{*}
 \printbibliography[title={Our Bibliography}, keyword=me]
