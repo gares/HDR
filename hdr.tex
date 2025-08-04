@@ -43,7 +43,7 @@
     citecolor={blue!50!black},
     urlcolor={blue!80!black}
 }
-\usepackage[backend=biber,style=alphabetic]{biblatex}
+\usepackage[backend=biber,style=alphabetic,maxnames=20]{biblatex}
 \DeclareUnicodeCharacter{2200}{$\forall$}
 \DeclareUnicodeCharacter{03BB}{$\lambda$}
 \addbibresource{hdr.bib}
@@ -2186,41 +2186,50 @@ sensible warning for this problem.
 
 \section{The first prototype}\label{sec:poc}
 
-The first Elpi was written by me in about three months, with the objective
-of understanding the $\lambda$Prolog language and some of the techniques
-adopted to implement it, like the suspension calculus~\cite{NADATHUR200235}.
-This was Elpi-POC.
 
-Terms were purely functional, to ease backtracking. This feature comes
-with a reputation of making things hard, so we played conservative.
+The first version of Elpi was written by me in about three months, with the
+objective of understanding the $\lambda$Prolog language and some of the
+techniques adopted to implement it, such as the suspension
+calculus~\cite{NADATHUR200235}. This was Elpi-POC.
 
-Elpi-POC was an easy playground to understand which features were needed in
-order to manipulate terms with holes: a safeguard against instantiating them by
-mistake (modes) and a way to attach metadata to holes (constraints).
+
+Terms were purely functional, to facilitate backtracking. This feature has a
+reputation for making things difficult, so we played it safe.
+
+
+Elpi-POC served as an easy playground to understand which features were needed
+to manipulate terms with holes: a safeguard against instantiating them by
+mistake (modes), and a way to attach metadata to holes (constraints).
+
 
 Elpi-POC was functional enough to let us write an elaborator for dependent type
-theory and plug it into Matita~\cite{DBLP:conf/cade/AspertiRCT11}. It was working,
-but it was too slow, very slow. Like 20,000 times slower than reasonable.
+theory and plug it into Matita~\cite{DBLP:conf/cade/AspertiRCT11}. It worked,
+but it was extremely slow -- about 20,000 times slower than reasonable.
 
-Reason number one was the purely functional heap, with no GC. Introducing 
-instructions to clear memory (in an unsafe way) was enough to see one order of
-magnitude of slowness fade away
 
-Also, while the suspension calculus did not seem to help.
-Suspension calculus did look similar to explicit substitutions, but until the very
-last last paper in the pile on my desk it was not clear is was actually isomorphic
-to $\lambda_\sigma$~\cite{expsubst}. While explicit substitutions are often presented as a way to
-obtain better complexity, in practice they fail to deliver better performance.
-In Rocq two people tried using explicit substitutions in many places
-with similar conclusion. In elpi-POC, in our limited tests, disabling them resulted in
-a faster runtime.  Our analysis is that, in practice, the extra machinery to
-delay substitutions and pack the together rarely triggers (as an optimization to achieve better complexity)
-but has a constant memory overhead. Most of the times one fires all redexes in
-one go and immediately after he needs to inspect the result.
+The main reason was the purely functional representation of terms and heap(s),
+with no garbage collection.
+Introducing instructions to clear memory (in an unsafe way) was enough to see
+one order of magnitude of slowness disappear.
 
-Still, it was clear that the operation of crossing a binder
-and replacing the bound name by a fresh constant (i.e. a fresh name) was
-very frequent and was in need of a faster implementation.
+
+Also, the suspension calculus did not seem to help. Suspension calculus looked
+similar to explicit substitutions, but until the very last paper in the pile on
+my desk, it was not clear it was actually isomorphic to
+$\lambda_\sigma$~\cite{expsubst}. While explicit substitutions are often
+presented as a way to obtain better complexity, in practice they fail to
+deliver better performance. In Rocq, two people tried using explicit
+substitutions in many places with similar conclusions. In elpi-POC, in our
+limited tests, disabling them resulted in a faster runtime. Our analysis is
+that, in practice, the extra machinery to delay substitutions and pack them
+together rarely triggers (as an optimization to achieve better complexity), but
+it has a constant memory overhead. Most of the time, one fires all redexes in
+one go and immediately needs to inspect the result.
+
+
+Still, it was clear that the operation of crossing a binder and replacing the
+bound name with a fresh constant (i.e., a fresh name) was very frequent and
+needed a fast implementation.
 
 \newcommand{\theotherfragment}{\ensuremath{L_{\lambda}}\xspace}
 \newcommand{\thefragment}{\ensuremath{L_{\lambda}^{\beta}}\xspace}
@@ -2229,7 +2238,7 @@ very frequent and was in need of a faster implementation.
 \section{Runtime}
 
 The runtime of Elpi was developed in close collaboration with Caudio
-Sacerdoti Cohen and Cvetan Dunchev around 2015 and is described in~\cite{dunchev15lpar}.
+Sacerdoti Coen and Cvetan Dunchev around 2015 and is described in~\cite{dunchev15lpar}.
 
 In this section we sum up the main ingerdients of that runtime.
 
@@ -5045,7 +5054,7 @@ effort.
 
 TODO
 
-\nocite{*}
+%\nocite{*}
 \printbibliography[title={Our Bibliography}, keyword=me]
 \printbibliography[title={Bibliography}, keyword=they]
 \end{document}

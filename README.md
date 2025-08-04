@@ -45,7 +45,7 @@
 - [x] 4.4.1 Commands - english
 - [x] 4.4.2 Tactics - english
 - [x] 4.4.3 Databases, homoiconicity and rules - english
-- [ ] 4.5 Example: simple proof transfer - english
+- [x] 4.5 Example: simple proof transfer - english
 
 - [x] 5.1 Derive - english
 - [x] 5.1.1 Parametricity - english
