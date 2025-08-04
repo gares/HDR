@@ -4447,60 +4447,62 @@ Mathematical Components Analysis library (MCA).
 \caption{Evolution of the Mathematical Components Analysis library\label{fig:mca}}
 \end{figure}
 
-The developmers of MCA adopted HB even before MC was ported to it, roughly from
-the very beginning of the library development. The graph testifies how
-the growth of a that library went hand in hand with the growth of
-its hierarchy of interfaces. Something similar can also be observed in
-\cref{fig:mc} although before the advent of HB the addition of an interface
-was requiring the addition of very large boilerplate code, somewhat forcing
-the correlation between the two measures: the port to HB resulted in the
-removal of 5K lines of such boilerplate code.
+
+The developers of MCA adopted HB even before MC was ported to it, essentially
+from the very beginning of the library's development. The graph demonstrates
+how the growth of that library paralleled the expansion of its hierarchy of
+interfaces. A similar trend can be observed in \cref{fig:mc}, although before
+the advent of HB, adding an interface required introducing a large amount of
+boilerplate code, which somewhat forced the correlation between the two
+measures. The port to HB resulted in the removal of 5,000 lines of such
+boilerplate code.
 
 \subsection{The role of Rocq-Elpi in Hierarchy Builder}
 
-During the first implementation of HB, version 1.0, Elpi as a language was
-really a technical advantage: its high level nature let us quickly experiment
-with different solutions. Once the design was finalized, we thought that rewriting
-the tool in OCaml, if necessary, would be possible. Then HB had to be substantially
-changed in order to accommodate for interfaces with parameters, with the objective
-to really apply it to the Mathematical Components library. This huge rewriting
-turned out to possible since Elpi featured a type checker and that the change
-could be modelled as a data type change: the description of an interface moved from
-a flat list to a HOAS one, describing how formal (bound) parameters distribute over
-the sub interfaces. A posteriori we think we could have done the same
-refactoring to an OCaml program, but while it was natural to move to HOAS
-in Elpi, it is unclear if the right reflex would have emerged in OCaml where
-binding is not necessary reflected in the types.
+During the initial implementation of HB (version 1.0), Elpi as a language was
+truly a technical advantage: its high-level nature allowed us to quickly
+experiment with different solutions. Once the design was finalized, we thought
+that rewriting the tool in OCaml, if necessary, would be feasible. However, HB
+later had to be substantially revised to accommodate interfaces with
+parameters, with the goal of fully applying it to the Mathematical Components
+library. This major rewrite was made possible because Elpi featured a type
+checker and the change could be modeled as a data type transformation: the
+description of an interface moved from a flat list to a HOAS structure,
+describing how formal (bound) parameters distribute over the subinterfaces. In
+hindsight, we believe we could have performed the same refactoring in an OCaml
+program, but while it was natural to move to HOAS in Elpi, it is unclear
+whether the right intuition would have emerged in OCaml, where binding is not
+necessarily reflected in the types.
 
-The development and use in production of HB unraveled a few inefficiencies
-in the implementation of HB and Elpi. Luckily they were mostly due to
-a few very naive routines, in terms of computational complexity.
 
-All the inefficiencies in HB can be imputed to the skinny standard library
-of Elpi. For example, a hierarchy is essentially a Directed Acyclic Graph that
-describes an order relation. Topologically sorting a sub part of it is a
-frequent operation in HB and our first naive implementation was cubic.
-Similarly, when we see hierarchy nodes as designated sets and
-edges as the superset relation, we often need to find all the designated
-sets included in a given one. An algorith properly exploiting the DAG
-can discard all the supersets of any set that is not included in the given one,
-while a naive algorithm can only filter the designated sets, linearly.
+The development and production use of HB revealed a few inefficiencies in the
+implementations of both HB and Elpi. Fortunately, these were mostly due to a
+few very naive routines in terms of computational complexity.
 
-More surprisingly the inefficiencies found in Elpi were not in the runtime
-of the language, but rather in its compiler, and more specifically in
-its (lack of) incrementality. As mentioned in~\cref{sec:compiler} and exemplified
-in~\cref{sec:tb}, HB synthesizes
-and accumulates rules as it goes to represent its state. In the Mathematical
-Components library alone
-the number of such rules reaches 40 000, and any routine that was not incremental
-and/or had a bad complexity had to be revised. In particular the version 2.0 of
-Elpi has a fully incremental compiler: adding a rule to an existing program (or
-data base) has logaritmic complexity in the size of the interested
-part of existing program, i.e. the existing rules for the same predicate.
+All the inefficiencies in HB can be attributed to the limited standard library
+of Elpi. For example, a hierarchy is essentially a Directed Acyclic Graph
+(DAG) that describes an order relation. Topologically sorting a subpart of it
+is a frequent operation in HB, and our initial naive implementation was cubic
+in complexity. Similarly, when we view hierarchy nodes as designated sets and
+edges as the superset relation, we often need to find all designated sets
+included in a given one. An algorithm that properly exploits the DAG can
+discard all supersets of any set not included in the given one, while a naive
+algorithm can only filter the designated sets linearly.
 
-To the best of our knowledge, today most of the time spent in HB is actually taken
-by calls to Rocq API, typically to typecheck and define the terms that are
-automatically synthesized.
+More surprisingly, the inefficiencies found in Elpi were not in the runtime of
+the language, but rather in its compiler, and more specifically in its lack of
+incrementality. As mentioned in~\cref{sec:compiler} and exemplified in
+~\cref{sec:tb}, HB synthesizes and accumulates rules as it goes to represent
+its state. In the Mathematical Components library alone, the number of such
+rules reaches 40,000, and any routine that was not incremental and/or had poor
+complexity had to be revised. In particular, version 2.0 of Elpi features a
+fully incremental compiler: adding a rule to an existing program (or database)
+has logarithmic complexity in the size of the relevant part of the existing
+program, i.e., the existing rules for the same predicate.
+
+To the best of our knowledge, most of the time spent in HB today is actually
+consumed by calls to the Rocq API, typically to typecheck and define the terms
+that are automatically synthesized.
 
 \section{Other tools}
 
