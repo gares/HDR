@@ -4506,26 +4506,27 @@ that are automatically synthesized.
 
 \section{Other tools}
 
-Rocq-Elpi found applications in other projects we did not participate
-into directly. Here we mention some we are aware of.
+
+Elpi and Rocq-Elpi have found applications in other projects in which I did not
+participate directly. Here, I mention some that I am aware of.
 
 \subsection{Algebra Tactics}
 
-Algebra tactics is a port (and improvement) of the \rocq{ring}, \rocq{field} and
-\rocq{lra} tactics to the Mathematical Components library~\cite{sakaguchi:LIPIcs.ITP.2022.29}.
-These tactics are reflexive, i.e. a pre-processing phase called reification
-recognizes in a goal the syntax of an algebraic structure and reflects it into
-a datatypes that is then manipulated by a certified Gallina program.
-Given the hierarchy of structures, operations typical of a structure may be
-inherited from a substructure. Since the type theory of Rocq does not feature
-subtyping, the cast of a structure to a substructure leaves a trace in
-the terms of Gallina, making the reification work more delicate.
+Algebra tactics is a port (and improvement) of the \rocq{ring}, \rocq{field},
+and \rocq{lra} tactics to the Mathematical Components library
+~\cite{sakaguchi:LIPIcs.ITP.2022.29}. These tactics are reflexive; that is, a
+pre-processing phase called reification recognizes in a goal the syntax of an
+algebraic structure and reflects it into a datatype that is then manipulated by
+a certified Gallina program. Given the hierarchy of algebraic structures, some operations
+of of a structure may be inherited from a substructure. Since the type
+theory of Rocq does not feature subtyping, casting a structure to a
+substructure leaves a trace in the terms of Gallina, making the reification
+process more delicate.
 
-For example the addition of a ring actually comes from the
-additive abelian group it inherits from. The code snippet below
-has to compare the abelian group instance \elpi{U} with the ring
-instance \elpi{R} the tactic is applied to, possibly in the context
-\elpi{C} of a ring morphism.
+For example, the addition of a ring actually comes from the additive abelian
+group it inherits from. The code snippet below must compare the abelian group
+instance \elpi{U} with the ring instance \elpi{R} to which the tactic is
+applied, possibly in the context \elpi{C} of a ring morphism.
 
 \begin{elpicode}
 ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
@@ -4537,17 +4538,19 @@ ring C {{ @GRing.opp lp:U lp:In1 }} {{ @ROpp lp:R lp:OutM1 }} Out VM :-
 
 \subsubsection{The role of Rocq-Elpi in Algebra Tactics}
 
-The code crytically uses the possibility to call
-the \elpi{rocq.unify-eq} deep inside the goal to identify
-terms up to Rocq's unification.
 
-The algrbra tactics project comprises a few benchmarks including
-a five hundred lines long polynomial equation in six variables.
-The \rocq{ring} tactic takes about five seconds to solve it.
+The code makes critical use of the ability to call \elpi{rocq.unify-eq} deep
+within the goal to identify terms up to Rocq's unification. In other words, it
+leverages the sophisticated machinery of contextual conversions described in
+~\cref{sec:hodata}.
 
-While the standard, simpler, reification written in OCaml is an order of
+The algebra tactics project includes a few benchmarks, such as a five-hundred-
+line polynomial equation in six variables. The \rocq{ring} tactic takes about
+five seconds to solve it.
+
+While the standard, simpler reification written in OCaml is an order of
 magnitude faster, the reification procedure written in Elpi is not the dominant
-factor in the five seconds, making it usable, in practice, even on such an
+factor in the five seconds, making it usable in practice even on such an
 extreme goal (for an interactive theorem prover).
 
 

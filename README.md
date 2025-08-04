@@ -53,9 +53,9 @@
 - [x] 5.1.3 Natural equality tests - english
 - [x] 5.1.4 Fast equality tests - english
 - [x] 5.1.5 The role of Rocq-Elpi in derive - english
-- [ ] 5.2 Hierarchy Builder - english
-- [ ] 5.2.1 Mathematical Components 2.0 and M.C.A. - english
-- [ ] 5.2.2 The role of Rocq-Elpi in Hierarchy Builder - english
+- [x] 5.2 Hierarchy Builder - english
+- [x] 5.2.1 Mathematical Components 2.0 and M.C.A. - english
+- [x] 5.2.2 The role of Rocq-Elpi in Hierarchy Builder - english
 - [ ] 5.3 Other tools - english
 - [ ] 5.3.1 Algebra Tactics - english
 - [ ] 5.3.2 Takt and TRocq: proof transfer tools - english
