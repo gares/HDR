@@ -4156,8 +4156,9 @@ Definition is_list_functor A P Q :
       end
 \end{rocqcode}
 
-The proof is a straightforward induction on list \rocq{l}.
-We can now present the proof of the deep induction principle over rose trees:
+
+The proof proceeds by straightforward induction on the list \rocq{l}. We can
+now present the proof of the deep induction principle for rose trees:
 
 \begin{rocqcode}
 Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
@@ -4173,8 +4174,8 @@ Definition rtree_induction (A : U) (PA : A → U) (P : rtree A → U)
   end.
 \end{rocqcode}
 
-Remark the following type assignments for the variabls and terms occurring
-in the last branch of the \rocq{match} on \rocq{x}:
+Note the following type assignments for the variables and terms appearing in
+the last branch of the \rocq{match} on \rocq{x}:
 
 \begin{rocqcode}
 l  : list (rtree A)
@@ -4184,9 +4185,9 @@ is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
   is_list (rtree A) P l
 \end{rocqcode}
 
-The last term satisfies the premise of \rocq{His_Node}, that in turn
-gives the user of the induction principle access to the property \rocq{P}
-on all the elements of \rocq{l}.
+The last term satisfies the premise of \rocq{His_Node}, which in turn gives
+the user of the induction principle access to the property \rocq{P} on all
+elements of \rocq{l}.
 
 \subsection{Natural equality tests}
 
