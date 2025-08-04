@@ -4688,7 +4688,7 @@ In recent years, the formal methods team at BlueRock has contributed valuable
 patches and early feedback to Elpi and Rocq-Elpi.
 
 
-\subsection{Proofcert}
+\subsection{ProofCert}
 
 Elpi was created, by coincidence, during the
 ProofCert\footnote{\url{https://team.inria.fr/parsifal/proofcert/}}
@@ -4702,6 +4702,8 @@ Blanco is likely the first Elpi user. Later, Manighetti, Blanco, Miller, and
 Momigliano linked FPC with Rocq by translating proof evidence from one system
 to the other using Rocq-Elpi~\cite{matteo,alberto}.
 
+\subsubsection{The role of Elpi in ProofCert}
+
 While Elpi played a very minor role in Blanco's PhD, the glue between
 $\lambda$Prolog and Rocq provided by Rocq-Elpi was instrumental for the later
 works.
@@ -4712,7 +4714,15 @@ As part of his PhD, G\'{e}rard designed and implemented a
 functional programming language with support for binder mobility, called MLTS~\cite{mlts}.
 His implementation relies on Elpi for animating the rules defining its
 semantics, and he made a prototype available in the browser by transpiling
-Elpi to JavaScript.\footnote{\url{https://voodoos.github.io/mlts/}}
+Elpi to JavaScript, see~\cref{fig:mlts}.
+
+\begin{sidewaysfigure}
+    % \includegraphics[width=.9\textwidth]{trace}
+    \includegraphics[width=.9\textwidth]{MLTS}
+    \caption{Screenshot from \url{https://voodoos.github.io/mlts/}\label{fig:mlts}}
+\end{sidewaysfigure}
+
+\subsubsection{The role of Elpi in MLTS}
 
 In G\'{e}rard's PhD, Elpi played only a technological role: being a
 relatively simple, self-contained interpreter written in OCaml, Elpi could be

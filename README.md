@@ -56,10 +56,10 @@
 - [x] 5.2 Hierarchy Builder - english
 - [x] 5.2.1 Mathematical Components 2.0 and M.C.A. - english
 - [x] 5.2.2 The role of Rocq-Elpi in Hierarchy Builder - english
-- [ ] 5.3 Other tools - english
-- [ ] 5.3.1 Algebra Tactics - english
-- [ ] 5.3.2 Takt and TRocq: proof transfer tools - english
-- [ ] 5.3.3 BlueRock’s BRiCk - english
+- [x] 5.3 Other tools - english
+- [x] 5.3.1 Algebra Tactics - english
+- [x] 5.3.2 Takt and TRocq: proof transfer tools - english
+- [x] 5.3.3 BlueRock’s BRiCk - english
 
 - [x] 6.1 Summary - english
 - [x] 6.1.1 Elpi the language - english
