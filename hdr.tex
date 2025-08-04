@@ -4191,8 +4191,9 @@ elements of \rocq{l}.
 
 \subsection{Natural equality tests}
 
-Now that we have a good induction principle we can prove the following
-properties about the recursive program of interest.
+
+Now that we have a string induction principle, we can establish the following
+properties for the recursive program of interest.
 
 \begin{rocqcode}
 Definition correct (T : Type) (eqb : T -> T -> bool) :=
@@ -4202,7 +4203,7 @@ Definition correct_at (T : Type) (eqb : T -> T -> bool) (x : T) :=
   ∀y : T, reflect (x = y) (eqb x y).
 \end{rocqcode}
 
-This is the form of correctness lemmas we shall prove.
+This is the form of the correctness lemmas we will prove.
 
 \begin{rocqcode}
 Lemma seq_eq_correct : ∀A eqA (l : list A),
@@ -4210,12 +4211,12 @@ Lemma seq_eq_correct : ∀A eqA (l : list A),
     correct_at (list A) (list_eq A eqA) l
 \end{rocqcode}
 
-It reads: if \rocq{eqA} is a correct test on all elements of \rocq{l},
-then \rocq{list_eq A eqA} is a good test for \rocq{l}.
+This lemma states: if \rocq{eqA} is a correct test for all elements of
+\rocq{l}, then \rocq{list_eq A eqA} is a correct test for \rocq{l}.
 
-The interesting case the the equality test for rose trees, that reuses
-the equality test for lists \rocq{list_eq} passing the recursive call
-at the \rocq{eqA} argument.
+The most interesting case is the equality test for rose trees, which reuses
+the equality test for lists \rocq{list_eq}, passing the recursive call as the
+\rocq{eqA} argument.
 
 \begin{rocqcode}
 Definition rtree_eq A (A_eq : A → A → bool) :=

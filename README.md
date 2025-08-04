@@ -47,9 +47,9 @@
 - [ ] 4.4.3 Databases, homoiconicity and rules - english
 - [ ] 4.5 Example: simple proof transfer - english
 
-- [ ] 5.1 Derive - english
-- [ ] 5.1.1 Parametricity - english
-- [ ] 5.1.2 Deep induction - english
+- [x] 5.1 Derive - english
+- [x] 5.1.1 Parametricity - english
+- [x] 5.1.2 Deep induction - english
 - [ ] 5.1.3 Natural equality tests - english
 - [ ] 5.1.4 Fast equality tests - english
 - [ ] 5.1.5 The role of Rocq-Elpi in derive - english
