@@ -4274,29 +4274,29 @@ Definition rose_eq_OK A eqA :
       r (rtree_is_rtree A (correct_at A eqA) p r).
 \end{rocqcode}
 
-To conlude, both euqality tests and their proofs are built compositionally.
-In~\cite{tassi:hal-01897468} we also discuss why these proofs can be kept opaque
-without interfeering with the termination checker.
+
+To conclude, both equality tests and their proofs are constructed
+compositionally. In~\cite{tassi:hal-01897468}, we also discuss why these proofs
+can be kept opaque without interfering with the termination checker.
 
 \subsection{Fast equality tests}
 
-The results in~\cite{tassi:hal-01897468} are futher refined in~\cite{gregoire:hal-03800154}
-where we focus on the size (and hence type checking time) of the terms
-synthesized. In particular the natural equality tests are quadratic: they
-compare each constructor with all the others. Consequently proofs are also
-quadratic in the number of constructors.
+The results in~\cite{tassi:hal-01897468} are further refined in
+~\cite{gregoire:hal-03800154}, where we focus on the size (and thus the type
+checking time) of the synthesized terms. In particular, the natural equality
+tests are quadratic: they compare each constructor with all the others.
+Consequently, the proofs are also quadratic in the number of constructors.
 
-In~\cite{gregoire:hal-03800154} we devise equality tests that are pseudo
-linear in size and we prove them correct in a compositional way using the deep
-induction principles devised in~\cite{tassi:hal-01897468}.
+In~\cite{gregoire:hal-03800154}, we devise equality tests that are pseudo-linear
+in size and prove them correct in a compositional way using the deep induction
+principles developed in~\cite{tassi:hal-01897468}.
 
-We sketch here only the pseudo linear skema for rose trees. The idea
-is to assign to each constructor a tag (a positive number) and
-compare these tags upfront. If the tags are different then
-the two rose trees are different, while if they are equal we can
-uniformly unpack the fields and compare them.
+Here, we outline only the pseudo-linear schema for rose trees. The idea is to
+assign a tag (a positive number) to each constructor and compare these tags
+upfront. If the tags differ, the two rose trees are different; if they are
+equal, we can uniformly unpack the fields and compare them.
 
-We synthesize upfront these three functions.
+We synthesize these three functions upfront.
 
 \begin{rocqcode}
 Definition tag A : rtree A -> positive.
