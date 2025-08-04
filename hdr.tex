@@ -3451,8 +3451,9 @@ judgements to holes, i.e., the call to the \ocaml{get_sigma} and
 
 \section{HOAS of holes (missing terms)}\label{sec:hoasholes}
 
-Each Rocq hole as an entry in \ocaml{sigma} that looks like a
-typing sequent. We show a simplified code from the sources of Rocq:
+
+Each Rocq hole has an entry in \ocaml{sigma} that resembles a typing sequent.
+Below, we show simplified code from the sources of Rocq:
 
 \begin{ocamlcode}
 type evar_body =
@@ -3474,14 +3475,13 @@ type evar_map = {
 }
 \end{ocamlcode}
 
-In Elpi we represent this data, to which we refer as \ocaml{sigma},
-as a set of constraints \elpi{evar}.
-Such constraint links a ``raw'' Elpi unification variable \elpi{RawEv},
-a type and the ``elaborated'' Elpi unification variable \elpi{Ev} (the meaning
-is clarified below).
-The constraint should live in a context of hypothetical rules
-\elpi{Ctx} assigning types to bound variables. In other words
-each evar is represented by the result of suspending a qury as follows
+In Elpi, we represent this data -- referred to as \ocaml{sigma} -- as a set of
+\elpi{evar} constraints. Such a constraint links a ``raw'' Elpi unification
+variable \elpi{RawEv}, a type, and the ``elaborated'' Elpi unification variable
+\elpi{Ev} (their meaning is clarified below).
+The constraint should live in a context of hypothetical rules \elpi{Ctx}
+assigning types to bound variables. In other words, each evar is represented
+by the result of suspending a query as follows:
 
 \begin{elpicode}
   pi x1\ .. pi xn\ Ctx => evar RawEv Ty Ev
@@ -3508,17 +3508,17 @@ The code above enforces the following constraints:
 \end{itemize}
 
 \noindent
-In the code above \elpi{rocq.elaborate-skeleton} is an API
-very similar to \elpi{rocq.typecheck} but that does not modify
-its input in place. It rather uses its input as a skeleton term that is
-copied. This allows for changes to the structure of the term, like inserting
-explicit coercions to implement type casts. The API corresponds to the code
-that Rocq runs on any input term written by the user, while \elpi{rocq.typecheck}
-corresponds to code internally used by Rocq tactics to build well typed terms.
+In the code above, \elpi{rocq.elaborate-skeleton} is an API very similar to
+\elpi{rocq.typecheck}, but it does not modify its input in place. Instead, it
+uses its input as a skeleton term that is copied. This allows for changes to
+the structure of the term, such as inserting explicit coercions to implement
+type casts. The API corresponds to the code that Rocq runs on any input term
+written by the user, while \elpi{rocq.typecheck} corresponds to code
+internally used by Rocq tactics to build well-typed terms.
 
-In order to declare a new \elpi{evar} constraint in any moment, even if
-the current $\lambda$Prolog program has more names andhypothetical rules
-that needed, we resort to the following predicate:
+In order to declare a new \elpi{evar} constraint at any time, even if the
+current $\lambda$Prolog program has more names and hypothetical rules than
+needed, we use the following predicate:
 
 \begin{elpicode}
 pred declare-evar i:list prop, i:term, i:term, i:term.
@@ -3532,24 +3532,22 @@ constraint declare-evar evar def decl {
 \end{elpicode}
 
 \noindent
-Note how \elpi{declare-evar} uses a CHR rule to craft
-a new goal with a precise context \elpi{Ctx}, no matter the context
-under which \elpi{declare-evar} is generated. Ineed a Rocq API
-that is called deep inside a term and that encounters a new hole
-will add to Rocq's sigma an entry for it, but also generate a
-\elpi{declare-evar}, and hence an \elpi{evar} constraint
-in Elpi. This is possible thanks to the type of
-contextual conversion, that comprises a list of extra goals to be
-generated in response to the conversion.
+Note how \elpi{declare-evar} uses a CHR rule to craft a new goal with a
+precise context \elpi{Ctx}, regardless of the context under which
+\elpi{declare-evar} is run. Indeed, a Rocq API that is called deep
+inside a term and encounters a new hole will add an entry for it to Rocq's
+sigma, but also generate a \elpi{declare-evar}, and hence an \elpi{evar}
+constraint in Elpi. This is possible thanks to the type of contextual
+conversions (\cref{sec:hodata}), which includes a list of extra goals to be generated in response
+to the conversion.
 
-The only missing bit the \ocaml{get_sigma} and \ocaml{set_sigma} APIs.
-Their role is synchronize updates to \ocaml{sigma} in both directions.
-The former, \ocaml{get_sigma}, is the simplest since a Rocq
-datum of type \ocaml{evar_map} is stored into the extensible state
-of Elpi.
+The only missing pieces are the \ocaml{get_sigma} and \ocaml{set_sigma}
+APIs. Their role is to synchronize updates to \ocaml{sigma} in both
+directions. The former, \ocaml{get_sigma}, is the simplest, since a Rocq
+datum of type \ocaml{evar_map} is stored in the extensible state of Elpi.
 
-To implement the other one we take advantage of an API offered by Elpi:
-a bidirectional map linking Rocq unification variables and Elpi holes.
+To implement the other, we take advantage of an API offered by Elpi: a
+bidirectional map linking Rocq unification variables and Elpi holes.
 
 \begin{ocamlcode}
 module FlexibleData : sig
@@ -3566,14 +3564,13 @@ module FlexibleData : sig
 \end{ocamlcode}
 
 \noindent
-The extensible state contains two instances of the bidirectional map above,
-one for ``raw'' holes and one for ``elaborated'': a Rocq \ocaml{Evar.t}
-is linked to one of each.
-In order to propagate and update to \ocaml{sigma} performed by Rocq we 
-fold over the set of linked evars to check if the were assigned. If so
-we remove the corresponding \elpi{evar} constraint and we also generate
-the corresponding assignement as an Elpi unification problem between the
-hole and the Rocq term.
+The extensible state contains two instances of the bidirectional map
+described above: one for ``raw'' holes and one for ``elaborated'' holes. A Rocq
+\ocaml{Evar.t} is linked to one of each.
+To propagate changes to \ocaml{sigma} performed by Rocq, we fold
+over the set of linked evars to check if they have been assigned. If so, we
+remove the corresponding \elpi{evar} constraint and generate the corresponding
+assignment as an Elpi unification problem between the hole and the Rocq term.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
