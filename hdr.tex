@@ -3745,26 +3745,30 @@ or tactics are used in a Rocq library.
 
 \subsubsection{Homoiconicity and rules}
 
-There are two characteristic of Elpi that make data bases possible and also
-handy to use.
 
-The first one is that Elpi is a Homoiconic language: it can manipulate its own
-syntax. The line
+There are two characteristics of Elpi that make databases both possible and
+convenient to use.
+
+
+The first is that Elpi is a homoiconic language: it can manipulate its own
+syntax. The following line illustrates this property:
 
 \begin{elpicode}
 TheNewRule = age Name Age,
 \end{elpicode}
 
-is the simplest evidence of it: \elpi{TheNewRule} contains a pice
-of Elpi code built from the \elpi{age} predicate and the two arguments
-passed to \elpi{main}. Since construction/inspection are conflated
-into unification in logic programming, the same line can be used to analyze the
-syntax of a piece of code in order to extra the name and age.
 
-The second characteristic of Elpi that really helps is that the code is
-organized into rules, meaning that \elpi{age Name Age} is an entire code
-unit one can build or inspect. In comparison the OCaml code for the
-\ocaml{age} function is a single expression (a single unit):
+This is the simplest evidence of it: \elpi{TheNewRule} contains a piece of
+Elpi code built from the \elpi{age} predicate and the two arguments passed to
+\elpi{main}. Since construction and inspection are conflated into unification
+in logic programming, the same line can be used to analyze the syntax of a
+piece of code in order to extract the name and age.
+
+
+The second helpful characteristic of Elpi is that code is organized into rules,
+meaning that \elpi{age Name Age} is an entire code unit that one can build,
+inspect and run. In comparison, the OCaml code for the \ocaml{age} function is a
+single expression (a single unit):
 
 \begin{ocamlcode}
 let age s =
@@ -3774,18 +3778,20 @@ let age s =
   | _ => failwith ("I don't know who " ^ s ^ " is!")
 \end{ocamlcode}
 
-While it is surely possibe to traverse the syntax tree above and add one
-pattern match branch before the last one, that manipulation is not completely
-trivial. To make it so one should opt out of most of the syntactic sugar and
-commit to use a syntactic form that is as close as possible to the one
-of a rule based language:
+
+While it is certainly possible to traverse the syntax tree above and add a
+pattern match branch before the last one, such manipulation is not entirely
+trivial. To make it so, one should opt out of most syntactic sugar and commit
+to using a syntactic form that is as close as possible to that of a rule-based
+language:
 \begin{itemize}
-  \item making all variable bindings local to the pattern matching branch branch
+  \item making all variable bindings local to the pattern matching branch
   \item making all rules syntactically independent
 \end{itemize}
 
-The code below respects these points. Remak \ocaml{s} binding now
-being local to the last branch, and the separation between the bob and
+
+The code below respects these points. Note that the \ocaml{s} binding is now
+local to the last branch, and there is a clear separation between the bob and
 mallory branches:
 
 \begin{ocamlcode}
@@ -3796,9 +3802,10 @@ let age = function
   | s => failwith ("I don't know who " ^ s ^ " is!")
 \end{ocamlcode}
   
-The syntactic price one pays when writing Elpi code is now partially
-compensated by the ease of extending existing code.
-The example in the following section makes good use of this possiblity.
+
+The syntactic price one pays when writing Elpi code is thus partially
+compensated by the ease of extending existing code. The example in the
+following section makes good use of this possibility.
 
 \section{Example: simple proof transfer}\label{sec:tb}
 
