@@ -4412,35 +4412,34 @@ declarations, such as those introduced by the \rocq{Record} or
 
 \subsection{Mathematical Components 2.0 and M.C.A.}
 
-Even if HB was, in principle, capable to describe all the interfaces of
-the Mathematical Components library, it was still a huge effort to port the
-library to the HB language.  We were lucky that developers and power users of
-Mathematical Components agreed to work on it during a week-long coding
-sprint~\cite{affeldt:hal-03463762}. The results surpassed our expectations:
-not only the library was ported, but many satellite projects moved to
-HB as well.
 
-The ease in defining new interfaces brought by HB unlocked 
-the growth of the mathematical components library, in particular of
-its order theory component. The graph in \cref{fig:mc} shows in green the
-number of interfaces defined using HB.
+Even though HB was, in principle, capable of describing all the interfaces of
+the Mathematical Components library, porting the library to the HB language was
+still a significant effort. We were fortunate that developers and power users
+of Mathematical Components agreed to work on this during a week-long coding
+sprint~\cite{affeldt:hal-03463762}. The results exceeded our expectations: not
+only was the library ported, but many satellite projects also migrated to HB.
+
+The ease of defining new interfaces provided by HB unlocked the growth of the
+Mathematical Components library, particularly its order theory component. The
+graph in \cref{fig:mc} shows in green the number of interfaces defined using
+HB.
 
 \begin{figure}[!ht]
 \includegraphics[width=\textwidth,trim={2cm 4cm 2cm 4cm},clip]{hb\_intf.pdf}
 \caption{Evolution of the Mathematical Components library\label{fig:mc}}
 \end{figure}
 
-One can see that since HB was introduced the number of
-interfaces started to grow steadily. In the last three years about a hundred
-of them were added, almost doubling their overall quantity,
-while in the previous zeven years only a handful.
-One can also see that the size of the library shrunk visibly as the result of
-the porting, since the HB language hides boilerplaec code that has a size
-(when hand written) quadratic in the number of related interfaces.
+One can see that since HB was introduced, the number of interfaces has grown
+steadily. In the last three years, about a hundred were added, almost doubling
+their total, while in the previous seven years only a handful were added. One
+can also see that the size of the library visibly shrank as a result of the
+port, since the HB language hides boilerplate code that, when handwritten, is
+quadratic in the number of related interfaces.
 
-We want to stress the link between the growth of the hierarchy of interfaces and
-the growth of the actual contents (definitions and theorems) of a formal
-library. \cref{fig:mca} shows the steady progress made by the
+We want to emphasize the link between the growth of the hierarchy of
+interfaces and the growth of the actual contents (definitions and theorems) of
+a formal library. \cref{fig:mca} shows the steady progress made by the
 Mathematical Components Analysis library (MCA).
 
 \begin{figure}[!hb]
