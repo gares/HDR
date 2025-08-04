@@ -3333,12 +3333,12 @@ much faster investigation.
 
 \section{HOAS of Rocq terms and contexts}\label{GALLINA}
 
-The main data type Rocq-Elpi programs work with is the one of
-terms. The first bit of terms worth describing are the pointers
-to global objects. While \elpi{constant}, 
-\elpi{inductive} and \elpi{constructor} are opaque
-data (as in \cref{sec:opaquedata}), their nature is exposed as
-an algebraic data type.
+
+The main data type that Rocq-Elpi programs work with is the one of terms. The
+first aspect of terms worth describing is the pointers to global objects.
+While \elpi{constant}, \elpi{inductive}, and \elpi{constructor} are opaque
+data (as in \cref{sec:opaquedata}), their nature is exposed as an algebraic
+data type.
 
 \begin{elpicode}
 kind gref type.
@@ -3347,10 +3347,9 @@ type indt  inductive -> gref.           % nat, list, ...
 type indc  constructor -> gref.         % O, S, nil, cons, ...
 \end{elpicode}
 
-Global objects are injected in the term data type via the
-\elpi{global} term constructor and its variant
-\elpi{pglobal} dedicated to universe-polymorphic global
-object.
+Global objects are injected into the term data type via the \elpi{global} term
+constructor and its variant \elpi{pglobal}, which is dedicated to universe-
+polymorphic global objects.
 
 \begin{elpicode}
 kind term type.
@@ -3359,18 +3358,16 @@ type pglobal gref -> univ-instance -> term.
 type sort    sort -> term.                 % Prop, Type@{i}, SProp
 \end{elpicode}
 
-We omit the algebraic data type for sorts and we rather focus on the
-three binders: \elpi{fun} and \elpi{prod} for abstraction
-and \elpi{let} for abbreviations.
-Other than the higher order argument, the detail common
-to all of the them is the \elpi{name} argument. It stands for
-a pretty printing information, e.g. the bound variable as written by
-the user. It is important to remark that \elpi{name} is
-an opaque data type with a trivial euqality test. That is, the
-name ``x'' and ``y'' are equal in Elpi, although they hold a
-different value in OCaml. This is key to align the equational theory
-of the meta language Elpi with a sensible notion of equality for
-the object language Gallina, namely $\alpha$-equivalence.
+We omit the algebraic data type for sorts and instead focus on the three
+binders: \elpi{fun} and \elpi{prod} for abstraction, and \elpi{let} for
+abbreviation. In addition to the higher-order argument, the detail common to
+all of them is the \elpi{name} argument. It stands for pretty-printing
+information, e.g., the bound variable as written by the user. It is important
+to note that \elpi{name} is an opaque data type with a trivial equality test.
+That is, the names ``x'' and ``y'' are equal in Elpi, although they hold
+different values in OCaml. This is key to aligning the equational theory of
+the meta-language Elpi with a sensible notion of equality for the object
+language Gallina, namely $\alpha$-equivalence.
 
 \begin{elpicode}
 type fun  name -> term -> (term -> term) -> term.            % λ
@@ -3378,17 +3375,18 @@ type prod name -> term -> (term -> term) -> term.            % ∀
 type let  name -> term -> term -> (term -> term) -> term.    % let
 \end{elpicode}
 
-Application is n-ary, with the head and arguments hold by a list.
-This choice, over binary application as in~\cref{sec:hello}, eases
-the access to the head: according to our experience the vast majority
-of rules is discriminated by the head constant of the terms they work on.
 
-The Rocq pattern matching constructor packs together the scrutinee,
-a term used to uniformly assign a type to branches and a list of
-branches. The fixpoint operator is a binder, for the recursive call,
-and carries the index of the decreasing argument. Finally a single
-constructor holds all primitive values, eg 63 bit integers and floating
-point numbers; primitive record projections.
+Application is n-ary, with the head and arguments held in a list. This choice,
+over binary application as in~\cref{sec:hello}, eases access to the head:
+according to our experience, the vast majority of rules are discriminated by
+the head constant of the terms they operate on.
+
+The Rocq pattern matching constructor packs together the scrutinee, a term
+used to uniformly assign a type to branches, and a list of branches. The
+fixpoint operator is a binder for the recursive call and carries the index of
+the decreasing argument. Finally, a single constructor holds all primitive
+values, e.g., 63-bit integers, floating point numbers, and primitive record
+projections.
 
 \begin{elpicode}
 type app       list term -> term.                     
@@ -3397,9 +3395,9 @@ type fix       name -> int -> term -> (term -> term) -> term.
 type primitive primitive-value -> term.
 \end{elpicode}
 
-What is worth focusing on is the representation of contexts, a convention
-used when crossing binders to enable APIs to be called deep inside terms.
-Two context entry need to be available, one for abstraction and one for
+What is worth focusing on is the representation of contexts -- a convention used
+when crossing binders to enable APIs to be called deep inside terms. Two
+context entries need to be available: one for abstraction and one for
 abbreviation.
 
 \begin{elpicode}
@@ -3408,22 +3406,22 @@ pred def  i:term, o:name, o:term, o:term.         % Var Name Ty Bo
 \end{elpicode}
 
 The first argument of each is, by convention, a bound variable, and is
-expected to be passed as an input in order to retrieve the associaed
-pretty pringing information, the type and in the case of
-abbreviation the body. In the light of that, code that crosses a binder
-is expected to either declare a \elpi{decl} or a \elpi{def}
-hypothetical rule for the bound variable as follows:
+expected to be passed as input in order to retrieve the associated pretty
+printing information, the type, and, in the case of abbreviation, the body. In
+light of this, code that crosses a binder is expected to declare either a
+\elpi{decl} or a \elpi{def} hypothetical rule for the bound variable as
+follows:
 
 \begin{elpicode}
 cross (fun N T F) :- pi x\ decl x N T => cross (F x).
 \end{elpicode}
 
-As a result of the convention, one can call \elpi{rocq.typecheck}
-deep inside a term. As described in~\cref{sec:API} a predicate can
-be equipped with a \ocaml{ctx_readback} function such
-as \ocaml{proof_context} in the code below. The \ocaml{term}
-contextual conversion can hence access a Rocq context when operating its
-readback or embedding code.
+
+As a result of this convention, one can call \elpi{rocq.typecheck} deep inside
+a term. As described in~\cref{sec:API}, a built-in predicate can be equipped with a
+\ocaml{ctx_readback} function, such as \ocaml{proof_context} in the code
+below. The \ocaml{term} contextual conversion can thus access a Rocq context
+when operating its readback or embedding code.
 
 \begin{ocamlcode}
 MLCode(Pred("rocq.typecheck",
@@ -3438,20 +3436,18 @@ MLCode(Pred("rocq.typecheck",
       ...
 \end{ocamlcode}
 
-Indeed here the \ocaml{t} and \ocaml{ety} values
-are read back in the \ocaml{proof_context.env} Rocq context,
-that is also passed to the type checker in order to synthesize the
-type of \ocaml{t}, and later (in the omitted code) to unify
-the inferred type with the expected one \ocaml{ety} when provided.
-The \ocaml{B.ioargC} adaptor lifts a contextual conversion to the option
-type: if actual data is provided, then it is converted.
-The \ocaml{B.diagnostic} datum is either the Elpi value
-\elpi{ok} or \elpi{error "message"}, hence a call \elpi{rocq.typecheck T Ty ok}
-asserts that \elpi{T} is well typed of type \elpi{Ty}.
 
-The only missing piece is \ocaml{sigma}, the environment assigning
-type judgements to holes, i.e. the call to the \ocaml{get_sigma} and
-\ocaml{set_sigma} API.
+Here, the \ocaml{t} and \ocaml{ety} values are read back in the
+\ocaml{proof_context.env} Rocq context, which is also passed to the type
+checker to synthesize the type of \ocaml{t}, and later (in the omitted code)
+to unify the inferred type with the expected one \ocaml{ety}, when provided.
+The \ocaml{B.diagnostic} datum is either the Elpi value \elpi{ok} or
+\elpi{error "message"}; thus, a call \elpi{rocq.typecheck T Ty ok} is the
+idiom to assert that \elpi{T} is well-typed of type \elpi{Ty}.
+
+The only missing piece is \ocaml{sigma}, the environment assigning type
+judgements to holes, i.e., the call to the \ocaml{get_sigma} and
+\ocaml{set_sigma} APIs, which we focus on in the next section.
 
 \section{HOAS of holes (missing terms)}\label{sec:hoasholes}
 
