@@ -4556,44 +4556,44 @@ extreme goal (for an interactive theorem prover).
 
 \subsection{Takt and TRocq: proof transfer tools}
 
+
 The most frequently asked question regarding the Mathematical Components
 library is: how do we make it compute?
 
-Almost all definitions in the library
-are computable, but are not immediately executable by Rocq for one of
-the following two reasons. Either they are executable but are inefficient
-being optimized for proofs and not computations, or they are ``locked''
-behind an opaque module signature to enforce an abstraction barrier previnting
-the Rocq type checker to potentially take an unreasonable amount of time.
+Almost all definitions in the library are computable, but they are not
+immediately executable by Rocq for one of two reasons. Either they are
+executable but inefficient, being optimized for proofs rather than
+computation, or they are ``locked behind an opaque module signature to enforce
+an abstraction barrier, preventing the Rocq type checker from potentially
+taking an unreasonable amount of time.
 
-The answer to the F.A.Q. is to transfer an expression about inefficient or
-locked operations to (equivalent) fast and unlocked ones. While defining
-such operations and proving the correspondence is feasible, and sometimes
-even already part of the library, the tooling to automatically perform
-the transfer never really existed in a easy-to-use form.
+The answer to this FAQ is to transfer an expression involving inefficient or
+locked operations to (equivalent) fast and unlocked ones. While defining such
+operations and proving their correspondence is feasible—and sometimes already
+part of the library—the tooling to automatically perform the transfer never
+really existed in an easy-to-use form.
 
 The Trakt tool~\cite{DBLP:conf/cpp/Blot0CPKMV23} and its successor
-Trocq~\cite{10.1007/978-3-031-57262-3_10} fill this space. Both
-are implemented in Elpi and are organized as sketched in~\cref{sec:tb}.
-Trocq is based on a gradualized version of the Univalent Parametricity
+Trocq~\cite{10.1007/978-3-031-57262-3_10} fill this gap. Both are implemented
+in Elpi and are organized as sketched in~\cref{sec:tb}. Trocq is based on a
+gradualized version of the Univalent Parametricity
 translation~\cite{10.1145/3429979}. Unlike the parametricity relation
-sketched in~\cref{sec:param1} that talks about bare bone relations, the univalent
-version focuses on relations that are equivalences.
-Trocq improves on that by studying the relations that are in between,
-like implication (i.e. type theoretic maps).
-It turns out that in many cases of practical interest the type
-theory of Rocq, that does not internalize the principle of univalence, is
-sufficient to represent the result of the parametricy translation
-for non bare-bone relations.
+sketched in~\cref{sec:param1}, which concerns bare-bone relations, the
+univalent version focuses on relations that are equivalences. Trocq improves
+on this by studying relations that are in between, such as implication (i.e.,
+type-theoretic maps). It turns out that in many cases of practical interest,
+the type theory of Rocq—which does not internalize the principle of
+univalence—is sufficient to represent the result of the parametricity
+translation for non-bare-bone relations.
 
 \subsubsection{The role of Rocq-Elpi in Trocq}
 
-In his PhD disseration~\cite[Page 115]{enzo}, Crance
-highlights how naturally pen-and-paper Trocq rules can be transposed in Elpi.
-It is worth mentioning that Crance uses Constraints Handling Rules to
-store axiom-requirements when translating an expression, and only when
-all requirements are know he computes the minimum set of Rocq axioms
-needed in order to represent the parametricity based translation.
+In his PhD dissertation~\cite[Page 115]{enzo}, Crance highlights how naturally
+pen-and-paper Trocq rules can be transposed into Elpi. It is worth mentioning
+that Crance uses Constraints Handling Rules to store axiom requirements when
+translating an expression, and only when all requirements are known does he
+compute the minimum set of Rocq axioms needed to represent the parametricity-
+based translation.
 
 % \subsection{EIris: ???}
 
@@ -4601,45 +4601,45 @@ needed in order to represent the parametricity based translation.
 
 \subsection{BlueRock's BRiCk}
 
-BlueRock systems\footnote{\url{https://www.bluerock.io/}} is a company
-developing, among other things, the BRiCk program logic for C++.
-It is a set of Rocq libraries, partially based on Iris~\cite{10.1145/2676726.2676980,10.1007/978-3-662-54434-1_26},
-to reason about existing C++ code: a \texttt{cpp2v} tool translate C++
-classes to a formal representation on which specification can be written.
 
-They employ Rocq-Elpi to synthesize code automatically extending the
-derive utility described in~\cref{sec:derive}. In particular they synthesize
-type classes instances for the \rocq{EqDecision}, \rocq{Countable},
-\rocq{Finite} and \rocq{Inhabited} std++ classes, as well as a serialization
-one called \rocq{ToBit}. Finally
-they also synthesize Lenses, that is support code for record updates.
+BlueRock Systems\footnote{\url{https://www.bluerock.io/}} is a company
+developing, among other things, the BRiCk program logic for C++. This consists
+of a set of Rocq libraries, partially based on Iris
+~\cite{10.1145/2676726.2676980,10.1007/978-3-662-54434-1_26}, for reasoning
+about existing C++ code: a \texttt{cpp2v} tool translates C++ classes to a
+formal representation on which specifications can be written.
 
-We focus on another use they make of Rocq-Elpi in the form of its
-NES application.
+They employ Rocq-Elpi to automatically synthesize code, extending the derive
+utility described in~\cref{sec:derive}. In particular, they synthesize type
+class instances for the \rocq{EqDecision}, \rocq{Countable}, \rocq{Finite},
+and \rocq{Inhabited} std++ classes, as well as a serialization class called
+\rocq{ToBit}. Finally, they also synthesize Lenses, which are support code for
+record updates.
+
+We focus here on another use they make of Rocq-Elpi, namely its NES
+application.
 
 \subsubsection{N.E.S. -- Namespace Emulation System}
 
-It is folklore that Rocq modules can, somehow, emulate name spaces.
-Rocq modules are inspired by OCaml modules and are a closed entity: when
-a module is closed one cannot add to it any new item. Sure one can
-define a new module and include the old one together with some additions,
-but the module is a new one, with a different name. Namespaces on the
-contrary give an open ended notion of that: one can alwas add new items
-to an existing namespace.
+It is well known that Rocq modules can, to some extent, emulate namespaces.
+Rocq modules are inspired by OCaml modules and are closed entities: once a
+module is closed, no new items can be added to it. One can define a new module
+and include the old one together with some additions, but the resulting module
+is a new one, with a different name. In contrast, namespaces provide an open-
+ended notion: new items can always be added to an existing namespace.
 
-The key ingredient for emulating namespaces with modules is the presence,
-in Rocq, of a so called ``nametab'': an environment of non-ambiguous names
-that can be extended by importing in it the names from a module, even the
-names of modules themselves. It allows to create the illusion that \rocq{A.x}
-and \rocq{A.y} are items from the same module \rocq{A} even if
-the two \rocq{A}s have different (long) names, eg \rocq{X1.A.x}
-and \rocq{X2.A.y}.
+The key ingredient for emulating namespaces with modules is the presence in
+Rocq of a so-called ``nametab'': an environment of non-ambiguous names that can
+be extended by importing names from a module, including the names of modules
+themselves. This allows the illusion that \rocq{A.x} and \rocq{A.y} are items
+from the same module \rocq{A}, even if the two \rocq{A}s have different (long)
+names, e.g., \rocq{X1.A.x} and \rocq{X2.A.y}.
 
-NES emulates name spaces using the trick above. It was developed
-together with Cyril Cohen as a proof of concept, possibly an addition
-to Hierarchy Builder. We believe BRiCk uses it to mimick C++ namespaces.
+NES emulates namespaces using the trick above. It was developed together with
+Cyril Cohen as a proof of concept, possibly as an addition to Hierarchy
+Builder. We believe BRiCk uses it to mimic C++ namespaces.
 
-The basic features of NES can be seen here in the Rocq code below:
+The basic features of NES can be seen in the Rocq code below:
 
 \begin{rocqcode}
 (* we place ourselves in a name space *)
@@ -4664,9 +4664,10 @@ NES.Open This.Is.A.Long.Namespace.
 Print stuff. (* = 1 *)
 \end{rocqcode}
 
-It worth pointing out how the definition of \rocq{more_stuff}
-uses the contents of the name space, i.e. how the second definition
-of stuff does not cause a name capture (in another name space).
+
+It is worth noting how the definition of \rocq{more_stuff} uses the contents
+of the namespace; that is, the second definition of \rocq{stuff} does not
+cause name capture (in another namespace).
 
 \begin{rocqcode}
 Eval lazy in more_stuff. (* = 1 *)
@@ -4674,17 +4675,17 @@ Eval lazy in more_stuff. (* = 1 *)
 
 \subsubsection{The role of Rocq-Elpi in BRiKs}
 
-Although BlueRock has made some of his code public, much of it is still
-private hence we cannot really speculate what ingredient of the Elpi
-language plays which role. For sure the large set of APIs provided by
-Rocq-Elpi plays a role here.
+Although BlueRock has made some of its code public, much of it remains
+private, so we cannot speculate in detail about which features of the Elpi
+language play which roles. Certainly, the large set of APIs provided by
+Rocq-Elpi is important here.
 
-The company made public that they run about 6.5K lines of Elpi, that is
-to our knowledge the largest Elpi code base out there, given that Hierarchy
-Builder is, all included, less than 5K lines of code.
+The company has disclosed that they run about 6,500 lines of Elpi code, which
+is, to our knowledge, the largest Elpi code base in existence, given that
+Hierarchy Builder, all included, is less than 5,000 lines of code.
 
-In recent years the formal methods team of BlueRock contributed valuable
-patches and early feedback to Elpi and Rocq-Elpi.  
+In recent years, the formal methods team at BlueRock has contributed valuable
+patches and early feedback to Elpi and Rocq-Elpi.
 
 \subsection{Proofcert}
 
