@@ -3251,29 +3251,29 @@ Lifting this limitation is possible and planned.
 
 \chapter{Rocq-Elpi}\label{sec:rocq}
 
+
 While Elpi is a standalone language and software project, it was designed to
-play the role of an \emph{extension language} for Rocq. The glue between Elpi and
-Rocq is called Rocq-Elpi.
+serve as an \emph{extension language} for Rocq. The glue between Elpi and Rocq
+is called Rocq-Elpi.
 
-My definition of this role, \emph{extension language}, is largely influenced
-by the Lua programming language~\cite{10.5555/1200583}. Lua is an extension
-language for applications written in C and is widely used in the Opens Source
-world and in the gaming industry.
-Its purpose is to provide an easy way to extend the host application.
-It is easy to host Lua since its FFI is well curated, and thanks to that
-exposing the internals of the application to the extension language requires a
-limited effort to the application developer. It is easier to program in Lua,
-rather than C, because the language is higher level, e.g. is features automatic
-memory management and provides dictionaries as a builtin data structure.
-Finally, it is easy for a user to get started with Lua because he does not need
-to set up a proper development environment, the host application is sufficient
-since Lua is an interpreter.\\
-Elpi tries to do the same for OCaml, and Rocq is the host application of interest.
+My definition of this role, \emph{extension language}, is largely influenced by
+the Lua programming language~\cite{10.5555/1200583}. Lua is an extension
+language for applications written in C and is widely used in the open source
+world and the gaming industry. Its purpose is to provide an easy way to extend
+the host application. Lua is easy to host because its FFI is well curated;
+exposing the internals of the application to the extension language requires
+limited effort from the application developer. It is easier to program in Lua
+than in C, because Lua is a higher-level language: for example, it features
+automatic memory management and provides dictionaries as a built-in data
+structure. Finally, it is easy for a user to get started with Lua because no
+special development environment is needed—the host application is sufficient,
+since Lua is an interpreter.
+Elpi aims to do the same for OCaml, with Rocq as the host application of
+interest.
 
-In academia the same role is often called meta-programming framework.
-Rocq's main data type, terms, are programs and Elpi
-programs do manipulate Rocq programs. In this sense Elpi programs live at the
-meta level.
+In academia, the same role is often called a meta-programming framework. Rocq's
+main data type, terms, are programs, and Elpi programs manipulate Rocq
+programs. In this sense, Elpi programs operate at the meta level.
 
 \section{Why extending Rocq in OCaml is hard}
 
