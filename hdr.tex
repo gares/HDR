@@ -4322,10 +4322,10 @@ Definition rose_eqb A eqA : rtree A -> rtree A -> bool :=
     end.
 \end{rocqcode}
 
-When the tags agree, \rocq{eqb_body} extracts the fields
-of the second rose tree and calls \rocq{eqb_fields}.
-Since the two fields have, respectively, type 
-\rocq{fields_t t1} and \rocq{fields_t t2} a cast is necessary.
+
+When the tags match, \rocq{eqb_body} extracts the fields of the second rose
+tree and calls \rocq{eqb_fields}. Since the two fields have types
+\rocq{fields_t t1} and \rocq{fields_t t2}, respectively, a cast is necessary.
 
 \begin{rocqcode}
 Definition eqb_body t1 eqb_fields v1 x2 :=
@@ -4338,8 +4338,8 @@ Definition eqb_body t1 eqb_fields v1 x2 :=
   end.
 \end{rocqcode}
 
-Comparing the fieds amounts at calling the equality test for the
-right type, possibly using the recursive call to \rocq{rose_eqb}.
+Comparing the fields amounts to calling the equality test for the appropriate
+type, possibly using the recursive call to \rocq{rose_eqb}.
 
 \begin{rocqcode}
 Definition eqb_fields A eqA rec t :
@@ -4352,28 +4352,28 @@ Definition eqb_fields A eqA rec t :
   | _ => λ_ _ => true (* impossible, only 2 constructors *)
 \end{rocqcode}
 
-As we can see the two matches of the constructors are no nested, but rather
-chained. Both \rocq{rose_eqb} and \rocq{eqb_fields} have a number
-of branches proportional to the number of constructors.
+As we can see, the two matches for the constructors are not nested, but rather
+chained. Both \rocq{rose_eqb} and \rocq{eqb_fields} have a number of branches
+proportional to the number of constructors.
 
-The main downside is that, unless the quality tests gets extracted to
-OCaml, the type cast that uses the evidence provided by \rocq{pos_eq_dec}
-has to be evaluated. The reader interested in benchmarks
-can find them in~\cite{gregoire:hal-03800154}.
+
+The main downside is that, unless the equality tests are extracted to OCaml,
+the type cast that uses the evidence provided by \rocq{pos_eq_dec} must be
+evaluated. Readers interested in benchmarks can find them in
+~\cite{gregoire:hal-03800154}.
 
 \subsection{The role of Rocq-Elpi in derive}
-The Elpi language turned out to be instrumental in this research since
-it allowed to quickly and concisely write derivations. Some of the derivations
-like the one for deep inductive principles, were not know before, and the ease
-of experimentation was intrumental to discover them.
+The Elpi language proved instrumental in this research, as it enabled the
+rapid and concise development of derivations. Some derivations, such as the one
+for deep inductive principles, were previously unknown, and the ease of
+experimentation was crucial for their discovery.
 
-We believe that
-the automatic handling of names and holes was key. Only a few Rocq APIs were
-really necessary: reading from and writing to the logical environment and
-invoke type inference. Although these API come with glue code that is far from
-trivial since they read/write inductive types in HOAS form.
-Performance was not crytical: all bottlenecks turned out to be inefficiencies
-in Rocq, and in particular in the APIs to manage universe constraints.
+We believe that the automatic handling of names and holes was essential. Only a
+few Rocq APIs were truly necessary: reading from and writing to the logical
+environment, and invoking type inference. Although these APIs require glue code
+that is far from trivial—since they read and write inductive types in HOAS
+form—performance was not critical. All bottlenecks were due to inefficiencies
+in Rocq, particularly in the APIs for managing universe constraints.
 
 
 \section{Hierarchy Builder}\label{sec:hb}
