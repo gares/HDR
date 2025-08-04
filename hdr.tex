@@ -4060,20 +4060,20 @@ is_cons: ∀A (isA : A → U), ∀a, isA a →
   ∀l, is_list A isA l → is_list A isA (a :: l).
 \end{rocqcode}
 
-As for the translation of natural numbers, each term comes with a proof
-that is has the expected type. When the term \rocq{a} of type \rocq{A},
-the type parameter of the container, then it comes with a proof of \rocq{isA a},
-the predicate associated with \rocq{A}.
-The unary parametricity translation is the key to express, in a
-systematic way, that a property holds deep inside a container.
 
-Parametricity is a meta theorem in Rocq, a theorem about Rocq itself.
-Since it cannot be represented by a Gallina term one
-needs a meta language to effectively implement it.
-Cyril Cohen implemented the binary parametricity translaton in the fall of 2017,
-as he was interested in employing the translation in the Rocq-EAL project.
-I based the unary version on his code. Each translation is about 250 lines
-of Elpi code.
+As with the translation of natural numbers, each term is accompanied by a proof
+that it has the expected type. When considering a term \rocq{a} of
+type \rocq{A}, the type parameter of the container, it is paired with a proof of
+\rocq{isA a}, the predicate associated with \rocq{A}. The unary parametricity
+translation is essential for systematically expressing that a property holds deep
+within a container.
+
+Parametricity is a meta-theorem in Rocq, that is, a theorem about Rocq itself.
+Since it cannot be represented by a Gallina term, a meta-language is required for
+its effective implementation. Cyril Cohen implemented the binary parametricity
+translation in the fall of 2017, motivated by his interest in applying the
+translation to the Rocq-EAL project. I based the unary version on his code. Each
+translation consists of about 250 lines of Elpi code.
 
 \subsection{Deep induction}
 
