@@ -3999,26 +3999,25 @@ At the end of each section, we discuss which features of Elpi and Rocq-Elpi are 
 
 \section{Derive}\label{sec:derive}
 
-The derive application is a framework for automatic
-code generation, typically in response to the declaration of a new inductive
-data type.
+The Derive application is a framework for automatic code generation, 
+typically triggered by the declaration of a new inductive data type.
 
-Rocq itself is known to generate induction principles and equality tests.
-Unfortunately it is also known to generate bad induction principles when
-containers (e.g. lists) are involved and often fail to generate useful
+Rocq itself is known for generating induction principles and equality tests.
+However, it is also known to produce suboptimal induction principles when
+containers (e.g., lists) are involved, and it often fails to generate useful
 equality tests.
 
-We saw the opportunity to improve on that starting with the L3 internship of
-Luc Chabassier that wrote the first prototype in the summer of 2017.
-He succeeded in generating
-equality tests and their proofs in two months. While most of the credit goes to
-his learning skills, the experience confirmed that Rocq-Elpi was able to support
-research in this domain. Indeed the solution implemented by Luc, although
-correct, was not very satisfactory since it was not modular. Improving
-on that lead to~\cite{tassi:hal-01897468} that describes a skema to
-generate so called deep induction principles and uses them to prove
-equality tests correct. Before discussing that work we need to introduce
-the swiss army knife of boilerplate code generation: parametricity.
+We identified an opportunity for improvement, beginning with the L3
+internship of Luc Chabassier, who developed the first prototype during the
+summer of 2017. Within two months, he successfully generated equality tests
+and their proofs. While much of the credit goes to his learning abilities,
+this experience confirmed that Rocq-Elpi could effectively support research
+in this area. Nevertheless, the solution implemented by Luc, although correct,
+lacked modularity. Further improvements led to~\cite{tassi:hal-01897468},
+which describes a schema for generating so-called deep induction principles
+and demonstrates their use in proving the correctness of equality tests.
+Before discussing this work, we need to introduce the ``Swiss army knife''
+of boilerplate code generation: parametricity.
 
 \subsection{Parametricity}\label{sec:param1}
 
@@ -4026,7 +4025,7 @@ The so called parametricy translation \cite{keller_et_al:LIPIcs.CSL.2012.381}
 is a family of procedures $[\cdot]_i$ indexed by an arity $i$. We focus on the
 unary one, i.e. $i=1$, and we write $U$ for any Rocq universe, i.e. \rocq{Prop}.
 Given \emph{any} Rocq term $t : r$, the unary parametricity
-translation gives both a unary predicate $R$ on $r$, e.g. $[r]_1 = R : r \to U$
+translation $[\cdot]_1$ gives both a unary predicate $R$ on $r$, e.g. $[r]_1 = R : r \to U$
 and a proof $T$ that $R$ holds for $t$, i.e. $[t]_1 = T : R~ t$ or somewhat more
 confusingly if $t : r$ then $[t]_1 : [r]_1~ t$.
 
@@ -4062,17 +4061,18 @@ is_cons: ∀A (isA : A → U), ∀a, isA a →
 \end{rocqcode}
 
 As for the translation of natural numbers, each term comes with a proof
-that is has the expected type. When the term is of type \rocq{A},
-the type parameter of the container, then it comes with a proof of \rocq{isA},
-the predicate parameter associated with \rocq{A}.
+that is has the expected type. When the term \rocq{a} of type \rocq{A},
+the type parameter of the container, then it comes with a proof of \rocq{isA a},
+the predicate associated with \rocq{A}.
 The unary parametricity translation is the key to express, in a
 systematic way, that a property holds deep inside a container.
 
-The parametricity translation is a meta program in Rocq, it cannot be implemented in
-Gallina itself hence one needs a meta language to implement it.
+Parametricity is a meta theorem in Rocq, a theorem about Rocq itself.
+Since it cannot be represented by a Gallina term one
+needs a meta language to effectively implement it.
 Cyril Cohen implemented the binary parametricity translaton in the fall of 2017,
 as he was interested in employing the translation in the Rocq-EAL project.
-We based the unary version on his code. Each translation is about 250 lines
+I based the unary version on his code. Each translation is about 250 lines
 of Elpi code.
 
 \subsection{Deep induction}
