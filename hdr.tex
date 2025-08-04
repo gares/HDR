@@ -3807,25 +3807,29 @@ The syntactic price one pays when writing Elpi code is thus partially
 compensated by the ease of extending existing code. The example in the
 following section makes good use of this possibility.
 
-\section{Example: simple proof transfer}\label{sec:tb}
+\section{Example: proof transfer}\label{sec:tb}
 
-We provide an example of a tactic and a command that communicate via
-a database. The tactic \rocq{to_bool} transfers a goal from the realm
-of propositions to the one of computable (boolean) tests (decidable propositions).
-The command \rocq{register_decision} takes a proof of equivalence
-between a proposition and a boolean test and ``compiles'' it to an Elpi rule.
-The database contains all the known rules for translating propositions into
-tests: it is queried by \rocq{to_bool} and populated by \rocq{register_decision}.
 
-It is customary to organize Rocq-Elpi code in this very way. The key feature
-one obtains is that the \rocq{to_bool} is extensible: when a new
-predicate is declared and a new test defined, it is sufficient to call
-\rocq{register_decision} to extend \rocq{to_bool} with the new
-predicate.
+As a simple example, we present a tactic and a command that communicate via a
+database. The tactic \rocq{to_bool} transfers a goal from the realm of
+propositions to that of computable (boolean) tests (i.e., decidable
+propositions). The command \rocq{register_decision} takes a proof of
+equivalence between a proposition and a boolean test and ``compiles'' it into an
+Elpi rule. The database contains all known rules for translating propositions
+into tests: it is queried by \rocq{to_bool} and populated by
+\rocq{register_decision}.
+
+
+It is customary to organize Rocq-Elpi code in this way. The key feature is that
+\rocq{to_bool} is extensible: when a new Rocq predicate is declared and a new
+corresponding test is defined, it is sufficient to call
+\rocq{register_decision} to extend \rocq{to_bool}.
+
+
 
 We assume a Rocq environment with the following lemmas. The \rocq{reflect}
-predicate links a proposition with a boolean test: \rocq{reflect P b}
-means \rocq{P} holds if and only if \rocq{b = true}.
+predicate links a proposition with a boolean test: \rocq{reflect P b} means
+\rocq{P} holds if and only if \rocq{b = true}.
 
 \begin{rocqcode}
 Lemma evenP n : reflect (is_even n) (even n).
@@ -3837,10 +3841,11 @@ Lemma elimT {P b} :
   reflect P b -> b = true -> P.
 \end{rocqcode}
 
-The database holds rules for the \elpi{tb} relation. Since
-we are only interested in one direction of the equivalence we
-relate a proposition with its equivalence proof (disregarding the
-associated boolean test).
+
+
+The database holds rules for the \elpi{tb} predicate. For simplicity, we only
+deal with one direction of the equivalence: we relate a proposition with its
+equivalence proof (disregarding the associated boolean test).
 
 \begin{rocqcode}
 Elpi Db tb.db lp:{{
@@ -3854,11 +3859,12 @@ tb Ty _ :- rocq.error "Cannot solve" {rocq.term->string Ty}.
 }}.
 \end{rocqcode}
 
-The database only contains one rule aborting the search with an error message.
-All rules will need to be placed before that one.
 
-The \rocq{to_bool} tactic is built as follows a top of the
-database.
+Initially, the database contains only one rule, which aborts the search with
+an error message. All additional rules must be placed before this one.
+
+
+The \rocq{to_bool} tactic is built as follows, on top of the database.
 
 \begin{rocqcode}
 Elpi Tactic to_bool.
@@ -3872,22 +3878,24 @@ solve (goal Ctx _ Ty _ _ as G) [G1] :-
 }}.
 \end{rocqcode}
 
-The tactic simply queries the database for a proof \elpi{P} that
-the goal is related to a boolean test, then refines the goal (as in the
-standard Rocq \rocq{refine} tactic) with \rocq{elimT lp:P _}.
-The hole stands for the proof of \rocq{b = true}, i.e. the subgoal
-\elpi{G1}.
 
-The most interesting part of this example is how the dabase is populated.
-We shall write a \elpi{compile} procedute that given \rocq{evenP}
-and \rocq{andP} synthesizes the following Elpi code
+The tactic simply queries the database for a proof \elpi{P} that the goal is
+related to a boolean test, then refines the goal (as in the standard Rocq
+\rocq{refine} tactic) with \rocq{elimT lp:P _}. The hole stands for the proof
+of \rocq{b = true}, i.e., the subgoal \elpi{G1}.
+
+
+The most interesting part of this example is how the database is populated.
+We shall write a \elpi{compile} procedure that, given \rocq{evenP} and
+\rocq{andP}, synthesizes the following Elpi code:
 
 \begin{elpicode}
 tb {{ is_even lp:N }} {{ evenP lp:N }} :- !.
 tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- !, tb P PP, tb Q QQ.
 \end{elpicode}
 
-As sketched in~\cref{sec:homo}, the two rules above corrspond to the
+
+As sketched in~\cref{sec:homo}, the two rules above correspond to the
 following (closed) Elpi terms:
 
 \begin{elpicode}
@@ -3896,8 +3904,9 @@ pi P Q PP QQ\ tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
   [!, tb P PP, tb Q QQ].
 \end{elpicode}
 
+
 It is worth unfolding quotations to see that a few more quantifications are
-necessary for the second rule
+necessary for the second rule:
 
 \begin{elpicode}
 pi P Q p q PP QQ\
@@ -3907,10 +3916,11 @@ pi P Q p q PP QQ\
 \end{elpicode}
   
 
-Now that all quantifications are explicit we can look at the types of
-\rocq{evenP} and \rocq{andP} and remark how each \elpi{pi}
-Elpi quantification corresponds to a Rocq quantification (dependent or not),
-and Rocq premises corresponds to recursive calls in Elpi.
+
+Now that all quantifications are explicit, we can look at the types of
+\rocq{evenP} and \rocq{andP} and observe how each \elpi{pi} Elpi
+quantification corresponds to a Rocq quantification (dependent or not), and
+how Rocq premises correspond to recursive calls in Elpi.
 
 \begin{rocqcode}
 evenP : ∀n, reflect (is_even n) (even N).
@@ -3918,11 +3928,12 @@ andP : ∀P Q p q,
   reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
 \end{rocqcode}
 
-The \elpi{compile} predicate has three inputs an one output.
-The first input is the type of a lemma and the second is the proof of that
-lemma, this relation between the first two argument is a key invariant.
-The third argument is a list of recursive calls, while the output is
-the code of the Elpi rule being generated.
+
+The \elpi{compile} predicate has three inputs and one output. The first input
+is the type of a lemma, and the second is the proof of that lemma; the
+relation between the first two arguments is a key invariant. The third
+argument is a list of recursive calls, while the output is the code of the
+Elpi rule being generated.
 
 \begin{elpicode}
 pred compile i:term, i:term, i:list prop, o:prop.
@@ -3936,27 +3947,29 @@ compile {{ ∀x, lp:(T x) }} P Hyps (pi h\ C h) :-
   pi x\ compile (T x) {{ lp:P lp:x }} Hyps (C x).
 \end{elpicode}
 
+
 The first rule is the base case. When we reach the conclusion of the lemma
-\rocq{reflect lp:Ty _} we know that the second argument \elpi{P}
-is a proof of that fact, hence \elpi{tb Ty P} is a correct head for the
-rule. The premises of the rules are the \elpi{Hyps} recursive calls
-prefixed with a cut.
+\rocq{reflect lp:Ty _}, we know that the second argument \elpi{P} is a proof
+of that fact; hence, \elpi{tb Ty P} is a correct head for the rule. The
+premises of the rule are the \elpi{Hyps} recursive calls, prefixed with a cut.
 
-The second rule is for premises that are turned into recursive calls. In this
-case the output rule features an extra \elpi{pi} quantification and the
-\elpi{Hyps} list gets longer. The \elpi{h} variable stands for
-the proof obtained by the recursive call, a proof of \rocq{reflect lp:S _}
-hene an argument we can pass to the second argument as in \rocq{lp:P lp:h}
-so to keep the invariant that it is a proof of \elpi{T}, the type
-in which we recurse.
 
-The last rule is a simpler version of the second, in this case the quantification
-is not a premise, hence we do not extend \elpi{Hyps}.
+The second rule handles premises that are turned into recursive calls. In this
+case, the output rule features an extra \elpi{pi} quantification, and the
+\elpi{Hyps} list grows longer. The \elpi{h} variable stands for the proof
+obtained by the recursive call -- a proof of \rocq{reflect lp:S _} -- hence an
+argument we can pass to the second argument as in \rocq{lp:P lp:h}, so as to
+maintain the invariant that it is a proof of \elpi{T}, the type in which we
+recurse.
 
-The code of the \rocq{register_decision} command located the
-given lemma, finds its type and generates the new rule \elpi{C}.
-finally it adds the rule to the database before the \elpi{"tb:fail"}
-anchor point.
+
+The last rule is a simpler version of the second; in this case, the
+quantification is not a premise, so we do not extend \elpi{Hyps}.
+
+
+The code of the \rocq{register_decision} command locates the given lemma,
+finds its type, and generates the new rule \elpi{C}. Finally, it adds the rule
+to the database before the \elpi{"tb:fail"} anchor point.
 
 \begin{rocqcode}
 Elpi Command register_decision.
@@ -3971,6 +3984,7 @@ main [str S] :-
 
 }}.
 \end{rocqcode}
+
 
 We can now populate the database and test our tactic.
 
@@ -3992,10 +4006,11 @@ trivial.
 Qed.
 \end{rocqcode}
   
-The Rocq snippet calls the \rocq{to_bool} tactic in a scenario
-where a predicate is not (yet) registered obtaining an explicative
-error message. Then it register a test for the missing predicate
-and succesfully solves the goal.
+
+The Rocq snippet calls the \rocq{to_bool} tactic in a scenario where a
+predicate is not (yet) registered, resulting in an explanatory error message.
+Then, it registers a test for the missing predicate and successfully solves
+the goal.
 
 
 \chapter{Applications written in Elpi}

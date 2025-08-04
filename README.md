@@ -39,12 +39,12 @@
 
 - [x] 4 Rocq-Elpi - english
 - [x] 4.1 Why extending Rocq in OCaml is hard - english
-- [ ] 4.2 HOAS of Rocq terms and contexts - english
-- [ ] 4.3 HOAS of holes (missing terms) - english
-- [ ] 4.4 Vernacular language integration - english
-- [ ] 4.4.1 Commands - english
-- [ ] 4.4.2 Tactics - english
-- [ ] 4.4.3 Databases, homoiconicity and rules - english
+- [x] 4.2 HOAS of Rocq terms and contexts - english
+- [x] 4.3 HOAS of holes (missing terms) - english
+- [x] 4.4 Vernacular language integration - english
+- [x] 4.4.1 Commands - english
+- [x] 4.4.2 Tactics - english
+- [x] 4.4.3 Databases, homoiconicity and rules - english
 - [ ] 4.5 Example: simple proof transfer - english
 
 - [x] 5.1 Derive - english
