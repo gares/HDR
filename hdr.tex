@@ -3266,7 +3266,7 @@ limited effort from the application developer. It is easier to program in Lua
 than in C, because Lua is a higher-level language: for example, it features
 automatic memory management and provides dictionaries as a built-in data
 structure. Finally, it is easy for a user to get started with Lua because no
-special development environment is needed—the host application is sufficient,
+special development environment is needed -- the host application is sufficient,
 since Lua is an interpreter.
 Elpi aims to do the same for OCaml, with Rocq as the host application of
 interest.
@@ -4371,8 +4371,8 @@ experimentation was crucial for their discovery.
 We believe that the automatic handling of names and holes was essential. Only a
 few Rocq APIs were truly necessary: reading from and writing to the logical
 environment, and invoking type inference. Although these APIs require glue code
-that is far from trivial—since they read and write inductive types in HOAS
-form—performance was not critical. All bottlenecks were due to inefficiencies
+that is far from trivial -- since they read and write inductive types in HOAS
+form -- performance was not critical. All bottlenecks were due to inefficiencies
 in Rocq, particularly in the APIs for managing universe constraints.
 
 
@@ -4569,8 +4569,8 @@ taking an unreasonable amount of time.
 
 The answer to this FAQ is to transfer an expression involving inefficient or
 locked operations to (equivalent) fast and unlocked ones. While defining such
-operations and proving their correspondence is feasible—and sometimes already
-part of the library—the tooling to automatically perform the transfer never
+operations and proving their correspondence is feasible -- and sometimes already
+part of the library -- the tooling to automatically perform the transfer never
 really existed in an easy-to-use form.
 
 The Trakt tool~\cite{DBLP:conf/cpp/Blot0CPKMV23} and its successor
@@ -4582,8 +4582,8 @@ sketched in~\cref{sec:param1}, which concerns bare-bone relations, the
 univalent version focuses on relations that are equivalences. Trocq improves
 on this by studying relations that are in between, such as implication (i.e.,
 type-theoretic maps). It turns out that in many cases of practical interest,
-the type theory of Rocq—which does not internalize the principle of
-univalence—is sufficient to represent the result of the parametricity
+the type theory of Rocq -- which does not internalize the principle of
+univalence -- is sufficient to represent the result of the parametricity
 translation for non-bare-bone relations.
 
 \subsubsection{The role of Rocq-Elpi in Trocq}
@@ -4775,8 +4775,8 @@ requires examining the typing context, i.e., the hypothetical rules of the
 current goal, akin to a proof rule that inspects the proof tree of a premise.
 The latter is even more complex, as it finds two (suspended) proof branches for
 similar goals and, under certain conditions, joins them. Explaining these
-``proof search'' steps at the meta-level at which CHR operates is possible—even
-formally—as the meta-theory of the proof system.
+``proof search'' steps at the meta-level at which CHR operates is possible -- even
+formally -- as the meta-theory of the proof system.
 
 
 \subsection{Elpi the software}
@@ -4802,13 +4802,13 @@ Rocq-Elpi was developed as an open source project from the very beginning, keepi
 
 A significant number of tools for Rocq have been written in Elpi, either by myself or by Rocq power users.
 
-Among these, the most impactful for the Rocq community is Hierarchy Builder, as it ``unblocked'' the development of the Mathematical Components library—a widely used piece of Rocq code. Its ``ssreflect'' component is the most widely depended-upon Rocq package, which in turn makes Hierarchy Builder (and Rocq-Elpi) very important parts of the Rocq ecosystem.
+Among these, the most impactful for the Rocq community is Hierarchy Builder, as it ``unblocked'' the development of the Mathematical Components library -- a widely used piece of Rocq code. Its ``ssreflect'' component is the most widely depended-upon Rocq package, which in turn makes Hierarchy Builder (and Rocq-Elpi) very important parts of the Rocq ecosystem.
 
 It is also worth mentioning the existence of a substantial amount of closed-source Elpi code used internally by BlueRock Systems. We wish them success in their industrial applications.
 
 \section{Current and future work}
 
-If only I had a century—or perhaps two. 
+If only I had a century -- or perhaps two. 
 
 There are two main axes to consider:
 Elpi as a language in its own right, and Rocq-Elpi as a framework for extending
@@ -4816,7 +4816,7 @@ Rocq. On the Elpi side, the most valuable improvement would be to increase its
 appeal to programmers already experienced in functional languages. Most
 newcomers to Elpi are already familiar with functional programming, and are
 encountering logic programming for the first time. Some improvements relate to
-syntax—a delicate, though not deeply intellectual, aspect of any language.
+syntax -- a delicate, though not deeply intellectual, aspect of any language.
 Another important area is static analysis, which is so prevalent in modern
 functional languages that programmers often take it for granted (for example,
 an untyped language no longer feels familiar, even if it is functional). On the
