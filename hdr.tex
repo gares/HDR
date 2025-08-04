@@ -4687,41 +4687,41 @@ Hierarchy Builder, all included, is less than 5,000 lines of code.
 In recent years, the formal methods team at BlueRock has contributed valuable
 patches and early feedback to Elpi and Rocq-Elpi.
 
+
 \subsection{Proofcert}
 
-Elpi was born, by coincidence, during the
+Elpi was created, by coincidence, during the
 ProofCert\footnote{\url{https://team.inria.fr/parsifal/proofcert/}}
-project lead by Miller, that aimed at devising a foundation to allow to
-integrate a broad spectrum of formal methods to establish formal
-properties of computer systems. The project was geared around the
-notion of foundational proof certificates (FPC)~\cite{Marek_2016}
-that has a reference implementation in $\lambda$Prolog.
-In his PhD disseration~\cite{rob} Blanco studied some
-applications of FPC and run their implementatio with both Teyjus and Elpi.
-Blanco is likely the first Elpi user. Later, Manighetti, Blanco,
-Miller and Momigliano linked FPC with Rocq by translating proof
-evicence from one system to the other in Rocq-Elpi~\cite{matteo,alberto}.
+project led by Miller, which aimed to devise a foundation for integrating a
+broad spectrum of formal methods and to establish formal properties of computer
+systems. The project centered around the notion of foundational proof
+certificates (FPC)~\cite{Marek_2016}, which has a reference implementation in
+$\lambda$Prolog. In his PhD dissertation~\cite{rob}, Blanco studied some
+applications of FPC and ran their implementation with both Teyjus and Elpi.
+Blanco is likely the first Elpi user. Later, Manighetti, Blanco, Miller, and
+Momigliano linked FPC with Rocq by translating proof evidence from one system
+to the other using Rocq-Elpi~\cite{matteo,alberto}.
 
-While Elpi played a very minor role in Blanco's PhD, the glue
-between $\lambda$Prolog and Rocq provided by Rocq-Elpi was instrumental
-for the later works.
+While Elpi played a very minor role in Blanco's PhD, the glue between
+$\lambda$Prolog and Rocq provided by Rocq-Elpi was instrumental for the later
+works.
 
 \subsection{MLTS}
 
-As part of his PhD, G\'{e}rard designed an implemented~\cite{mlts}, a
-functional programming language with support for binder mobility
-called MLTS.
-His implementation relies on Elpi for animating the rules defining
-its semantics, and it made a prototype available in the browser by
-transpiling Elpi to javascript.\footnote{\url{https://voodoos.github.io/mlts/}}
+As part of his PhD, G\'{e}rard designed and implemented a
+functional programming language with support for binder mobility, called MLTS~\cite{mlts}.
+His implementation relies on Elpi for animating the rules defining its
+semantics, and he made a prototype available in the browser by transpiling
+Elpi to JavaScript.\footnote{\url{https://voodoos.github.io/mlts/}}
 
-In  G\'{e}rard's PhD Elpi only played a technological role: by being
-a relatively simple, self contained, interpreter written in OCaml,
-Elpi could be transpiled to a javascript library quite easily.
+In G\'{e}rard's PhD, Elpi played only a technological role: being a
+relatively simple, self-contained interpreter written in OCaml, Elpi could be
+transpiled to a JavaScript library quite easily.
 
-At the same time G\'{e}rard's PhD was quite inspirational to us, since
-bridging the gap between the logic and functional paradigms, bringing
-automatic binder management to the latter, seems at reach with his work.
+At the same time, G\'{e}rard's PhD was quite inspirational to me, since
+bridging the gap between the logic and functional paradigms, and bringing
+automatic binder management to the latter, seems within reach thanks to his
+work.
 
 \chapter{Conclusion}
 
