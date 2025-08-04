@@ -4015,13 +4015,14 @@ the goal.
 
 \chapter{Applications written in Elpi}
 
-In this chapter, we review several tools developed either on top of Rocq-Elpi or using Elpi alone.
-
-We highlight the Derive and Hierarchy-Builder Rocq packages, to which we have personally contributed.
-
-Subsequently, we briefly survey additional tools developed by our colleagues, some of which do not rely on Rocq.
-
-At the end of each section, we discuss which features of Elpi and Rocq-Elpi are essential to the tool under consideration.
+In this chapter, we review several tools developed either on top of Rocq-Elpi
+or using Elpi alone.
+We highlight the Derive and Hierarchy-Builder Rocq packages, to which we have
+personally contributed.
+Subsequently, we briefly survey additional tools developed by our colleagues,
+some of which do not rely on Rocq.
+At the end of each section, we discuss which features of Elpi and Rocq-Elpi are
+essential to the tool under consideration.
 
 \section{Derive}\label{sec:derive}
 
@@ -4758,6 +4759,22 @@ At the same time, G\'{e}rard's PhD was quite inspirational to me, since
 bridging the gap between the logic and functional paradigms, and bringing
 automatic binder management to the latter, seems within reach thanks to his
 work.
+
+
+\subsection{A proof assistant for local set theory}
+
+Nathan Guermond developed a tiny proof assistant based on a flavor of set
+theory~\cite{https://doi.org/10.1112/blms/22.1.101} using
+Elpi.~\footnote{\url{https://github.com/nguermond/local-set-theory}}
+
+
+\subsubsection{The role of N. Guermond in Elpi}
+
+During the development of his proof assistant, N. Guermond discovered and
+helped me fix quite a number of bugs involving $\eta$-equivalence in Elpi's
+unifier. In particular, the unifier was very incomplete when dealing with
+$\eta$-equivalence of non-ground terms. In a way, I feel Guermond's
+experiments were more instrumental to Elpi than Elpi was to his experiment.
 
 \chapter{Conclusion}
 
