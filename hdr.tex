@@ -3654,14 +3654,16 @@ tactics rewritten in Elpi for didactic purposes.
 
 \subsection{Databases, homoiconicity and rules}\label{sec:homo}
 
-A database is, in its essence, an Elpi program but unlike commands and
-tactics cannot be executed. It constitutes a pice of code that is
-accumulated into commands or tactics \emph{by name}. This means that
-whenever a program run its sees the current contents of the data bases
-it accumulates, not their contents when the commands was inidially declared.
 
-A typical data base is made of one predicate, possibly with some default
-rules. The \rocq{Elpi Db} commands declares a data base.
+A database is, in essence, an Elpi program, but unlike commands and tactics,
+it cannot be executed directly. It constitutes a piece of code that is
+accumulated into commands or tactics \emph{by name}. This means that whenever
+a program runs, it sees the current contents of the databases it accumulates,
+not their contents at the time the command was initially declared.
+
+
+A typical database consists of a single predicate, possibly with some default
+rules. The \rocq{Elpi Db} command declares a database.
 
 \begin{rocqcode}
 Elpi Db age.db lp:{{
@@ -3674,10 +3676,12 @@ Elpi Db age.db lp:{{
 }}.
 \end{rocqcode}
 
-Elpi rules can be given a name via the \elpi{:name} attribute.
-Named rules serve as anchor-points for new rules when added to the Db.
 
-A commands to print the age of a given name can be declred as follows
+Elpi rules can be assigned a name via the \elpi{:name} attribute. Named rules
+serve as anchor points for new rules when they are added to the database.
+
+
+A command to print the age of a given name can be declared as follows:
 
 \begin{rocqcode}
 Elpi Command age.
@@ -3693,7 +3697,8 @@ Elpi Accumulate lp:{{
 Fail Elpi age bob. (* I don't know who bob is! *)
 \end{rocqcode}
 
-We can add entries to the data base manually as follows
+
+We can add entries to the database manually as follows:
 
 \begin{rocqcode}
 Elpi Accumulate age.db lp:{{
@@ -3706,12 +3711,14 @@ Elpi Accumulate age.db lp:{{
 Elpi age bob. (* bob is 24 years old *)
 \end{rocqcode}
 
-We do not expect the users of Rocq commands written in Elpi to know the
-syntax of Elpi, not the commands to manipulate its programs, and even more
-to actually know the Rocq commands they run are implemented in Elpi.
 
-For this reason Rocq-Elpi provides APIs to extend data bases from Elpi.
-Here we craft a new command \rocq{set_age} that does use this API.
+We do not expect users of Rocq commands written in Elpi to know the syntax of
+Elpi, nor the commands to manipulate its programs, and even less to actually
+know that the Rocq commands they run are implemented in Elpi.
+
+
+For this reason, Rocq-Elpi provides APIs to extend databases from Elpi. Here,
+we craft a new command \rocq{set_age} that uses this API.
 
 \begin{rocqcode}
 Elpi Command set_age.
@@ -3731,9 +3738,10 @@ Elpi set_age "mallory" 24.
 Elpi age "mallory". (* mallory is 24 years old *)
 \end{rocqcode}
 
-The same data bases can be accumulated by commands and tactics in order
-to share a ``state'', a common knowledge that typically grows as the
-commands or tactics are used in a Rocq library.
+
+The same databases can be accumulated by commands and tactics in order to
+share a ``state'' -- a common knowledge base that typically grows as the commands
+or tactics are used in a Rocq library.
 
 \subsubsection{Homoiconicity and rules}
 
