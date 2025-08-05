@@ -2858,11 +2858,12 @@ exploited by modern editors to improve navigation of the source code.
 
 \section{The API}\label{sec:API}
 
-The APIs to drive the interpreter essentially lets one parse text,
-compile it into a unit, assemble units into an executable and run it on a query.
-These APIs are not very interesteing, so we focus on the other APIs that are
-instrumental to integrate Elpi with the host application, i.e. the ones that
-actually makes it an \emph{extension} language.
+
+The APIs to drive the interpreter essentially let one parse text, compile it
+into a unit, assemble units into an executable, and run it on a query. These
+APIs are not very interesting, so we focus on the other APIs that are
+instrumental for integrating Elpi with the host application, i.e., the ones
+that actually make it an \emph{extension} language.
 
 \subsection{Quotations}
 
@@ -2872,18 +2873,20 @@ usually called the \emph{object language}. The object language is encoded
 using the constants and constructs (like variable binding) belonging to the
 framework.
 
-An important aspect when mixing two languages, in practice, is to be able to use
-both syntaxes in a non-ambiguous way and with very little overhead.
-In particular, when Rocq is the object language, one would like to be able
-to use Rocq's syntax as much as possible to write Rocq terms: Rocq's
-parser understands tons of nice, compact, notations.
 
-Elpi's parser provides a notion of quotation and anti-quotation:
-text delimited by matching-in-number curly braces is
-lexed/parsed as a verbatim piece of text, to later be processed by
-a object-language specific parser, that in turn can call back the Elpi one.
-The object-language parser has to generate, in the end, and Elpi syntax tree
-corresponding to encoding of the object-language expression that was parsed.
+An important aspect when mixing two languages, in practice, is to be able to
+use both syntaxes in a non-ambiguous way and with very little overhead. In
+particular, when Rocq is the object language, one would like to use Rocq's
+syntax as much as possible to write Rocq terms: Rocq's parser understands many
+nice, compact notations.
+
+
+Elpi's parser provides a notion of quotation and anti-quotation: text delimited
+by matching-in-number curly braces is lexed/parsed as a verbatim piece of text,
+to later be processed by an object-language-specific parser, which in turn can
+call back the Elpi parser. The object-language parser must ultimately generate
+an Elpi syntax tree corresponding to the encoding of the object-language
+expression that was parsed.
 
 The following code is an example mixing the two languages.
 
@@ -2893,14 +2896,15 @@ The following code is an example mixing the two languages.
 \end{elpicode}
 
 \noindent
-Here ``1 + ...'' and ``0'' is Rocq syntax delimited by
-the quotation markers, and \rocq{lp:{{ ... }}} is Rocq's way
-to escape back to Elpi.
 
-There is only one rule: a variable is bound in one language and only
-one. That is, variables bound in Rocq are not available in Elpi without
-entering a quotation. The following code results in an error, since
-\elpi{x} is undeclared (in Elpi).
+Here, ``1 + ...'' and ``0'' are Rocq syntax delimited by the quotation
+markers, and \rocq{lp:{{ ... }}} is Rocq's way to escape back to Elpi.
+
+
+There is only one rule: a variable is bound in one language and only one. That
+is, variables bound in Rocq are not available in Elpi without entering a
+quotation. The following code results in an error, since \elpi{x} is undeclared
+(in Elpi).
 
 \begin{elpicode}
   rocq.say {{ forall x : nat, lp:{{ x }} }}
@@ -2908,48 +2912,52 @@ entering a quotation. The following code results in an error, since
 %                                   error: x is undeclared 
 \end{elpicode}
 
+
 \noindent
-Conversely, the following code is legit, since \elpi{x} is bound and
-used in the Rocq's space.
+Conversely, the following code is valid, since \elpi{x} is bound and used in
+Rocq's space.
 
 \begin{elpicode}
   rocq.say {{ forall x : nat, lp:{{... {{ x }} ...}} }}
 \end{elpicode}
 
-\noindent
-In practice this roule amounts to completely delegating to each language
-the lexical analysis of its source code, with no interference.
 
-Syntax alone is not sufficient to give a tight integration with the
-host application. In particular one wants to be able to call
-existing code from Elpi, either to access the internal state of the
-application or just to use some existing routine, like
-the \elpi{rocq.say} one to display a message to the user.
+\noindent
+In practice, this rule amounts to completely delegating to each language the
+lexical analysis of its source code, with no interference.
+
+
+Syntax alone is not sufficient to provide tight integration with the host
+application. In particular, one wants to be able to call existing code from
+Elpi, either to access the internal state of the application or just to use
+some existing routine, like \elpi{rocq.say} to display a message to the user.
+
 
 \subsection{FFI: Foreign Function Interface}\label{FFI}
 
-The Foreign Function Interface of Elpi is composed by two parts.
-One is used to describe how \emph{data} can be exchanged between
-Elpi and the host application. The other is use to describe
-the signature of host routines that are made available to Elpi programs
-as emph{built-in predicates}. We cover both in order.
+The Foreign Function Interface (FFI) of Elpi is composed of two parts. One is
+used to describe how \emph{data} can be exchanged between Elpi and the host
+application. The other is used to describe the signature of host routines that
+are made available to Elpi programs as \emph{built-in predicates}. We cover
+both in order.
 
-% FFI is akin to printf, given a first class description of
-% the types of the arguments it performs the conversion
-% back and forth.
 
-% The peculiarity is that the context and constraint store
-% is given too to the conversion functions. In particular
-% this enables a tight integration see \cref{GALLINA}.
+% The FFI is akin to printf: given a first-class description of the types of
+% the arguments, it performs the conversion back and forth.
 
-% the FFI makes extensive use of GADTs.
+% The peculiarity is that the context and constraint store is also given to the
+% conversion functions. In particular, this enables tight integration; see
+% \cref{GALLINA}.
+
+% The FFI makes extensive use of GADTs.
 
   
-\subsubsection{First order data}\label{sec:fodata}\label{sec:opaquedata}
 
-First order data is data whose exchange does not depend on the Elpi context
-of hypothetical rules and constraints. Such data has to be
-equipped with a \ocaml{Conversion.t} datum.
+\subsubsection{First-order data}\label{sec:fodata}\label{sec:opaquedata}
+
+First-order data is data whose exchange does not depend on the Elpi context of
+hypothetical rules and constraints. Such data must be equipped with a
+\ocaml{Conversion.t} datum.
 
 \begin{ocamlcode}
 module Conversion : sig
@@ -2971,32 +2979,33 @@ type 'a t = {
 \end{ocamlcode}
 
 \noindent
-A conversion is made of an embedding function converting the data to
-and Elpi term and a readback function going the other way around.
-The type AST is used to generate a type declaration in the Elpi syntax,
-i.e. to document the existence of a data type.
 
-The \ocaml{depth} argument is present mainly because
-most of the other APIs work for the general case of terms with binders,
-and in DBL notation it is of paramount importance to know under how
-many binders we are operating. When the data has no binders it serves
-no real purpose in the conversion code, but passing a meaningful value
-to the other APIs is still sensible.\\
-The \ocaml{state} part
-is a commodity: as described in~\cref{sec:state} the programmer can store
-in if any pure datum and Elpi takes care to keep this state in sync with
-backtracking.\\
-Extra goals are typically of the form \elpi{X = t}, i.e. to communicate
-an assignment to Elpi. For example one may want to craft a datum with a
-default value, when omitted in a call to a built-in predicate it gets assigned
-by generating an extra goal for the Elpi runtime to solve.
+A conversion consists of an embedding function that converts the data to an
+Elpi term and a readback function that goes the other way around. The type AST
+\ocaml{ty} is used to generate a type declaration in the Elpi syntax, i.e.,
+to document the existence of a data type.
+
+
+The \ocaml{~depth} argument is present mainly because most of the other APIs
+work for the general case of terms with binders, and in DBL notation it is of
+paramount importance to know under how many binders we are operating. When the
+data has no binders, it serves no real purpose in the conversion code, but
+passing a meaningful value to the other APIs is still a sensible thisng to do.\\
+The \ocaml{state} part is a convenience: as described in~\cref{sec:state},
+the programmer can store any pure datum, and Elpi takes care to keep this
+state in sync with backtracking.\\
+Extra goals are typically of the form \elpi{X = t}, i.e., to communicate an
+assignment to Elpi. For example, one may want to craft a datum with a default
+value; when omitted in a call to a built-in predicate, it gets assigned by
+generating an extra goal for the Elpi runtime to solve.
+
 
 \paragraph{Opaque data}
 
-The simplest form of data is the one without a syntax, i.e. opaque to Elpi.
-Elpi programs can pass that data around and operate on it via
-built-in predicates only. Strings, numbers, file descriptors are examples
-of that. Elpi provide a high level API to craft a conversion for such a data.
+The simplest form of data is that without a syntax, i.e., opaque to Elpi. Elpi
+programs can pass such data around and operate on it via built-in predicates
+only. Strings, numbers, and file descriptors are examples of this. Elpi
+provides a high-level API to craft a conversion for such data.
 
 \begin{ocamlcode}
 module OpaqueData : sig
@@ -3017,13 +3026,13 @@ end
 \end{ocamlcode}
 
 \noindent
-The main requirement for an opaque datum is a comparin function, used by
-Elpi's unifier when a \ocaml{CData} node is encuntered, and
-a hash function for indexing. For convenience the declaration API also
-allows to hashcons the datum and also to declare a list of constants for it.
-Out of the declaration the API is able to generate some Elpi code
-describing the data type and its known constants, for example the opaque data
-for the OCaml input stream gives:
+The main requirement for an opaque datum is a comparison function, which is
+used by Elpi's unifier when a \ocaml{CData} node is encountered, as well as a
+hash function for indexing. For convenience, the declaration API also allows
+the datum to be hash-consed and enables the declaration of a list of constants
+for it. From this declaration, the API can generate Elpi code describing the
+data type and its known constants. For example, the opaque data for the OCaml
+input stream yields:
 
 \begin{elpicode}
 kind in_stream type.
@@ -3032,14 +3041,13 @@ type std_in in_stream.
 
 \paragraph{Algebraic data}
 
-Even without binders, algebraic data types are a very nice programming
-abstraction and most OCaml code out there makes heavy use of it.
-An algebraic data type is made of a list of constructors, i.e. function
-symbols building the data type, and works in tandem with pattern matching to
-destructure it.
+Even without binders, algebraic data types are a powerful programming
+abstraction, and most OCaml code makes extensive use of them. An algebraic
+data type consists of a list of constructors (i.e., function symbols that build
+the data type) and works in tandem with pattern matching to destructure it.
 
 Elpi provides a GADT-based~\cite{SHEARD200849} API to declare an algebraic
-data type. We give below the declarion for \ocaml{option} type.
+data type. Below, we present the declaration for the \ocaml{option} type.
 
 \begin{ocamlcode}
 let option (a : 'a Conversion.t) : 'a option Conversion.t =
@@ -3061,20 +3069,21 @@ let option (a : 'a Conversion.t) : 'a option Conversion.t =
 \end{ocamlcode}
 
 \noindent
-We focus on the \ocaml{K} constructor that packs together a constructor name,
-a first class description of its signature, and two functions to playing the
-role of building and recognizing-and-destructuring the OCaml constructors.
-For the \ocaml{None} constructor, the Elpi synbol is \ocaml{"none"}
-that takes no arguments (the \ocaml{N} signature). Then \ocaml{B} provides
-the ``function'' to build \ocaml{None} out of no arguments, and \ocaml{M}
-the function to recognize and destructure it. The \ocaml{ok} continuation
-is typed according to the constructor signature and takes the same arguments.
-The case for for \ocaml{Some} is more interesting, since it takes an
-argument of a type described by the signature \ocaml{a}, a parameter of
-the entire declaration. Hence \ocaml{B} expects a function of one argument
-and similarly the continuation \ocaml{ok} can only be invoked passing
-to it an argument of the type described by \ocaml{a}.
-The resulting Elpi code is reported below.
+We focus on the \ocaml{K} constructor, which encapsulates a constructor name,
+a first-class description of its signature, and two functions that serve to
+build and to recognize-and-destructure the OCaml constructors. For the
+\ocaml{None} constructor, the Elpi symbol is \ocaml{"none"}, which takes no
+arguments (the \ocaml{N} signature). The \ocaml{B} component provides the
+function to build \ocaml{None} from no arguments, while \ocaml{M} is the
+function that recognizes and destructures it. The \ocaml{ok} continuation is
+typed according to the constructor's signature and takes the same arguments.
+The case for \ocaml{Some} is more interesting, as it takes an argument of a
+type described by the signature \ocaml{a}, which is a parameter of the entire
+declaration. Thus, \ocaml{B} expects a function of one argument, and
+similarly, the continuation \ocaml{ok} can only be invoked by passing it an
+argument of the type described by \ocaml{a}.
+
+The resulting Elpi code is shown below.
 
 \begin{elpicode}
 % The option type (aka Maybe)
@@ -3083,31 +3092,33 @@ type none option A.
 type some A -> option A.
 \end{elpicode}
 
-The reader expert in OCaml may wonder why we did not write a PPX (pre-processing
-extension) for the OCaml compiler synthesizing an equivalent \ocaml{Conversion.t}
-out of the option type declaration. We did, but we never found the time
-to finish it\footnote{\url{https://github.com/LPCIC/elpi/pull/63}}, especially
-because we wanted it to also support higher order data that is substantially
-more complex.
+An OCaml expert might wonder why we did not write a PPX (pre-processing
+extension) for the OCaml compiler to synthesize an equivalent
+\ocaml{Conversion.t} from the option type declaration. In fact, we did, but we
+never found the time to finish it\footnote{\url{https://github.com/LPCIC/elpi/pull/63}},
+especially because we wanted it to also support higher-order data, which is
+substantially more complex.
 
 
-\subsubsection{Higher order data}\label{sec:hodata}
+\subsubsection{Higher-order data}\label{sec:hodata}
 
-Higher order data, especially when seen through the looking glasses of
-$\lambda$Prolog and its role as a logical framework, seems intimately
-related to the notion of context. Although we will discuss an motivate
-this in more in~\cref{sec:rocq}, we can give a simple example here.
 
-Imagine the host application encodes binders in DBI notation, i.e.
-its numerical value $n$ is the distance of the variable from its
-binder (in the context $\Gamma$). In Elpi the same variable is represented in DBL
-notation by the numebr $m$ equal to the position of the variable in $\Gamma$.
-Hence $m = |\Gamma| - n$: one cannot convert $n$ to $m$ or viceversa
-without knowing $\Gamma$ (or in this case, its length).
+Higher-order data, especially when viewed through the lens of $\lambda$Prolog
+and its role as a logical framework, appears to be intimately related to the
+notion of context. Although we will discuss and motivate this further in
+~\cref{sec:rocq}, we can provide a simple example here.
 
-A \ocaml{ContextualConversion.t} gives access to the embedding and
-read back functions to a context and constraint store. The corresponding
-data types are dictated by the \ocaml{ctx_readback} companion function.
+Suppose the host application encodes binders using De Bruijn Index (DBI)
+notation; that is, its numerical value $n$ represents the distance of the
+variable from its binder (in the context $\Gamma$). In Elpi, the same variable
+is represented in De Bruijn Level (DBL) notation by the number $m$, which is
+equal to the position of the variable in $\Gamma$. Thus, $m = |\Gamma| - n$:
+one cannot convert $n$ to $m$ or vice versa without knowing $\Gamma$ (or, in
+this case, its length).
+
+A \ocaml{ContextualConversion.t} provides access to the embedding and
+read-back functions for a context and constraint store. The corresponding data
+types are determined by the \ocaml{ctx_readback} companion function.
 
 \begin{ocamlcode}
 module ContextualConversion : sig
@@ -3133,40 +3144,40 @@ type ('hyps,'constraints) ctx_readback =
 \end{ocamlcode}
 
 \noindent
-Operationally the \ocaml{ctx_readback} function is run first to
-obtain the host application context, then the datum is read back
-with that context at hand.
+Operationally, the \ocaml{ctx_readback} function is executed first to obtain
+the host application context, after which the datum is read back with that
+context available.
 
 \subsubsection{Built-in Predicates}\label{sec:builtins}
 
-The signature and the OCaml code of a built-in predicate are packed
-together by the \ocaml{Pred} constructor given in~\cref{fig:ffi}.
-The former is a GADT that prescribes the type of the second.
-Arguments are of three types: input, output or both.\\
-An input argument of type \elpi{A} prescribes that the type of the predicate
+The signature and OCaml code of a built-in predicate are encapsulated by the
+\ocaml{Pred} constructor, as shown in~\cref{fig:ffi}. The former is a GADT that
+specifies the type of the latter. Arguments can be of three types: input,
+output, or both.\\
+An input argument of type \elpi{A} requires that the (OCaml) type of the predicate
 \ocaml{P} is of the form \elpi{A -> P'} for some \elpi{P'}.\\
-An output argument of type \elpi{B}
-prescribes that the type of the predicate \elpi{P} is of the form
-\elpi{bool -> P' * option B}. The boolean signals if the
-caller is binding the result or not (i.e. passing \elpi{_}). This gives
-the programmer the chance to optimize his code by not generating the output
-if not requested and in turn this allows to keep the number of buitins small
-without sacrifing efficiency.\footnote{A single builtin can serve the purpose of
-a dedicated builtin per output. For example the \elpi{rocq.env.indt} gives
-access to all the information about an inductive type, from the number of
-parameters (an integer) to the types of each constructor (a much larger data).
-If one needs the former he can simply pass \elpi{_} as the second argument
-and incur in no performance penalty w.r.t. a dedicated
-\elpi{rocq.env.indt-num-params} that would compute only the former}\\
-An input-output argument of type \elpi{B}
-prescribes that the type of the predicate \elpi{P} is of the form
-\elpi{option B -> P' * option B}. This time the programmer is informed if the
-the user passed some data or not.
+An output argument of type \elpi{B} requires that the type of the predicate
+\elpi{P} is of the form \elpi{bool -> P' * option B}. The boolean indicates
+whether the caller is binding the result (i.e., passing \elpi{_} or an actual unification variable). This allows
+the programmer to optimize the code by not generating the output if it is not
+requested. As a result, the number of built-ins can be kept small without
+sacrificing efficiency.\footnote{A single built-in can serve the purpose of a
+dedicated built-in for each output. For example, \elpi{rocq.env.indt} provides
+access to all information about an inductive type, from the number of
+parameters (an integer) to the types of each constructor (a much larger data
+structure). If only the former is needed, one can simply pass \elpi{_} as the
+second argument and incur no performance penalty compared to a dedicated
+\elpi{rocq.env.indt-num-params} that would compute only the former.}\\
+An input-output argument of type \elpi{B} requires that the type of the
+predicate \elpi{P} is of the form \elpi{option B -> P' * option B}. In this
+case, the programmer is informed whether the user has provided some data or
+not.
 
-The three types of arguments also exist in their contextual counterpart.
-The list of arguments can terminate with either \ocaml{Easy} or
-\ocaml{Full}. The latter requires a context readback function, for a context
-and constraint data type that matches the one used by the contextual arguments.
+
+The three types of arguments also have their contextual counterparts. The list
+of arguments can terminate with either \ocaml{Easy} or \ocaml{Full}. The
+latter requires a context read-back function, along with a context and
+constraint data type that matches the one used by the contextual arguments.
 
 \begin{sidewaysfigure}
 \begin{ocamlcode}
@@ -3199,8 +3210,9 @@ type t = Pred : name * ('a,unit,'h,'c) ffi * 'a -> t
 \caption{Predicate declaration API\label{fig:ffi}}
 \end{sidewaysfigure}
 
-Here we give an example of a simple builtin predicate, while we
-postpone to~\cref{GALLINA} one using contextual data.
+
+Here we present an example of a simple built-in predicate; an example using
+contextual data is postponed to~\cref{GALLINA}.
 
 \begin{ocamlcode}
   module BuiltInData : sig
@@ -3213,31 +3225,33 @@ postpone to~\cref{GALLINA} one using contextual data.
       Out(option string, "Value",
       Easy ("Like Sys.getenv"))),
        (fun s _ ~depth ->
-          try !:(Some (Sys.getenv s))
-          with Not_found -> !: None))
+          try !:(Some (Sys.getenv s))   % !:x  is a notation for  (), Some x
+          with Not_found -> !: None))   % the GADT recursion adds a final  ()
 \end{ocamlcode}
 
 \noindent
-This declaration results in the following Elpi code declaring and documenting
-the built-in predicate.
+This declaration produces the following Elpi code, which declares and
+documents the built-in predicate.
 
 \begin{elpicode}
 % [getenv VarName Value] Like Sys.getenv
 external pred getenv i:string, o:option string.
 \end{elpicode}
 
-Built-in predicates, as conversions, are allowed to access and update a state
-that is carried by Elpi and synchronize w.r.t. backtracking but that is not
-directly visible from the programming language. It serves the purpose
-to carry a state specific to the host and/or necessary to implement
-sophisticated embedding/readback functions as we do in~\cref{sec:hoasholes}.
+Built-in predicates, like conversions, are allowed to access and update a
+state that is maintained by Elpi and synchronized with respect to
+backtracking, but is not directly visible from the programming language. This
+state serves to carry information specific to the host and is sometimes necessary to
+implement sophisticated embedding/read-back functions, as discussed
+in~\cref{sec:hoasholes}.
 
 \subsubsection{Extensible state}\label{sec:state}
 
-The extensible state API is not particularly surprising. The only detail
-is that it assumes the data is pure, i.e. no need to call any routine from
-the host system to restore an old state upon backtracking. This limitation
-could be lifted bu did not have a real need for it yet.
+The extensible state API is not particularly surprising. The only notable
+detail is that it assumes the data is pure; that is, there is no need to call
+any routine from the host system to restore a previous state upon
+backtracking. This limitation could be lifted, but so far there has been no
+real need for it.
 
 \begin{ocamlcode}
 module State : sig
@@ -3255,33 +3269,34 @@ module State : sig
     start:('a -> 'a) ->
     unit ->
       'a component
-  
+
   type t
   val get : 'a component -> t -> 'a
   val set : 'a component -> t -> 'a -> t
 \end{ocamlcode}
 
 \noindent
-It may be interesting to point out that the API allows one to update the
-state just before executing a query. 
+It is worth noting that the API allows one to update the state just before
+executing a query.
 
 \section{Debugging}\label{sec:trace}
 
-Although we are personally pretty much a fan of ``debugging using printf'',
-we found that quite combersome, especially when Elpi code is shipped as
-Rocq library, i.e. code is used at a distance from its definition point.
 
-The runtime of Elpi had, since the very beginning, a debuggin facility based
-on conditional compilation: the runtime is compiled twice, once with
-printing instrumentation. The instrumentation was important to debug the
-runtime itself, like finding De Bruijn levels related bugs, but as the
-became more correct we started to added entry points to debug Elpi programs
-themsleves, like printing the current goal and the selected rules.
+Although we are personally quite fond of ``debugging using printf,'' we found
+it rather cumbersome, especially when Elpi code is shipped as a Rocq library;
+that is, when code is used far from its definition point.
 
-It was then quite easy to post-process the trace in order to reconstruct
-the stack (note that the operational semantics in~\cref{sec:sem} is stackless)
-and generate metadata suitable navigate the trace interactively, like
-if a branch is, eventually, successful or not.
+Since its inception, the Elpi runtime has included a debugging facility based
+on conditional compilation: the runtime is compiled twice, once with printing
+instrumentation. This instrumentation was crucial for debugging the runtime
+itself, such as identifying De Bruijn level-related bugs. As the runtime
+became more robust, we began to add entry points to debug Elpi programs
+themselves, such as printing the current goal and the selected rules.
+
+It then became straightforward to post-process the trace to reconstruct the
+stack (note that the operational semantics in~\cref{sec:sem} is stackless)
+and to generate metadata suitable for interactive trace navigation, such as
+indicating whether a branch is ultimately successful or not.
 
 \begin{sidewaysfigure}
     % \includegraphics[width=.9\textwidth]{trace}
@@ -3289,16 +3304,16 @@ if a branch is, eventually, successful or not.
     \caption{Trace browser\label{fig:trace}}
 \end{sidewaysfigure}
 
-Julien Wintz developed a trace browser (\cref{fig:trace}) based on web technologies, hence
-easy to integrate in Visual Studio Code. It displays the trace as a mailbox
-of events. Each event corresponds to the application of a rule of
-the operational semantics~\cref{sec:sem}, and has pointers forward to
-all subgoals and backwards to the acestor (via the stack).
-The trace is also searchable.
+Julien Wintz developed a trace browser (\cref{fig:trace}) based on web
+technologies, making it easy to integrate into Visual Studio Code. It displays
+the trace as a mailbox of events. Each event corresponds to the application of
+a rule of the operational semantics~\cref{sec:sem}, and has pointers forward
+to all subgoals and backward to the ancestor (via the stack). The trace is
+also searchable.
 
-The main limitation is that the implementation is limited to ``small''
-traces, below 20 megabytes, because it loads the trace upfront.
-Lifting this limitation is possible and planned.
+The main limitation is that the implementation currently handles only
+``small'' traces (below 20 megabytes), as it loads the trace upfront. Removing
+this limitation is possible and planned.
 
 \chapter{Rocq-Elpi}\label{sec:rocq}
 
