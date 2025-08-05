@@ -416,6 +416,8 @@ to represent abstraction: the function carried by \elpi{lam} can be applied to
 an actual argument to recover the body of the expression, where the formal
 argument is replaced by the actual argument.
 
+TODO: introduce HOAS/ltree syntax
+
 In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
 follows:
 
@@ -591,8 +593,8 @@ of (uvar as E) T :- declare_constraint (of E T) [E].
 \end{elpicode}
 
 The \elpi{pred} directive combines a type and mode declaration,
-in this case the first argument is in input mode (\elpi{i:}) while
-the second in output mode. The
+in this case the first argument is in input mode (the \texttt{i:} marker)
+while the second in output mode. The
 \elpi{uvar as E} binds the unification variable \elpi{E} to a hole in the
 goal and is semantically equivalent to the following, where \elpi{var/1} is
 the standard Prolog predicate for testing if a variable is unbound.
@@ -676,19 +678,17 @@ We need a language to combine the constraints attached to the hole
 
 \section{Constraints Handling Rules}\label{sec:chrui}
 
-Constraint Handling Rule (CHR for short) is a declarative
-programming language based on rules that operate on
-a multise of constraints~\cite{chr}.
-A rule mathes the set of constraints against a
-pattern, possibly equipped with a guard, and when it fires
-it adds or removes constraints from the store.
-Elpi implements the so called refined operational
-semantics~\cite{10.1007/978-3-540-27775-0_7}
-of CHR that, intuitively, tests rules in the given order
-and commits to the first one that fires.
 
-The following Elpi code complements the running example by
-imposing that each hole has only one typing constraint.
+Constraint Handling Rules (CHR) is a declarative programming language based
+on rules that operate on a multiset of constraints~\cite{chr}. A rule matches
+the set of constraints against a set of patterns, possibly equipped with a
+guard, and when it fires, it adds or removes constraints from the store.
+Elpi implements the so-called refined operational semantics
+~\cite{10.1007/978-3-540-27775-0_7} of CHR, which intuitively tests rules in
+the given order and commits to the first one that fires.
+
+The following Elpi code complements the running example by imposing that each
+hole has only one typing constraint.
 
 \begin{elpicode}
 constraint of {
@@ -696,57 +696,48 @@ constraint of {
 }
 \end{elpicode}
 
-The rule reads: if the constraint \elpi{of X T1} is present
-in the store together with \elpi{of X T2}, then remove
-the latter and generate a new goal \elpi{T1 = T2}.
-This is sufficient to make the type checker
-reject \elpi{of (app D D) T}, since the goal
-\elpi{S = arr S T} fails (because of occur check).
 
-A detail to remak is that the constraints are matched against
-the constraint handling rules, that is the non linear occurrence
-of \elpi{X} does not risk to ``merge'' two unrelated constraints:
-the rule above only applied if two constraint about the same variable
-are in the stote.
+The rule reads: if the constraint \elpi{of X T1} is present in the store
+together with \elpi{of X T2}, then remove the latter and generate a new goal
+\elpi{T1 = T2}. This is sufficient to make the type checker reject
+\elpi{of (app D D) T}, since the goal \elpi{S = arr S T} fails (because of
+the occurs check).
 
-Another important aspect is that constraint handling rules
-match more goals at once (while Logic programming rules
-only match or unify one). While the execution of an Elpi program
-can be seen as a depth-first construction of a proof tree, with
-the possibility of suspending the exploration of a branch, the
-application of a constraint handling rule operates on all suspended
-branches. In a way it is a ``meta'' proof search step. It can for
-example identify to identical subgoals and share/connect their (missing)
-proof. Indeed CHR rules do have a logical reading.
+One detail to note is that constraints are matched against the constraint
+handling rules; that is, the non-linear occurrence of \elpi{X} does not risk
+``merging'' two unrelated typing constraints: the rule above only applies if two
+constraints about the same variable are in the store.
+
+Another important aspect is that constraint handling rules can match multiple
+goals at once (whereas logic programming rules only match or unify one). While
+the execution of an Elpi program can be seen as a depth-first construction of
+a proof tree, with the possibility of suspending the exploration of a branch,
+the application of a constraint handling rule operates on all suspended
+branches. In a sense, it is a ``meta'' proof search step. For example, it can
+identify two identical subgoals and share or connect their (missing) proofs.
+
+
+Indeed, CHR rules do have a logical reading. The general syntax for rules is
+as follows, where \texttt{T} is the guard (a regular goal):
 
 \begin{verbatim}
 rule G1 \ G2 | T <=> G3
 \end{verbatim}
 
-The meaning of the rule can be phrased as $T \land G_1 \Rightarrow (G_2 \Leftrightarrow G_3)$:
-when the guard $T$ holds we can replace $G_2$ by $G_3$ proviso one still
-needs to solve $G_1$.
-  
-As we mentioned before Elpi automatically manages the context, that is
-the set of fresh constants generated by \elpi{pi} and hypothetical
-rules introduced by \elpi{=>}. As a result an Elpi goal is
-not just a predicate $P$, but rather a sequent $E \triangleright  \Gamma \vdash P$
-where $E$ is the set of fresh constants (names) and $\Gamma$ the set of
-hypothetical rules.
+\noindent
+The meaning of the rule can be phrased as $T \land G_1 \Rightarrow (G_2
+\Leftrightarrow G_3)$: when the guard $T$ holds, we can replace $G_2$ by $G_3$
+provided that $G_1$ still needs to be solved.
 
-The previous rule to model uniqueness of typing is hence incomplete
-since the same hole can occur under different contexts. This more
-elaborate version accepts different contexts and sets of fresh constants.
+As mentioned before, Elpi automatically manages the context -- that is, the set
+of fresh constants generated by \elpi{pi} and hypothetical rules introduced by
+\elpi{=>}. As a result, an Elpi goal is not just a predicate $P$, but rather a
+sequent $E \triangleright  \Gamma \vdash P$, where $E$ is the set of fresh
+constants (names) and $\Gamma$ is the set of hypothetical rules.
 
-In the rule below we use the keyword \elpi{uvar} to inspect the unification
-variables present in the constraint. More precisely these unification variables
-are \emph{frozen}: a unification variable \elpi{F} applied to \elpi{x} and
-\elpi{y} is persented to constraint handling rules as \elpi{uvar f [x,y]}
-for a fresh constant \elpi{f}. This lightweight form of reification
-make it so that CHR rules are used to match, rather than unify, constraints
-and that the user has access to the scope of unification variables.
-Moreover each constraint is frozen to a distinct space of names, i.e.
-\elpi{E1} and \elpi{E2} are made disjoint.
+The previous rule to model uniqueness of typing is therefore incomplete,
+since the same hole can occur under different contexts. The more elaborate
+version below accepts different contexts and sets of fresh constants.
 
 
 \begin{elpicode}
@@ -757,16 +748,27 @@ constraint of {
 }
 \end{elpicode}
 
-While correct for simple types this rule does not scale for a type
-discipline like the one of Rocq where terms can occur in types,
-i.e. where the constants in \elpi{S1} may occur in \elpi{T1} and
-the possibly different ones in \elpi{S2} may occur in \elpi{T2}: one needs
-to ``align'' \elpi{T1} with \elpi{T2} before equating them, more precisely
-to move \elpi{T2} in the space of names \elpi{E1}.
-We point the reader to~\cite{TASSI_2019} for the details of
-a CHR rule to model the uniqueness of typing property
-of Rocq's logic and to~\cite{Jojgov} for the role played by
-unification variable scopes in dependent type theory.
+\noindent
+In the rule above, we use the keyword \elpi{uvar} to inspect the unification
+variables present in the constraint. More precisely, these unification
+variables are \emph{frozen}: a unification variable \elpi{F} applied to
+\elpi{x} and \elpi{y} is presented to constraint handling rules as
+\elpi{uvar f [x,y]} for a fresh constant \elpi{f}. This lightweight form of
+reification ensures that CHR rules are used to match, rather than unify,
+constraints, and that the user has access to the scope of unification
+variables. Moreover, each constraint is frozen to a distinct space of names;
+that is, \elpi{E1} and \elpi{E2} are made disjoint.
+
+
+While correct for simple types, this rule does not scale to a type
+discipline like that of Rocq, where terms can occur in types. For example,
+the constants in \elpi{S1} may occur in \elpi{T1}, and possibly different
+ones in \elpi{S2} may occur in \elpi{T2}: one needs to align \elpi{T1}
+with \elpi{T2} before equating them -- more precisely, to move \elpi{T2} into
+the space of names \elpi{E1}.
+We refer the reader to~\cite{TASSI_2019} for details of a CHR rule modeling
+the uniqueness of typing property in Rocq's logic, and to~\cite{Jojgov} for
+the role played by unification variable scopes in dependent type theory.
 
 
 % , and S2 in T2. In this
@@ -803,7 +805,9 @@ unification variable scopes in dependent type theory.
 
 \section{Elpi = $\lambda$Prolog + CHR}\label{sec:elpiLP+CHR}
 
-Integration with SLD works as follows: each new constraint becomes
+The integration on constraints with standard
+Selective Linear Definite (SLD) clause resolution works as follows:
+each new constraint becomes
 a goal that is considered as the leftmost conjuct of the current
 resolution state. Since a new goal can in turn declare a new constraint,
 the CHR loop can continue. In other words constraint handling takes
@@ -814,7 +818,7 @@ priority over SLD resolution.
   \includegraphics[width=0.8\textwidth]{chr.png}
 %  \caption{\label{chr:fig}Elpi runtime (TODO clause/rule)}
 %\end{figure}
-
+TODO
 
 \subsection{Abstract syntax and operational semantics}\label{sec:sem}
 
@@ -1426,32 +1430,32 @@ operational semantics of the $\mathcal{CHR}$ procedure.
 
 \section{Syntactic sugar}
 
-Elpi features some simple syntactic sugar that is elimated by
-the ``compiler'' before running programs.
+
+Elpi features some simple syntactic sugar that is eliminated by the compiler
+before running programs.
 
 \subsection{Namespaces}
 
-Elpi code is obtained by accumulating together files, that is
-``concatenating'' lists of rules, possibly written by different
-authors. It is not impossible that
-two files, file1 and file2, contain declarations for a predicate with same name p.
+Elpi code is constructed by accumulating files -- that is, by concatenating lists
+of rules, possibly written by different authors. It is not impossible for two
+files, e.g., \texttt{file1} and \texttt{file2}, to contain declarations for a
+predicate with the same name, say \texttt{p}.
 
-When the types for p do not match, Elpi fails immediately
-and the programmer is warned. But when the types match, it may
-happen that the predicate changes meaning or complexity,
-especially in case of failure.
+When the types for \texttt{p} do not match, Elpi fails immediately and warns
+the programmer. But when the types match, it may happen that the predicate
+changes meaning or computational complexity, especially in the case of failure.
 
-A simple man solution could be to simply put the file name
-as part of predicate names, eg file1.p and file2.p.
+A simple solution could be to include the file name as part of predicate
+names, e.g., \texttt{file1.p} and \texttt{file2.p}.
 
-To paliate the syntactic overhead Elpi provides two syntactic
-facilities: namespace and shorten. The former prefixes all
-names of the predicates contained in a block, the latter makes
-predicates accessible via a short name inside a file or a block
+To alleviate the syntactic overhead, Elpi provides two syntactic facilities:
+\texttt{namespace} and \texttt{shorten}. The former prefixes all predicate
+names contained in a block, while the latter makes predicates accessible via a
+short name inside a file or block.
 
-In the following snippet the predicate \elpi{p} lives in the namespace
-\elpi{n} and is hence accessible via the long name \elpi{n.p} (outside of
-the name space).
+In the following snippet, the predicate \elpi{p} lives in the namespace
+\elpi{n} and is thus accessible via the long name \elpi{n.p} (outside of the
+namespace).
 
 \begin{elpicode}
 namespace n {
@@ -1471,139 +1475,159 @@ q :- p.
 
 \subsection{Spilling}\label{sec:spilling}
 
-We argue that the names we give to the objects we manipulate
-are the most important form of documentation and badly chosen
-name are the primary cause of unreadable code.
 
-The time a sloppy programmer saves by using \elpi{TMP}, \elpi{AUX}
-or \elpi{X'} instead of thinking at an appropriate name is
-demanded, with interests, to any reader of code, including himself.
+We argue that the names we give to the objects we manipulate are the most
+important form of documentation, and poorly chosen names are the primary cause
+of unreadable code.
 
-Logic programming, even in its Higher Order flavor, distinguishes
-commands from expressions (predicates from data). This characteristic
-is the primary contributor to the proliferation of temporary
-variables, a phenomenon that functional programming languages
-reduce by putting in the same syntactic category function calls an
-data. 
+The time a careless programmer saves by using \elpi{TMP}, \elpi{AUX}, or
+\elpi{X'} instead of thinking of an appropriate name is repaid, with
+interest, by any reader of the code -- including the programmer themselves.
 
-For example the OCaml code \texttt{List.rev (List.append l1 l2)}
-or its equivalent \texttt{List.append l1 l2 |> List.rev} enables
-to programmer to avoid naming the result of append, while in logic
-programming one often reads
+Logic programming, even in its higher-order flavor, distinguishes commands
+from expressions (predicates from data). This characteristic is the main
+contributor to the proliferation of temporary variables -- a phenomenon that
+functional programming languages reduce by placing function calls and data in
+the same syntactic category.
+
+For example, the OCaml code \texttt{List.rev (List.append l1 l2)} or its
+equivalent \texttt{List.append l1 l2 |> List.rev} allows the programmer to
+avoid naming the result of \texttt{append}, while in logic programming one
+often reads:
 
 \begin{elpicode}
 code L1 L2 Result :- append L1 L2 TMP, rev TMP Result.
 \end{elpicode}
 
-Elpi provides a syntatic facility to let one use
-``partially applied'' predicates as ``function calls''.
-By partially applied we mean ``applied to all the arguments flagged as input''.
-For example the code above can be written as follows
+Elpi provides a syntactic facility that allows one to use partially applied
+predicates as function calls. By partially applied, we mean ``applied to all
+the arguments flagged as input.'' For example, the code above can be written as
+follows:
 
 \begin{elpicode}
 code L1 L2 Result :- rev {append L1 L2} Result.
 \end{elpicode}
 
 The curly braces identify a term to be \emph{spilled} to the closest
-\emph{execution point}, identified by walking the terms outside in and
-identifying the first expression of type \elpi{prop}.
+\emph{execution point}, determined by walking the terms from the outside in
+and identifying the first expression of type \elpi{prop}.
 
-Spilling can be nested. Its elaboration is akin to the generation
-of the administrative normal form that is commonly used in functional
-programming languages.
+Spilling can be nested. Its elaboration is akin to the generation of the
+administrative normal form, which is commonly used in functional programming
+languages.
 
 \subsubsection{Spilling under a binder}
 
-When the spilled expression needs to cross a binder in order to
-reach the execution point, the elaboration is more sophisticated.
-For example: 
+
+When the spilled expression needs to cross a binder to reach the execution
+point, the elaboration becomes more sophisticated. For example:
 
 \begin{elpicode}
 code Result :- Result = (lam x\ {mk-app f [x]}).
 code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
 \end{elpicode}
-  
 
-In order to run the spilled code in a context with the bound variable
-\elpi{x}, the expression must be put under a \elpi{pi y}. Similarly
-the temporary variable needs to be abstracted over the variable, so
-that we can identify the original one \elpi{x} with the one abstracted by
-\elpi{pi y}.
+To run the spilled code in a context with the bound variable \elpi{x}, the
+expression must be placed under a \elpi{pi y}. Similarly, the temporary
+variable \elpi{TMP} needs to be abstracted over the variable, so that we can identify
+the original \elpi{x} with the one abstracted by \elpi{pi y}.
 
-Note that spilling does not need to cross a \elpi{pi}, but
-needs to make the quantified variable visible to the result of
-the spilled computation, for example explicilty quantifying it
-with a sigma. For example:
+% Note that spilling does not need to cross a \elpi{pi}, but it does
+% need to make the quantified variable visible to the result of the spilled
+% computation, for example by explicitly quantifying it with a sigma. For
+% example:
 
-\begin{elpicode}
-  code L1 L2 Result :- pi x\ rev {append [x|L1] L2} (Result x).
-  code L1 L2 Result :- pi x\ sigma TMP\ append [x|L1] L2 TMP, rev TMP (Result x).
-\end{elpicode}
+% \begin{elpicode}
+%   code L1 L2 Result :- pi x\ rev {append [x|L1] L2} (Result x).
+%   code L1 L2 Result :- pi x\ sigma TMP\ append [x|L1] L2 TMP, rev TMP (Result x).
+% \end{elpicode}
 
 \subsubsection{Spilling and impliction}
 
-When the object language features a sophisticated HOAS for the context
-(as in \cref{GALLINA}) it may be necessary to augment the context with
-the implication operator. For example imagine the \elpi{lam}
-term constructor carries the type of the bound variable
+TODO: first occurrence of HOAS
+
+When working under binders of the object language it is often
+necessary to augment the context via
+the implication operator. For example if the \elpi{lam}
+term constructor carries the type of the bound variable, then when
+crossing it one probably wants to keep that type at hand via
+a dedicated rule, for example to be able to call the type
+checker under the binder.
 
 \begin{elpicode}
-  code Ty Result :- Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+  code Ty Result :- 
+    % we call of under the binder for x
+    Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+  % desugars to
   code Ty Result :-
+    % the spilled expression keeps the implication
     (pi x\ of x Ty => of (app g x) (TMP x))
     Result = (lam Ty x\ lam (TMP x) y\ ...)
 \end{elpicode}
 
-This is frequent when spilling combined with quotations, for example
+\noindent.
+This is frequent when spilling combined with quotations, as we
+will better describe in~\cref{sec:quotations}. For example
+here we call an \elpi{api} under the object language binder for
+\elpi{x}.
 
 \begin{elpicode}
-  T = {{ λx : nat => lp:{{ app f {api x}  }}  }}
+  code Result :-
+    Result = {{ λx : nat => lp:{{ app f {api x}  }}  }}
+  % desugars to
+  code Result :-
+    (pi x\ of x {{ nat }} => api x (TMP x)),
+    Result = {{ λx : nat => lp:{{ app f (TMP {{ x }})  }}  }}
 \end{elpicode}
 
-where the api needs the context of the object language, see \cref{FFI}
+\noindent
+As we will discuss at length in~\cref{FFI}, the code of \elpi{api} needs the
+context of the object language in order to work properly, hence the
+spilled expression must be executed under the implication.
 
 \paragraph{Spilling ambiguities}
 
-Not all that glitter is gold. Sometimes the closest execution
-point may not be what the programmer wants.
+Not all that glitters is gold. Sometimes the closest execution point may not
+be what the programmer intends.
 
 \begin{elpicode}
   code D TodoForLater  :-
-    TodoForLater [ this, that {rev D} ].
+    TodoForLater = [ this, that {rev D} ].
 \end{elpicode}
 
-If this and that are predicated, the latter becomes
-\elpi{(rev D TMP, that TMP)} meaning that
-\elpi{D} is reversed when \elpi{TodoForLater} will be executed, and
-not when the todo list is generated, as one may have wanted.
+If \elpi{this} and \elpi{that} are predicates, the latter becomes
+\elpi{(rev D TMP, that TMP)}, meaning that \elpi{D} is reversed when
+\elpi{TodoForLater} is executed, and not when the todo list is generated, as
+one might have intended.
 
-According to our experience the closes execution point
-is more often than not what the programmer expects.
+According to our experience, the closest execution point is more often than
+not what the programmer expects.
 
-\section{A complete example: Hindley Milner type inference}\label{sec:milner}
+\section{A complete example: Hindley-Milner type inference}\label{sec:milner}
 
-The most significant type inference algorith is the one crafted by
-Milner the ML language~\cite{MILNER1978348}. The flavor we 
-study here covers equality type variables, the \texttt{''a} abstraction
-(in standard ML syntax) for decidable types, i.e. types that can be
-effectively compared unlike the function space.
 
-It makes a good use case for Elpi because:
+The most significant type inference algorithm is the one crafted by Milner
+for the ML language~\cite{MILNER1978348}. The version we study here covers
+equality type variables, the \texttt{''a} abstraction in standard ML syntax
+for decidable types -- that is, types that can be effectively compared, unlike
+the function space.
+
+This makes a good use case for Elpi because:
 \begin{itemize}
   \item it manipulates syntax trees with binders, namely lambda abstraction
-    and let binding
-  \item it manipulates types containing unification variables (i.e. holes).
+    and let binding;
+  \item it manipulates types containing unification variables (i.e., holes).
     The key step in the algorithm is to turn (existentially quantified)
-    unification variables into universally quantifies type variables to
-    form a skema
-  \item unification variables have an attribute, a flag (denoted with
-    an over bar) that is set if the equality test is used on values
-    of their type.
+    unification variables into universally quantified type variables to form a
+    schema;
+  \item unification variables have an attribute—a flag (denoted with an
+    overbar)—that is set if the equality test is used on values of their type.
 \end{itemize}
 
-The syntax of terms is very similar to the simply typed $\lambda$-calculus
-one, with the addition of \texttt{let} and the equality test. We omit
-conditional, loops or recursion since it does not play an important role.
+The syntax of terms is very similar to that of the simply typed
+$\lambda$-calculus, with the addition of \texttt{let} and the equality test.
+We omit conditionals, loops, and recursion, since they do not play an
+important role here.
 
 \begin{center}
 \begin{minipage}{0.35\textwidth}
@@ -1632,15 +1656,16 @@ type eq     term -> term -> term.
 \end{center}
 ~\\  
 ~\\  
-As in \cref{sec:hello} we use an HOAS encoding of terms.
-Still we add a \elpi{global} term constructor to
-be able to set up a minimal environment for our examples.
 
-Monomorphic type expressions $\tau$ and type skemas $\sigma$
-are depicted below. As in the original paper we fix a few builtin type contructors
-instead of supporting a generic n-ary type former, but unlike
-the ML tradition we put type constractors to the left of an application.
-We use the infix symbol \elpi{-->} for the function space of ML.
+As in~\cref{sec:hello}, we use a HOAS encoding of terms. However, we add a
+\elpi{global} term constructor to enable the setup of a minimal environment
+for our examples.
+
+Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
+below. As in the original paper, we fix a few built-in type constructors
+instead of supporting a generic n-ary type former, but unlike the ML
+tradition, we place type constructors to the left of an application. We use
+the infix symbol \elpi{-->} for the function space of ML.
 
 \begin{center}
 \begin{minipage}{0.4\textwidth}
@@ -1679,9 +1704,9 @@ type mono   tye -> ty.
 \end{center}
 
 
-The typing routing works with a context and, as we did for the
-simply typed lambda calculus, we delegate its management to the
-programming language.
+
+The typing routine works with a context and, as we did for the simply typed
+lambda calculus, we delegate its management to the programming language.
 
 $$
 \begin{array}{llrl}
@@ -1693,11 +1718,9 @@ $$
   \end{array}
 $$
 
-
-We give below a fre example of type assignement to global
-constants. It is worth highlighting the fact that the
-type skema for \elpi{"undup"}
-
+Below, we give a few examples of type assignments to global constants. It is
+worth highlighting the fact that the type schema for \elpi{"undup"} is
+special: it requires the element of the list to have an equality type.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1711,11 +1734,11 @@ of (global "fst")    (all ff x\ all ff y\ mono (pair x y --> x)).
 of (global "size")   (all ff x\ mono (list x --> int)).
 of (global "undup")  (all tt x\ mono (list x --> list x)).
 \end{elpicode}
-  
-
-The specialization of type skema allows one to plug type expressions in place
-of quantified variables. When the substituted variables stands for an
-equality type, one has to check that the type expression has an equality test.
+\noindent
+The specialization of a type schema allows one to plug type expressions in
+place of quantified variables. When the substituted variable stands for an
+equality type, one must check that the type expression supports an equality
+test.
 
 $$
 \displaystyle\frac{\tau' = \left\{\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
@@ -1733,9 +1756,9 @@ $$
 \end{array}
 $$
 
-The Elpi code departs from the pen and paper presentation by instantiating, at once,
-all skema variables by fresh unification variables, possibly constraining them
-to be an eq type
+The Elpi code departs from the pen-and-paper presentation by instantiating all
+schema variables at once with fresh unification variables, possibly
+constraining them to be equality types.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1745,8 +1768,8 @@ specialize (all ff F) T :- specialize (F Fresh_) T.
 specialize (all tt F) T :- specialize (F Fresh) T, eqbar Fresh.
 \end{elpicode}
 
-The \elpi{eqbar} predicate traevrses concrete type expressions and
-suspend when variables are found.
+The \elpi{eqbar} predicate traverses concrete type expressions and suspends
+when variables are found.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1765,23 +1788,22 @@ pred theta i:list tye.
 theta L :- declare_constraint (theta L) [_].
 \end{elpicode}
 
-The auxiliary constraint \elpi{theta} is used to gather the
-(duplicate free) list of unification variables constrained to be equality types.
+The auxiliary constraint \elpi{theta} is used to gather the (duplicate-free)
+list of unification variables constrained to be equality types.
 
-The use of constraints here is handy but not essential. One could thread a state,
-the list of all type variables used so far paired with their equality type status.
-The constraint store offers a global state carried on the side of the goals
-and constraint handling rules offer the possibility to organize the state, like grouping
-all entries into a list.
+The use of constraints here is convenient but not essential. One could thread
+a state -- the list of all type variables used so far, paired with their
+equality type status. The constraint store offers a global state carried
+alongside the goals, and constraint handling rules provide the possibility to
+organize the state, such as grouping all entries into a list.
 
-The declarative code for the type inference algorithm is given below.
-The rules for lambda abstraction and application are the same
-for simply typed lambda calculus~\cref{inf:stlc}.
-The rule for variables finds in $\Gamma$ a skema and assigns to the variable
-any valid instance. The rule for let pushes into the context a type
-$\overline{\Gamma}(\tau)$ for a let-bound expression of type $\tau$ in $\Gamma$.
-Finally the rule for equality tests if the type of the expressions admits
-an equality test.
+The declarative code for the type inference algorithm is given below. The
+rules for lambda abstraction and application are the same as for the simply
+typed lambda calculus~\cref{inf:stlc}. The rule for variables finds a schema
+in $\Gamma$ and assigns to the variable any valid instance. The rule for
+\texttt{let} pushes into the context a type $\overline{\Gamma}(\tau)$ for a
+let-bound expression of type $\tau$ in $\Gamma$. Finally, the rule for
+equality tests whether the type of the expressions admits an equality test.
 
 \begin{center}
 \begin{minipage}{0.45\textwidth}
@@ -1805,9 +1827,10 @@ $$
 $$
 \end{center}
 
-Elpi rules are very close to pen and paper ones. The only difference is that
-the rule for variable is extended, on purpose, to any term so that it
-can apply to global constants as well.
+
+Elpi rules are very close to their pen-and-paper counterparts. The only
+difference is that the rule for variables is intentionally extended to any
+term, so that it can apply to global constants as well.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1832,21 +1855,21 @@ of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
 \end{elpicode}
 
 We have already described how \elpi{specialize} relates to $\sqsubseteq$.
-What is left to describe is the $\overline{\Gamma}$ operation.
-  
+What remains to be described is the $\overline{\Gamma}$ operation.
+
 $$
 \overline{\Gamma}(\tau) = \forall\ \hat{\alpha}\ .\ \tau \quad\quad \hat{\alpha} = \textrm{free}(\tau) - \textrm{free}(\Gamma)
 $$
 
-Intuitively one has to compute the free type variables in $\Gamma$ and $\tau$
-and only abstract the ones as not free in $\Gamma$, i.e. that are only used
-locally to the expressions being bound by the let.
+Intuitively, one must compute the free type variables in $\Gamma$ and $\tau$
+and abstract only those not free in $\Gamma$ -- that is, those used only locally
+in the expressions being bound by the let.
 
-This operation escapes the capabilities of $\lambda$Prolog alone, even with
-the mode extensions we discuss in~\cref{sec:modes}, since $\Gamma$ is not
-first class or in other words it is automatically managed by the runtime.
-This is where the ``meta'' status of constraint handling rules comes in
-handy: suspended goals are sequents made of a formula and its context.
+This operation is beyond the capabilities of $\lambda$Prolog alone, even with
+the mode extensions discussed in~\cref{sec:modes}, since $\Gamma$ is not
+first-class -- in other words, it is automatically managed by the runtime. This
+is where the ``meta'' status of constraint handling rules becomes useful:
+suspended goals are sequents made of a formula and its context.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1877,30 +1900,31 @@ generalize Theta Gamma (mono T) PolyT ToQuantify :-
 \end{elpicode}
 
 \noindent
-The code to implement $\overline{\Gamma}(\tau)$ performs thwo tasks:
+
+The code to implement $\overline{\Gamma}(\tau)$ performs two tasks:
 
 \begin{itemize}
-  \item It abstracts \elpi{T} into a skema \elpi{POLYT} and
-    returns is by assigning \elpi{TS}
-  \item It cleans up the store of constraints removing the \elpi{eqbar}
-    constraints on variables that are now bound in the skema, and updates
-    \elpi{theta} by recomputing it
+  \item It abstracts \elpi{T} into a schema \elpi{POLYT} and returns it by
+    assigning \elpi{TS}.
+  \item It cleans up the store of constraints by removing the \elpi{eqbar}
+    constraints on variables that are now bound in the schema, and updates
+    \elpi{theta} by recomputing it.
 \end{itemize}
 
-The first task is necessary while the second one is mainly to explain an motivate
-the scheduling choices described in~\cref{sec:elpiLP+CHR}. In particular it is crucial
-that all unneeded \elpi{eqbar} constraints are removed before
-\elpi{theta} is recomputed by combining the new constraint with all
-\elpi{eqbar} constraints still in the store. It is also worth notion how
-the (declarative) semantics of CHR grants that the new \elpi{theta}
-constraints is combined with all \elpi{eqbar} ones, no matter in
-which order they are added to the store: up to now \elpi{theta} was
-there and was updated at every \elpi{eqbar} addition; now all
-\elpi{eqbar} are there, and \elpi{theta} gets added and combined
-with the all.
+The first task is necessary, while the second is mainly to explain and
+motivate the scheduling choices described in~\cref{sec:elpiLP+CHR}. In
+particular, it is crucial that all unneeded \elpi{eqbar} constraints are
+removed before \elpi{theta} is recomputed by combining the new constraint
+with all \elpi{eqbar} constraints still in the store. It is also worth
+noting how the (declarative) semantics of CHR ensures that the new
+\elpi{theta} constraint is combined with all \elpi{eqbar} ones, regardless
+of the order in which they are added to the store: up to now, \elpi{theta}
+was present and was updated at every \elpi{eqbar} addition; now all
+\elpi{eqbar} constraints are present, and \elpi{theta} gets added and
+combined with them all.
 
-The definition of free type variables, \cref{img:free}, is not
-surprising but it is worth to point out two details of the corresponding Elpi code.
+The definition of free type variables, \cref{img:free}, is not surprising,
+but it is worth pointing out two details of the corresponding Elpi code.
 
 \begin{figure}
 $$
@@ -1918,18 +1942,20 @@ $$
 \caption{Free type variable\label{img:free}}
 \end{figure}
 
-The former is that the context is a list of propositions. The \elpi{prop}
-type gather all predicates, not just \elpi{of}. We don't need to add
-a rule skip any unrelated predicate the program may have loaded with implication
-because the \elpi{constraint of ?- gammabar eqbar theta rm-eqbar} directive
-tells Elpi to filter the context of suspended goals (constraint) and keep only
-entries for the \elpi{of} predicate.
+
+The first detail is that the context is a list of propositions. The
+\elpi{prop} type gathers all predicates, not just \elpi{of}. We do not need
+to add a rule to skip any unrelated predicate the program may have loaded with
+implication, because the \elpi{constraint of ?- gammabar eqbar theta
+rm-eqbar} directive tells Elpi to filter the context of suspended goals
+(constraints) and keep only entries for the \elpi{of} predicate.
+
+TODO: is the filter documented?
 
 The second is that, at the meta level of constraint handling rules, the
-\elpi{uvar} keyword becomes a regular syntax tree node and that is
-has two arguments. The first one is the unique identifier of the unification
-variable. The second one is its scope represented as a list of names.
-  
+\elpi{uvar} keyword becomes a regular syntax tree node and has two arguments.
+The first is the unique identifier of the unification variable; the second is
+its scope, represented as a list of names.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1950,14 +1976,14 @@ free (A --> B) L L1 :- free B {free A L} L1.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
 
-The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is
-the code to bind (locally used) unification variables to universal quantifications.
-The key is the \elpi{copy} predicate, that implements substitution
-by traversing a type expression. Since this subtitution is not the built-in
-one (i.e. not function application), we can alter its behavior by loading
-into the program context some ad-hoc rules. In particular for
-each variable \elpi{uvar X _} to abstract we postulate a fresh symbol
-\elpi{c} and we load a rule to copy \elpi{uvar X _} to \elpi{c}.
+The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is the
+code to bind (locally used) unification variables to universal
+quantifications. The key is the \elpi{copy} predicate, which implements
+substitution by traversing a type expression. Since this substitution is not
+the built-in one (i.e., not function application), we can alter its behavior
+by loading into the program context some ad hoc rules. In particular, for
+each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
+\elpi{c} and load a rule to copy \elpi{uvar X _} to \elpi{c}.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1976,9 +2002,9 @@ copy (A --> B) (C --> D) :- copy A C, copy B D.
 copy (uvar _ _ as V) V.
 \end{elpicode}
 
-For completeness the remaining code follows. It may be worth explaining the
-signature of the polymorphic, higher order, \elpi{filter} predicate.
-In particular \texttt{i:(pred i:A)} stands for an input predicate over
+For completeness, the remaining code follows. It may be worth explaining the
+signature of the polymorphic, higher-order \elpi{filter} predicate. In
+particular, \texttt{i:(pred i:A)} stands for an input predicate over
 \elpi{A}, where the predicate itself expects an input.
 
 %elpi:hm.elpi
@@ -1993,18 +2019,18 @@ filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
 filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
-The code amounts to about 100 lines of Elpi. It is a toy, in the sense
-that its lacks code for error reporting, but its size is quite remarkable:
-it roughly mathces the length of a pen and paper presentation of the same
+The code amounts to about 100 lines of Elpi. It is a toy, in the sense that
+it lacks code for error reporting, but its size is quite remarkable: it
+roughly matches the length of a pen-and-paper presentation of the same
 algorithm.
 
 \subsection{A word on bidirectionality}
 
-Maybe the most unexpected feature of the running example is that
-it is a bidirectional algorithm. In particular the rule for application
-pushed dowh the expected type of the argument when type checking it.
+Perhaps the most unexpected feature of the running example is that it is a
+bidirectional algorithm. In particular, the rule for application pushes down
+the expected type of the argument when type checking it.
 
-The mono-directional version could look like the following code:
+The monodirectional version could look like the following code:
 
 \begin{elpicode}
 of (app H A) (mono T) :-
@@ -2018,85 +2044,84 @@ assert T TY ETY :-
   halt "Error: term" T "has type" TY "but its context expects" ETY.
 \end{elpicode}
 
-Note how \elpi{TH} is not related to \elpi{TA} before the
-call to  \elpi{of A (mono TA)}, and how the code only checkes
-after the facts that \elpi{TH = (TA --> T)}.
+Note how \elpi{TH} is not related to \elpi{TA} before the call to
+\elpi{of A (mono TA)}, and how the code only checks after the fact that
+\elpi{TH = (TA --> T)}.
 
 \section{Pitfalls}
 
-During these years we gave Elpi in the hands of a
-good number of users. Here the pitfalls that tricked everybody (ourself included).
+
+Over the years, we have put Elpi in the hands of a good number of users. Here
+are some pitfalls that have tricked everyone (ourselves included).
 
 \subsection{Misleading precedence of \elpi{=>}}
 
-When one write \elpi{A, B => C, D} means
-\elpi{A, B => (C, D)}. This is clear when
-one has a program \elpi{A, B => D} and wants
-to sneak in a print to debug before D.
+When one writes \elpi{A, B => C, D}, what he really means is \elpi{A, B => (C, D)}.
+This
+becomes clear when one has a program \elpi{A, B => D} and wants to sneak in a
+print to debug before D.
 
-So we argue that \elpi{=>} should bind stronger than ,
-on the left but not on the right, something parsing
-technology does not support out of the box. We introduced
-\elpi{==>} that parses with these precedences and add a warning
-whenever \elpi{A, B => C, D} that can be silenced
-by writing \elpi{A, (B => C), D}.
+We argue that \elpi{=>} should bind more strongly than ``,'' on the left but
+not on the right -- something that parsing technology does not support out of the
+box. 
+
+To imrove on this we introduced a new syntax for implication, namely \elpi{==>},
+that parses with these precedences and added a
+warning whenever \elpi{A, B => C, D} is used. This warning can be silenced by
+writing \elpi{A, (B => C), D}.
 
 \subsection{Treacherous anonymous clauses}
 
-The higher order capabilities of Elpi let one write
-code like
+The higher-order capabilities of Elpi let one write code like
 \begin{elpicode}
 map L (x\r\p x A, q A r) L'
 \end{elpicode}
-where \elpi{A} is arguably quantified (allocated) in the
-wrong place. By convention variables are considered parameters
-of the entire rule, not of the inlined, sub-rule.
+where \elpi{A} is arguably quantified (allocated) in the wrong place. By
+convention, variables are considered parameters of the entire rule, not of the
+inlined sub-rule.
 
 The correct way to write the code above is
 \begin{elpicode}
 map L (x\r\sigma A\p x A, q A r) L'
 \end{elpicode}
-where each
-call to the anonymous rule has a different \elpi{A}.
+where each call to the anonymous rule has a different \elpi{A}.
 
-We believe it would be safer to only allow (partially
-applied) predicates as higher arguments.
-The syntactic overhead is often compensated by the extra
-reading clarity a (well) named predicate provides.
+TODO: explain sigma
+
+We believe it would be safer to allow only (partially applied) predicates as
+higher arguments. The syntactic overhead is often compensated by the extra
+clarity a (well-)named predicate provides.
 
 \begin{elpicode}
 p-then-q X R :- p X A, q A R.
 map L p-then-q L'
-\end{elpicode}  
+\end{elpicode}
 
-Although we have not implemented it, hence validated the idea,
-it seems reasonable to warn whenever a variable \emph{only} occurs
-in the body of an anonymous rule (a term of function type to \elpi{prop}).
+Although we have not implemented this idea (and thus not validated it), it
+seems reasonable to warn whenever a variable \emph{only} occurs in the body of
+an anonymous rule (a term of function type to \elpi{prop}).
 
 \subsection{Scope error as a (recondite) failure}
 
-While \elpi{pi x\ F = x} logically fails because x is
-out of scope, its practical, legit, use cases are rare.
-According to our experience, most of the times when a
-unification fails because of
-a scope problem it is due to a user mistake.
+While \elpi{pi x\ F = x} logically fails because \elpi{x} is out of scope, its
+practical, legitimate use cases are rare. According to our experience, most
+of the time when a unification fails because of a scope problem, it is due to
+a user mistake.
 
-Although we have not tried to implement any measure to help
-newcomers, we wonder if making this cause of unification failure
-fatal (as is aborting the program) would help newcomers quickly
-identify the true mistake. In particular Elpi already provides
-built-in predicates to perform bound-variable occur-checking
-or pruning, allowing the user to not resort to higher order
-unification for accomplishing these tasks.
+Although we have not tried to implement any measures to help newcomers, we
+wonder if making this cause of unification failure fatal (i.e., aborting the
+program) would help newcomers quickly identify the true mistake. In
+particular, Elpi already provides built-in predicates to perform
+bound-variable occur-checking or pruning, allowing the user to avoid resorting
+to higher-order unification for these tasks.
 
 \subsection{Symmetric CHR rules}
 
-The CHR semantics described in \cref{sec:sem} behaves intuitively most of
-the times: rules
-are scanned in order and applied when applicable. It becomes a bit surprising,
-accorsing to our experience, when the multiset nature of the constraint store
-plays a role, in particular when permutations contain duplicate predicates
-and when rules have some symmetry in their patterns.
+The CHR semantics described in \cref{sec:sem} behaves intuitively most of the
+time: rules are scanned in order and applied when applicable. It becomes a bit
+surprising, according to our experience, when the multiset nature of the
+constraint store plays a role, particularly when permutations contain
+duplicate predicates and when rules have some symmetry in their patterns.
 
 
 \begin{center}\begin{minipage}{.6\textwidth}
@@ -2166,16 +2191,15 @@ rule 2 on 2
 \end{center}
 ~\\
 
-According to the rule set on the left hand side of the figure,
-rule 1 triggers twice since the second \elpi{c} constraint
-is active in both position 1 and 2. This is also the case
-in the second rule set, but since the rule removes one (copy) of
-\elpi{c} from the store and hence from the permutations set,
-the rule cannot trigger twice.
+According to the rule set on the left-hand side of the figure, rule 1
+triggers twice because the second \elpi{c} constraint is active in both
+positions 1 and 2. This also occurs in the second rule set, but since the
+rule removes one (copy) of \elpi{c} from the store -- and thus from the set of
+permutations -- the rule cannot trigger twice.
 
-Symmetry can also be broken by using the guard, eg
-requiring \elpi{N < M}, hence it is hard to imagine a
-sensible warning for this problem.
+Symmetry can also be broken by using a guard, e.g., requiring
+\elpi{N < M}. Therefore, it is difficult to imagine a sensible warning for
+this issue.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -2866,7 +2890,7 @@ APIs are not very interesting, so we focus on the other APIs that are
 instrumental for integrating Elpi with the host application, i.e., the ones
 that actually make it an \emph{extension} language.
 
-\subsection{Quotations}
+\subsection{Quotations}\label{sec:quotations}
 
 $\lambda$Prolog fits in the galaxy of Logical Frameworks~\cite{HarperHP87},
 i.e. languages designed to describe and manipulate another language,

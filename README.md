@@ -7,17 +7,17 @@
 - [ ] 1.1.2 The begining/showy day - english
 - [ ] 1.2 Elpi - write
 
-- [ ] 2.0 Elpi the language: de A a Z - english
-- [ ] 2.1 Elpi v.s. Prolog - english
-- [ ] 2.1.1 what matters - english
-- [ ] 2.2 Elpi v.s. λProlog - english
-- [ ] 2.2.1 incomplete terms - english
-- [ ] 2.3 Modes and Constraints - english
-- [ ] 2.4 Constraints Handling Rules - english
+- [x] 2.0 Elpi the language: de A a Z - english
+- [x] 2.1 Elpi v.s. Prolog - english
+- [x] 2.1.1 what matters - english
+- [x] 2.2 Elpi v.s. λProlog - english
+- [x] 2.2.1 incomplete terms - english
+- [x] 2.3 Modes and Constraints - english
+- [x] 2.4 Constraints Handling Rules - english
 - [ ] 2.5 Elpi = λProlog + CHR - write
 - [ ] 2.5.1 Operational semantics - english
 - [ ] 2.6.0 Syntactic sugar - english
-- [ ] 2.6.1 Namespaces - english
+- [x] 2.6.1 Namespaces - english
 - [ ] 2.6.2 Spilling - english
 - [ ] 2.7 A complete example: Hindley Milner type inference - english+
 - [ ] 2.7.1 A word on bidirectionality - english
