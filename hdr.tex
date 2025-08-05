@@ -2771,12 +2771,14 @@ hard to imagine a shallow index performing well in this scenario.
 
 \section{Compiler}\label{sec:compiler}
 
-First of all, the Elpi compiler is not a traditional compiler generating (virtual)
-machine code. Still, before being executed, Elpi programs go trough several
-steps typical of compilation pipelines. The Elpi compiler does:
+
+First of all, it should be noted that the Elpi compiler is not a traditional
+compiler generating (virtual) machine code. Still, before being executed, Elpi
+programs go through several steps typical of compilation pipelines. The Elpi
+compiler does:
 
 \begin{enumerate}
-  \setcounter{enumi}{0}
+  \setcounter{enumi}{-1}
   \item massage the AST recovering structure
   \item elaborate away the syntactic sugar, i.e. namespaces and spilling
   \item run a pretty standard type checker
@@ -2787,68 +2789,72 @@ steps typical of compilation pipelines. The Elpi compiler does:
 \end{enumerate}
 
 \noindent
-Task zero is really about recovering structure in the parsed text, like
+
+Task zero is really about recovering structure in the parsed text, such as
 grouping together signature declarations, rule declarations, constraint
-handling rules, etc. Finally terms go through a scope analysis to separate
+handling rules, etc. Finally, terms go through a scope analysis to separate
 locally bound names from global ones.
 
+
 Task one eliminates syntactic sugar. Namespaces are a common concept in
-real-world programming languages, even if we cound not really find a
-canonical reference to point to. Elaborating them away amounts to always
-used the long name for the global identifiers, even when the user wrote
-a short one. Spilling is less common. It resembles the generation of
-the administrative normal form~\cite{10.1145/141478.141563}, where large
-expressions are decomposed into atomic ones via the introduction of
-intermediate binders. A related work is~\cite{chaudhuri:hal-01806154}
-even if it considers a reasoning logic for $\lambda$Prolog and not the
-language itself.
+real-world programming languages, even if we could not really find a canonical
+reference to point to. Elaborating them away amounts to always using the long
+name for global identifiers, even when the user wrote a short one. Spilling is
+less common. It resembles the generation of the administrative normal
+form~\cite{10.1145/141478.141563}, where large expressions are decomposed
+into atomic ones via the introduction of intermediate binders. A related work
+is~\cite{chaudhuri:hal-01806154}, even if it considers a reasoning logic for
+$\lambda$Prolog and not the language itself.
 
-Task two is inspired by~\cite{10.5555/868728} even if Elpi performs
-no inference of polymoprhic types, and Elpi supports overloading
-symbols: their type driven resolution is inspired by the type
-inference procedure implemented by Harrison in
-Hol-light~\cite{10.1007/978-3-642-03359-9_4}.
 
-Task three is documented in~\cite{elpidet}, that was written too late to be
-made an integral part of this document. In a few words, Elpi 3.0 introduces more
-precise signatures for predicates letting the user specify if the predicate leaves
-choice points or not. If it does not it is called a function. A function is made
-of rules that can be statically deemed mutually exclusive, and that only calls
-other functions, or calls predicates but discards their choice points via a cut.
-Signatures for higher order predicates like \elpi{map} are interpreted as
-conditional statements: if the higher order argument \elpi{F} passed to
-\elpi{map} is a function, then also \elpi{map F} is.
+Task two is inspired by~\cite{10.5555/868728}, even if Elpi performs no
+inference of polymorphic types, and Elpi supports overloading symbols: their
+type-driven resolution is inspired by the type inference procedure implemented
+by Harrison in Hol-light~\cite{10.1007/978-3-642-03359-9_4}.
 
-The compiler performs very little optimizations in task four. In particular it
-pre-processes clauses by identifying the variables, so to know in advance the
-size of the activation frame (as mentioned in~\cref{sec:terms}).
-This procedure is also needed at runtime when hypothetical rules are loaded
-via implication, hence this pass has to be lightweigth: hypothetical rules
-are reraly used many times.
-One little optimization, fully performed statically, is to recognize lists and
-represent them with dedicated, more compact, nodes in the syntax tree. Lists
-are ubiquitous.
 
-A component that, instead, received quite some optimizations is the linker, in charge of the
-last two tasks. Elpi supports separate compilation, i.e. programs can be made
-of units that are compiled at different points in time.
-In particular most Elpi programs for Rocq generate new rules, see for
-example~\cref{sec:tb}, that are then compiled and linked to the program next
-time it is executed. In this sense the efficiency of the linker directly
-impacts the ``execution'' time of programs, hence by optimizing it one
-speeds up the perceived execution time.\\
-Some relevant Elpi applications like Hierarchy-Builder,
-see~\cref{sec:hb}, accumulate over time more than 40,000 rules. We had to
-craft a linker that is as incremental as possible, i.e. its
-computational complexity does depend (mainly) the unit extending the base
-program, and does not depend on the size of the base program itself.
+Task three is documented in~\cite{elpidet}, which was written too late to be
+made an integral part of this document. In a few words, Elpi 3.0 introduces
+more precise signatures for predicates, letting the user specify if the
+predicate leaves choice points or not. If it does not, it is called a function.
+A function is made of rules that can be statically deemed mutually exclusive,
+and that only call other functions, or call predicates but discard their choice
+points via a cut. Signatures for higher-order predicates like \elpi{map} are
+interpreted as conditional statements: if the higher-order argument \elpi{F}
+passed to \elpi{map} is a function, then so is \elpi{map F}.
 
-Another aspect of the compiler worth mentioning is that, since version 2.0,
-it carries the source-code location of each term from the parser to the
-static analysers. In turn this makes it possible to report precise error
-messages and attach to each sub expression some meta-data, like the inferred type of
-an expression or the declared signature of a symbol. This information
-can be exploited by modern editors to improve the navigation of the source code.
+
+The compiler performs very few optimizations in task four. In particular, it
+pre-processes clauses by identifying the variables, so as to know in advance
+the size of the activation frame (as mentioned in~\cref{sec:terms}). This
+procedure is also needed at runtime when hypothetical rules are loaded via
+implication; hence, this pass has to be lightweight: hypothetical rules are
+rarely used many times. One small optimization, fully performed statically, is
+to recognize lists and represent them with dedicated, more compact nodes in
+the syntax tree. Lists are ubiquitous.
+
+
+A component that, instead, received quite a few optimizations is the linker,
+which is in charge of the last two tasks. Elpi supports separate compilation,
+i.e., programs can be made of units that are compiled at different points in
+time. In particular, most Elpi programs for Rocq generate new rules (see, for
+example,~\cref{sec:tb}) that are then compiled and linked to the program the
+next time it is executed. In this sense, the efficiency of the linker directly
+impacts the ``execution'' time of programs; hence, by optimizing it, one speeds
+up the perceived execution time.\\
+Some relevant Elpi applications, like Hierarchy-Builder (see~\cref{sec:hb}),
+accumulate over time more than 40,000 rules. We had to craft a linker that is
+as incremental as possible, i.e., its computational complexity depends (mainly)
+on the unit extending the base program, and does not depend on the size of the
+base program itself.
+
+
+Another aspect of the compiler worth mentioning is that, since version 2.0, it
+carries the source-code location of each term from the parser to the static
+analyzers. In turn, this makes it possible to report precise error messages and
+attach to each subexpression some metadata, like the inferred type of an
+expression or the declared signature of a symbol. This information can be
+exploited by modern editors to improve navigation of the source code.
 
 \section{The API}\label{sec:API}
 
