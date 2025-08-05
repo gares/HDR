@@ -60,6 +60,7 @@
 - [x] 5.3.1 Algebra Tactics - english
 - [x] 5.3.2 Takt and TRocq: proof transfer tools - english
 - [x] 5.3.3 BlueRock’s BRiCk - english
+- [ ] 5.3.4 eIris
 
 - [x] 6.1 Summary - english
 - [x] 6.1.1 Elpi the language - english

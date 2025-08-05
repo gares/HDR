@@ -2223,13 +2223,12 @@ substitutions in many places with similar conclusions. In elpi-POC, in our
 limited tests, disabling them resulted in a faster runtime. Our analysis is
 that, in practice, the extra machinery to delay substitutions and pack them
 together rarely triggers (as an optimization to achieve better complexity), but
-it has a constant memory overhead. Most of the time, one fires all redexes in
-one go and immediately needs to inspect the result.
-
+it has a constant memory overhead. Most of the time, all redexes are fired in
+one go, and the result is immediately inspected.
 
 Still, it was clear that the operation of crossing a binder and replacing the
 bound name with a fresh constant (i.e., a fresh name) was very frequent and
-needed a fast implementation.
+required a faster implementation.
 
 \newcommand{\theotherfragment}{\ensuremath{L_{\lambda}}\xspace}
 \newcommand{\thefragment}{\ensuremath{L_{\lambda}^{\beta}}\xspace}
@@ -2237,25 +2236,26 @@ needed a fast implementation.
 
 \section{Runtime}
 
-The runtime of Elpi was developed in close collaboration with Caudio
-Sacerdoti Coen and Cvetan Dunchev around 2015 and is described in~\cite{dunchev15lpar}.
+The runtime of Elpi was developed in close collaboration with Claudio
+Sacerdoti Coen and Cvetan Dunchev around 2015, and is described
+in~\cite{dunchev15lpar}.
 
-In this section we sum up the main ingerdients of that runtime.
+In this section, we summarize the main ingredients of that runtime.
 
-\subsection{Impreative terms, frames and trail}\label{sec:terms}
+\subsection{Imperative terms, frames, and trail}\label{sec:terms}
 
-In logic programming computation makes progress by assigning unification
-variables, hence the operation of assigning and retrieving the assignment, if any,
-has to be efficient. Even if not very frequently, at least not in out use cases,
-assignments have to be undone to implement backtracking.
+In logic programming, computation makes progress by assigning unification
+variables. Therefore, the operations of assigning and retrieving the assignment,
+if any, must be efficient. Even if not very frequently -- at least not in our use
+cases -- assignments must be undone to implement backtracking.
 
 Our experience with the first Elpi prototype suggested that purely functional
-terms and an explicit assignment map is not a viable solution, and pushed us
+terms and an explicit assignment map are not a viable solution, and pushed us
 toward an implementation closer to standard Prolog runtimes~\cite{wam}.
-Although we did not even consider targeting the Warren Abstract Machine (WAM)
-as the system Teyjus does~\cite{teyjus}, since we felt it was beyhond our
-engineering capabilities, Elpi terms are mutable and we store
-a log of assignments to undo them.
+Although we did not even consider targeting the Warren Abstract Machine (WAM),
+as the system Teyjus does~\cite{teyjus}, since we felt it was beyond our
+engineering capabilities, Elpi terms are mutable, and we store a log of
+assignments to undo them, as is done in the WAM.
 
 The data type of terms is given in \cref{fig:term}.
 \begin{figure}
@@ -2292,48 +2292,53 @@ and uvar = {
 \end{ocamlcode}
 \caption{The term data type\label{fig:term}}
 \end{figure}
-Pure terms represent the $\lambda$ calculus part of the language, where
-the \ocaml{Const} node is for both globally and locally bound names
-(a.k.a. global constants and bound variables). We detail
-the representation in terms of De Bruijn levels in~\cref{sec:dbl}.
-Optimized terms are just lists and the discard sink-hole \elpi{_}.
-The FFI part is for calling built-in predicates and for opaque data,
-that we detail in~\cref{FFI}.
-What is left are node for unification variables, and we postpone
-the description of \ocaml{UVar} and \ocaml{Arg} to~\cref{sec:llambo}
-since they are optimized versions of the nodes \ocaml{AppUVar} and \ocaml{AppArg}.
+Pure terms represent the $\lambda$-calculus part of the language, where the
+\ocaml{Const} node is used for both globally and locally bound names (i.e.,
+global constants and bound variables). We detail the representation in terms
+of De Bruijn levels in~\cref{sec:dbl}. Optimized terms are simply lists and
+the discard sink-hole \elpi{_}. The FFI part is for calling built-in
+predicates and for opaque data, which we detail in~\cref{FFI}. What remains
+are nodes for unification variables, and we postpone the description of
+\ocaml{UVar} and \ocaml{Arg} to~\cref{sec:llambo}, since they are optimized
+versions of the nodes \ocaml{AppUVar} and \ocaml{AppArg}.
+
 
 The nodes \ocaml{AppUVar} and \ocaml{AppArg} represent applied unification
-variables with the difference that the former, that we call \emph{uvar},
-is heap-allocated while the latter, that we call \emph{arg},
-is stack-allocated and is used to represent the parameters (a.k.a. arguments)
-of rules.
+variables, with the difference that the former, which we call \emph{uvar}, is
+heap-allocated, while the latter, which we call \emph{arg}, is stack-allocated
+and is used to represent the parameters (i.e., arguments) of rules.
 
-Each uvar contains a mutable slot for a term, plus a unique identifier used
-by the FFI and a boolean flag to signal if the variable acts as a trigger for a constraint.
-Each arg contains the index of a slot in the activation frame (a term array)
-that is allocated each time a rule is used.
-The choice of distinguishing between the two comes from the WAM that in turn
-is inspired to standard programming languages in this respect: using a rule
-corresponds to a function call that is usually implemented via
-the allocation of an activation frame on the stack.
-To be precise, in our runtime everything is allocated into the OCaml heap but
-the stack frame becomes garbage (collectable by the garbage collector) as
-soon as the sub goals for a rule are generated. As in the WAM we keep the
-invariant that no heap term points to the stack, i.e. no term contained
-in a \ocaml{uvar} has an \ocaml{Arg} or \ocaml{AppArg} node.
-Heap terms are longer lived, typically kept alive by an uvar present in the
-initial query, while stack frames are reclaimed as soon as the call ends.
 
-The \emph{vardepth} of an uvar is an integer representing the number of
-\elpi{pi} generated fresh names existing when the uvar is created. We will write
-$X^n$ the uvar $X$ with vardepth equal to $n$. This is already an optimized
-representation of unification variables since one could also use the list of explicit
-argument to put these \elpi{pi} generated names in scope. This representation is
-also used in Teyjus~\cite{DBLP:journals/corr/abs-0911-5203}.
+Each uvar contains a mutable slot for a term, a unique identifier used by the
+FFI, and a boolean flag to signal if the variable acts as a trigger for a
+constraint. Each arg contains the index of a slot in the activation frame (a
+term array) that is allocated each time a rule is used. The decision to
+distinguish between the two comes from the WAM, which is itself inspired by
+standard programming languages: using a rule corresponds to a function call,
+which is usually implemented via the allocation of an activation frame on the
+stack. In our runtime, everything is allocated in the OCaml heap, but the
+stack frame becomes garbage (collectable by the garbage collector) as soon as
+the subgoals for a rule are generated. Because it is so short-lived, the stack
+frame is handled efficiently by the OCaml garbage collector (much like the
+stack is a piece of memory efficiently reclaimed).
 
-When the \ocaml{contents} field of an \ocaml{uvar} are assigned by
-the unifier, the same \ocaml{uvar} is also logged in the trail.
+As in the WAM, we keep the invariant that no heap term points to the stack;
+i.e., no term contained in a \ocaml{uvar} has an \ocaml{Arg} or
+\ocaml{AppArg} node. Heap terms are longer lived, typically kept alive by a
+uvar present in the initial query, while stack frames are volatile.
+
+
+The \emph{vardepth} of a uvar is an integer representing the number of
+\elpi{pi}-generated fresh names existing when the uvar is created. We will
+write $X^n$ for the uvar $X$ with vardepth equal to $n$. This is already an
+optimized representation of unification variables, since one could also use
+the list of explicit arguments to put these \elpi{pi}-generated names in
+scope. This representation is also used in
+Teyjus~\cite{DBLP:journals/corr/abs-0911-5203}.
+
+
+When the \ocaml{contents} field of a \ocaml{uvar} is assigned by the unifier,
+the same \ocaml{uvar} is also logged in the trail.
 
 \begin{ocamlcode}
 type trail_item =
@@ -2344,24 +2349,26 @@ type trail = trail_item list
 \end{ocamlcode}
 
 \noindent
-The trail also features two other kinds of events one may need to undo, namely
-the addition or removal of a constraint to the store, but we are not going to
-provide any more details on this. We rather focus on the higher-order part
-of the language, the \ocaml{Const} node.
+
+The trail also features two other kinds of events that may need to be undone:
+the addition or removal of a constraint to the store. However, we will not
+provide further details on this. Instead, we focus on the higher-order part of
+the language, the \ocaml{Const} node.
 
 \subsection{Levels, not indexes}\label{sec:dbl}
 
-In his seminal paper~\cite{DEBRUIJN1994375} De Bruijn
-introduced two, dual, naming schemas for $\lambda$-terms:
-the one based on depth indexes (DBI) and the one based on levels (DBL).
-In the former a variable is named $n$ if its binder is found by crossing $n$
-binders going in the direction of the root. In the latter a variable named
-$n$ is bound by the $n$-th binder one encounters in the path from the root
-to the variable occurrence. 
 
-Below we write the term $\lambda x.(\lambda y.\lambda z.f\ x\ y\ z)\ x$ and its
-reduct in the two notations: we subscript the variable name by the index/level
-that represents it.\\
+In his seminal paper~\cite{DEBRUIJN1994375}, De Bruijn introduced two dual
+naming schemes for $\lambda$-terms: one based on depth indexes (DBI) and one
+based on levels (DBL). In the former, a variable is named $n$ if its binder is
+found by crossing $n$ binders going toward the root. In the latter, a variable
+named $n$ is bound by the $n$-th binder encountered in the path from the root
+to the variable occurrence.
+
+
+Below, we write the term $\lambda x.(\lambda y.\lambda z.f\ x\ y\ z)\ x$ and its
+reduct in the two notations. We subscript the variable name by the index or
+level that represents it.\\
 
 \noindent
 \begin{tabular}{ll}
@@ -2370,46 +2377,51 @@ DBL: & $\lambda x.(\lambda y.\lambda z.f\ x_0\ y_1\ z_2)\ x_0\ \to_\beta\ \lambd
 \end{tabular}
 ~\\
 
-Indexes are the most widely adopted representation since most programming
-languages based on the $\lambda$-calculus perform weak reduction, that, operating
-at the root of the term, always substitutes a closed term for the variables bound
-by the topmost lambda. In DBI notation closed terms
-are invariant by lifting, unlike the ``free'' $x_0$ and $x_2$ that had to
-become a $x_1$ in the exampe above.\\
-With Levels $x_0$ did not require any shifting, but the variable $z$, bound
-under the redex, had to be adjusted since the number of binders before it
-decreased. Free variables, or better variables bound by the context under
-which reduction takes place, are invariant by shiting in DBL notation,
-while variables bound deeper are not. Eg. $\mathcal{I} = \lambda x.x$ has a different
-representation in DBL per depth: under $n$ binder $\mathcal{I}$ becomes
-$\lambda x.x_{n+1}$.
 
-By convention we name bound variables in De Bruijn Level notation $c_i$
-where $i$ is the level, starting from $0$. Global constants, like $f$ are
+Indexes are the most widely adopted representation, since most programming
+languages based on the $\lambda$-calculus perform weak reduction. This
+operates at the root of the term and always substitutes a closed term for the
+variable bound by the topmost lambda. In DBI notation, closed terms are
+invariant by lifting, unlike the ``free'' $x_0$ and $x_2$ that had to become
+$x_1$ in the example above.\\
+With levels, $x_0$ did not require any shifting, but the variable $z$, bound
+under the redex, had to be adjusted since the number of binders before it
+decreased. Free variables -- or, more precisely, variables bound by the context
+under which reduction takes place -- are invariant by shifting in DBL notation,
+while variables bound deeper are not. For example, $\mathcal{I} = \lambda x.x$
+has a different representation in DBL per depth: under $n$ binders,
+$\mathcal{I}$ becomes $\lambda x.x_{n+1}$.
+
+
+By convention, we name bound variables in De Bruijn Level notation $c_i$, where
+$i$ is the level, starting from $0$. Global constants, like $f$, are
 represented by negative numbers (and are never shifted).
 
-In $\lambda$Prolog $\beta$-reduction plays two very different roles even if
-they are coalesced into a single concept: substitution.
 
-In evaluating a redex $(\lambda x.M)\ N$ one can substitute an arbitrary term,
-and this powerfule operations is very handy in implementing substitution for the object
-language. For example the following two lines of code
-implement weak head reduction for the $\lambda$ calculus as encoded
-in~\cref{sec:hello} by simply recognizing a redex and delegating to the
-$\beta$-reduction of $\lambda$Prolog the work of pluggin $N$ inside $M$
-whereever needed:
+In $\lambda$Prolog, $\beta$-reduction plays two very different roles, even
+though they are coalesced into a single concept: substitution.
+
+
+When evaluating a redex $(\lambda x.M)\ N$, one can substitute an arbitrary
+term, and this powerful operation is very handy for implementing substitution
+for the object language. For example, the following two lines of code
+implement weak head reduction for the $\lambda$-calculus as encoded
+in~\cref{sec:hello}, by simply recognizing a redex and delegating to the
+$\beta$-reduction of $\lambda$Prolog the work of plugging $N$ inside $M$
+wherever needed:
 
 \begin{elpicode}
 whd (app Hd Arg) Reduct :- whd Hd (lam F), !, whd (F Arg) Reduct.
 whd X Reduct :- Reduct = X.
 \end{elpicode}
 
-Still, according to our experience, the most widely used form of substution
-is the one of a name by another one, i.e. the one called
-\emph{binder mobility}~\cite{Miller2018MechanizedMR}. For example the
-type checker in~\cref{sec:hello}, displayed below with an
-explicit $\eta$-expasion around \elpi{F}, replaces the name \elpi{x} with
-the name \elpi{c}.
+
+Still, according to our experience, the most widely used form of substitution
+is that of replacing one name with another, i.e., the one called
+\emph{binder mobility}~\cite{Miller2018MechanizedMR}. For example, the type
+checker in~\cref{sec:hello}, displayed below with an explicit
+$\eta$-expansion around \elpi{F}, replaces the name \elpi{x} with the name
+\elpi{c}.
 
 \begin{elpicode}
 of (app H A) T :- of H (arr S T), of A S.
@@ -2417,13 +2429,15 @@ of (lam (x\ F x)) (arr S T) :- pi (c\ of c S => of (F c) T).
 \end{elpicode}
 
 \noindent
-As per~\cite{10.1093/logcom/1.4.497} this restricted form of $\beta$-reduction
-is called $\beta_0$-reduction and it is sufficient to execute $\lambda$Prolog
-code in the \theotherfragment fragment (\cref{sec:llam}), and in particular the code of
-of the \elpi{of} predicate above.
 
-If we represent the second rule in DBL notation at depth $n$, i.e.
-we imagine we crossed $n$ object level binders with that rule, we have:
+As per~\cite{10.1093/logcom/1.4.497}, this restricted form of $\beta$-reduction
+is called $\beta_0$-reduction, and it is sufficient to execute $\lambda$Prolog
+code in the \theotherfragment fragment (\cref{sec:llam}), and in particular the code of
+the \elpi{of} predicate above.
+
+
+If we represent the second rule in DBL notation at depth $n$, i.e., we imagine
+we have crossed $n$ object-level binders with that rule, we have:
 
 \begin{elpicode}
 of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
@@ -2431,41 +2445,44 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-Note how the first bound variable in the data, $x$, is represented with
-the same De Bruijn level as the first \elpi{pi} quantified variable in
-the rule body. Once \elpi{pi} and \elpi{=>} have been executed,
-obtaining the $\beta_0$-normal form of \elpi{F ~$c_n$~} amounts to
-replace (in the term bound to \elpi{F}) all occurrence of $x_n$ with
-$c_n$ (note the \emph{same} $n$). This amounts to the identity, i.e. it
-is for free!
 
-This observation convinced us to choose DBL as the notation for variables
-and to identify the \thefragment fragment, a restriction of the \theotherfragment.
+Note how the first bound variable in the data, $x$, is represented with the
+same De Bruijn level as the first \elpi{pi}-quantified variable in the rule
+body. Once \elpi{pi} and \elpi{=>} have been executed, obtaining the
+$\beta_0$-normal form of \elpi{F ~$c_n$~} amounts to replacing (in the term
+bound to \elpi{F}) all occurrences of $x_n$ with $c_n$ (note the \emph{same}
+$n$). This is simply the identity, i.e., it is for free!
+
+
+This observation convinced us to choose DBL as the notation for variables and
+to identify the \thefragment fragment, a restriction of the \theotherfragment.
 
 \subsection{The \theotherfragment fragment}\label{sec:llam}
 
-In~\cite{10.1093/logcom/1.4.497} Miller identifies a stable fragment of
-$\lambda$Prolog in which Higher-Order unification is decidable and
-generates most general unifiers. This fragment is large enough to cover
-many $\lambda$Prolog programs and is the base for both Teyjus (version 2)
-and Elpi.
+
+In~\cite{10.1093/logcom/1.4.497}, Miller identifies a stable fragment of
+$\lambda$Prolog in which higher-order unification is decidable and generates
+most general unifiers. This fragment is large enough to cover many
+$\lambda$Prolog programs and is the basis for both Teyjus (version 2) and
+Elpi.
 
 \begin{definition}[\theotherfragment fragment]
-A term is in the \theotherfragment
-iff every occurrence of a unification variable $X^j$ is applied to
-$c_{a_1} \ldots c_{a_n}$ for $c_{a_i} \not= c_{a_j}$ and $j \leq a_i$
+A term is in the \theotherfragment fragment if and only if every occurrence of
+a unification variable $X^j$ is applied to $c_{a_1} \ldots c_{a_n}$, where
+$c_{a_i} \neq c_{a_j}$ and $j \leq a_i$, with $i$ and $j$
+distinct and ranging between $1$ and $n$.
 \end{definition}
 
 \noindent
-In other words unification variables must be applied to a duplicate free
-list of names, only.
-In this fragment all $\beta$-reductions are in fact $\beta_0$-reductions
-that, in some cases can be implemented in constant time when terms are
-represented in DBL notation.
+In other words, unification variables must be applied only to a duplicate-free
+list of names. In this fragment, all $\beta$-reductions are in fact
+$\beta_0$-reductions that, in some cases, can be implemented in constant time
+when terms are represented in DBL notation.
 
-It is natural to investigate better which cases admit the efficient $\beta_0$-reduction
-implementation described before. For example, this piece of code does not
-admit it:
+
+It is natural to further investigate which cases admit the efficient
+$\beta_0$-reduction implementation described above. For example, the following
+piece of code does not admit it:
 
 \begin{elpicode}
 of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
@@ -2473,12 +2490,12 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-Intuitively the program postulates more fresh names than the bound ones
-in the data being traversed, causing $x_n$ to be replaced by $c_{n+1}$
-in the recursive call.
-It is only when the bound variables in the data perfectly align with the fresh
-names postulated in order to move the binding from the data to the program that
-the optimization can kick in. In this respect \elpi{(~$F^n$~ ~$c_{n+1}$~)}
+
+Intuitively, the program postulates more fresh names than there are bound ones
+in the data being traversed, causing $x_n$ to be replaced by $c_{n+1}$ in the
+recursive call. The optimization can only be applied when the bound variables
+in the data perfectly align with the fresh names postulated to move the binding
+from the data to the program. In this respect, \elpi{(~$F^n$~ ~$c_{n+1}$~)}
 presents an anomaly.
 
 \subsection{The \thefragment fragment}\label{sec:llambo}
@@ -3568,7 +3585,8 @@ module FlexibleData : sig
     val add : Elpi.t -> Host.t -> t -> t
     val elpi   : Host.t -> t -> Elpi.t
     val host : Elpi.t -> t -> Host.t
-    val fold : (Host.t -> Elpi.t -> term option -> 'a -> 'a) -> t -> 'a -> 'a
+    val fold :
+      (Host.t -> Elpi.t -> term option -> 'a -> 'a) -> t -> 'a -> 'a
     ...
 \end{ocamlcode}
 
@@ -4722,6 +4740,10 @@ Hierarchy Builder, all included, is less than 5,000 lines of code.
 
 In recent years, the formal methods team at BlueRock has contributed valuable
 patches and early feedback to Elpi and Rocq-Elpi.
+
+\subsection{eIris}
+
+TODO
 
 
 \subsection{ProofCert}
