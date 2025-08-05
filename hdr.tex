@@ -2565,9 +2565,10 @@ It was only around 2016 that I extended the unification procedure to the full
 
 \subsection{Indexing}
 
+
 Over time, the runtime was equipped with three indexing algorithms, but before
-presenting them it is worth pointing out another advantage of the DBL notation.
-We should observe once more the rule to type check a lambda abstraction:
+presenting them, it is worth pointing out another advantage of the DBL
+notation. Let us observe once more the rule to type check a lambda abstraction:
 
 \begin{elpicode}
 of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
@@ -2575,16 +2576,17 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-Once \elpi{pi} is executed $c_n$ enters the context and becomes invariant
-by shifting, i.e. whereever it occurs it is represented as the number $n$.
-This simplifies indexing, since the hypothetical rule \elpi{(of ~$c_n$~ ~$S^n$~)}
+
+Once \elpi{pi} is executed, $c_n$ enters the program and becomes invariant by
+shifting, i.e., wherever it occurs it is represented as the number $n$. This
+simplifies indexing, since the hypothetical rule \elpi{(of ~$c_n$~ ~$S^n$~)}
 can be indexed on $c_n$ with no further complication.
 
 \subsubsection{Map}
 
-As in standard Prolog, this index only considers one predicate
-argument at depth 1. Unlike standard Prolog, in Elpi the user can
-chose which argument to index.
+
+As in standard Prolog, this index only considers one predicate argument at
+depth 1 the user can choose which argument to index (usually the first one).
 
 \begin{elpicode}
 :index(_ 1) % second argument at depth 1 using "Map" (the default)
@@ -2592,25 +2594,28 @@ pred example i:term, i:term, o:term.
 \end{elpicode}
 
 \noindent
-Functors are represented as integers, from \ocaml{-1} to \ocaml{min_int}
-and these integers are indexed using a Patricia tree implementation by
-Jean-Christophe Filliatre\footnote{\url{https://usr.lmf.cnrs.fr/~jcf/software.fr.html}},
-based on a paper by Okasaki and Gill~\cite{Okasaki:98:IntMap}.
-Each integer is seen as a ``list'' of bits and these lists are organized into
-a trie (tree of prefixes). The main idea is that common sublists are compressed
-to a single tree node, i.e. two lists only differing for the last bit are
-represented as a tree of depth two.
 
-The only detail worth mentioning is that, in order to answer queries where
-the indexed argument is flexible, or when it must be flexible (the \elpi{uvar}
-keyword for input arguments), the index for each predicate is accompanied
-by two list of rules, the ones to be returned in these two corner cases.
+Functors are represented as integers, from \ocaml{-1} to \ocaml{min_int}, and
+these integers are indexed using a Patricia tree implementation by
+Jean-Christophe Filliatre\footnote{\url{https://usr.lmf.cnrs.fr/~jcf/software.fr.html}},
+that in turn is based on a paper by Okasaki and Gill~\cite{Okasaki:98:IntMap}.
+Each integer is
+seen as a ``list'' of bits, and these lists are organized into a trie (tree of
+prefixes). The main idea is that common sublists are compressed to a single
+tree node; i.e., two lists differing only in the last bit are represented as a
+tree of depth two.
+
+
+The only detail worth mentioning is that, in order to answer queries where the
+indexed argument is flexible, or when it must be flexible (the \elpi{uvar}
+keyword for input arguments), the index for each predicate is accompanied by
+two lists of rules: those to be returned in these two corner cases.
+
 
 This index proved to be fast, but does not work well when the discriminating
-functor is deep and this is quite frequent when the rules talk about
-object  terms.
-For example the Rocq term \rocq{nat} is represented as, roughly,
-\elpi{global (indt "nat")} while the term \rocq{x + 0} is represented be a
+functor is deep, which is quite frequent when the rules talk about object-language
+terms. For example, the Rocq term \rocq{nat} is represented as, roughly,
+\elpi{global (indt "nat")}, while the term \rocq{x + 0} is represented by a
 tree where the ``head'' node, \elpi{"plus"}, is at depth 5!
 
 \begin{elpicode}
@@ -2620,33 +2625,36 @@ tree where the ``head'' node, \elpi{"plus"}, is at depth 5!
 
 \subsubsection{Hash map}
 
-If more than one argument needs indexing, or one argument needs to
-be indexed deeper, Elpi provides an index based on the idea of
-unification hashes. Such index was implemented by Dunchev in 2015
-and are based on 2013 blog post by
+
+If more than one argument needs indexing, or if an argument needs to be
+indexed deeper, Elpi provides an index based on the idea of unification
+hashes. Such an index was implemented by Dunchev in 2015 and is based on a
+2013 blog post by
 Hendricks\footnote{\url{http://blog.ndrix.com/2013/03/prolog-unification-hashes.html}}.
 
-The hash value, a list of bits, is generated hierarchically and up to the
-specified depth and is indexed using the Patricia tree implementation mentioned
-in the previous section.
-Unification variables in a rule head are mapped to a
-sequence of \texttt{1}, while they are mapped to a sequence of 0 when they are part of
-the query. Constants are mapped
-to a hash value, a sequence of both \texttt{1} and \texttt{0}. If the bit wise conjunction \ocaml{&}
-of the hash of the query and the hash of the head of a rule is equal to the hash of
-the query, then the rule is a match.
-Intuitively:
+
+The hash value, a list of bits, is generated hierarchically up to the specified
+depth and is indexed using the Patricia tree implementation mentioned in the
+previous section. Unification variables in a rule head are mapped to a
+sequence of \texttt{1}s, while they are mapped to a sequence of \texttt{0}s
+when they are part of the query. Constants are mapped to a hash value -- a
+sequence of both \texttt{1}s and \texttt{0}s. If the bitwise conjunction
+\ocaml{&} of the hash of the query and the hash of the head of a rule is equal
+to the hash of the query, then the rule is a match. Intuitively:
 \begin{itemize}
-\item in a rule, \texttt{1} means ``I provide this piece of info''
-\item in the query, \texttt{1} means ``I demand this piece of info''
+  \item in a rule, \texttt{1} means ``I provide this piece of info''
+  \item in the query, \texttt{1} means ``I demand this piece of info''
 \end{itemize}
 
-\noindent
-A flexible argument in the query is made of \texttt{0}s, hence it demands nothing, since \ocaml{0 & x = 0}
-for any bit \ocaml{x} of the rule. Conversely a flexible argument in the rule is made of \texttt{1}s,
-hence it provides anything, since \ocaml{x & 1 = x} for any bit \ocaml{x} of the query.
 
-For example consider the following code featuring a fast path (rule 2):
+\noindent
+A flexible argument in the query is made of \texttt{0}s; hence, it demands
+nothing, since \ocaml{0 & x = 0} for any bit \ocaml{x} of the rule.
+Conversely, a flexible argument in the rule is made of \texttt{1}s; hence, it
+provides anything, since \ocaml{x & 1 = x} for any bit \ocaml{x} of the query.
+
+
+For example, consider the following code featuring a fast path (rule 2):
 \begin{elpicode}
 kind nat type.
 type o nat.
@@ -2659,11 +2667,14 @@ mult (s (s o)) X C :- plus X X C.          % rule 2
 mult (s A) B C :- mult A B R, plus B R C.  % rule 3
 \end{elpicode}
 
-\noindent Also imagine a word size of 8 bits, and that the hash of \elpi{o} is
-\ocaml{1001 1011} while the one of \elpi{s} is \ocaml{1011 0010}.
 
-Hashes of each argument are obtained by combining the
-hashes of the subterms, somewhat trimmed to fit the word size.
+\noindent
+Also, imagine a word size of 8 bits, and that the hash of \elpi{o} is
+\ocaml{1001 1011}, while the hash of \elpi{s} is \ocaml{1011 0010}.
+
+
+Hashes for each argument are obtained by combining the hashes of the subterms,
+somewhat trimmed to fit the word size.
 ~\\
 
 \begin{tabular}{lll}
@@ -2675,8 +2686,9 @@ rule & argument & hash\\
 \end{tabular}
 ~\\
 \noindent
-Now we consider the following three query arguments, their hashes and
-their matches.
+
+Now we consider the following three query arguments, their hashes, and their
+matches.
 ~\\
 
 \begin{tabular}{lll}
@@ -2689,17 +2701,18 @@ X & 0000 0000   & 1, 2, 3\\
 ~\\
 
 \noindent
-In our testing, unification hashes are on-par with the standard
-indexing technique, but they provide greater flexibility. The only downside is
-that it is hard to predict when collisions happen since hashes are trimmed
-to fit one OCaml word (63 bits).
-This limitation is imposed by the underlying Patricia tree implementation.
-Extending the implementation to work on multiple words is surely
-possible, but we did not explore it.
+
+In our testing, unification hashes are on par with the standard indexing
+technique, but they provide greater flexibility. The only downside is that it
+is hard to predict when collisions will happen, since hashes are trimmed to fit
+one OCaml word (63 bits). This limitation is imposed by the underlying
+Patricia tree implementation. Extending the implementation to work on multiple
+words is surely possible, but we did not explore it.
 
 \subsubsection{Discrimination tree}
 
-Fissore integrated in Elpi 3.0 an index based on discrimination trees,
+
+Fissore integrated into Elpi 3.0 an index based on discrimination trees,
 implemented following Pfenning's notes on automated theorem
 proving\footnote{\url{https://www.cs.cmu.edu/~fp/courses/99-atp/lectures/lecture28.html}}.
 
@@ -2708,51 +2721,53 @@ proving\footnote{\url{https://www.cs.cmu.edu/~fp/courses/99-atp/lectures/lecture
 pred example i:term, i:term, o:term.
 \end{elpicode}
 
-The discrimination tree is essentially a trie of paths, and a path is a
-linearization of a term. Path items are symbols equipped with
-their arity, so that one can easily, although not with $O(1)$ complexity
-as in skip lists, ignore an entire subtree.
-By concatenating paths one can easily apply the index to multiple arguments.
 
-The main optimizations implemented by Fissore are two.
-First one is to record the maximum depth (path length) needed to index
-program rules (also capped by the user given bound). This value is used to cap
-the depth at which the query is inspected in order to generate its corresponding
-path, that is then searched ino the trie. Queries are typically much larger
-that the rules' heads.\\
-The second one is to flatten lists, i.e.
-a tree like the following one
+The discrimination tree is essentially a trie of paths, and a path is a
+linearization of a term. Path items are symbols equipped with their arity, so
+that one can easily, although not with $O(1)$ complexity as in skip lists,
+ignore an entire subtree. By concatenating paths, one can easily apply the
+index to multiple arguments.
+
+
+Fissore implemented two main optimizations. The first is to record the maximum
+depth (path length) needed to index program rules (also capped by a user-given
+bound). This value is used to cap the depth at which the query is inspected in
+order to generate its corresponding path, which is then searched in the trie.
+Queries are typically much larger than the rules' heads.\\
+The second optimization is to flatten lists, i.e., a tree like the following:
 \begin{elpicode}
 app [global (const "plus"), x, global (indc "O")]
 \end{elpicode}
 \noindent
-is represented as if the \elpi{app} node had three childs, i.e.
-the leaf \elpi{"plus"} and \elpi{"O"} are at the same depth.
-Special care is taken to handle open lists, i.e. when the tail of a list
-is a unification variable.
+is represented as if the \elpi{app} node had three children, i.e., the leaves
+\elpi{"plus"} and \elpi{"O"} are at the same depth. Special care is taken to
+handle open lists, i.e., when the tail of a list is a unification variable.
 
-For the majority of $\lambda$Prolog programs the discrimination tree is slower
-than the simpler, shallower, ones presented before. Many ubuquitous predicates
-like the list processing ones \elpi{map} or \elpi{mem} have very few rules. Any
-index does a good job discriminating them, so the one with less constant
-overhead wins.
 
-Still the discrimination tree finds a good number of applications.
-Some tools like Hierarchy-Builder, see~\cref{sec:hb},
-make use of the Elpi program as data base, accumulating into it tens of
-thousands of rules for the same predicate, with arguments not
-very different from the term above. All these rules can be discriminated
-efficienlty only by a deep index.
+For the majority of $\lambda$Prolog programs, the discrimination tree is
+slower than the simpler, shallower ones presented before. Many ubiquitous
+predicates, like the list processing ones \elpi{map} or \elpi{mem}, have very
+few rules. Any index does a good job discriminating them, so the one with less
+constant overhead wins.
+
+
+Still, the discrimination tree finds a good number of applications. Some tools,
+like Hierarchy-Builder (see~\cref{sec:hb}), make use of the Elpi program as a
+database, accumulating into it tens of thousands of rules for the same
+predicate, with arguments not very different from the term above. All these
+rules can be discriminated efficiently only by a deep index.
+
 
 Another application is the determinacy checker recently added by
-Fissore~\cite{elpidet}. In particular the test overlapping rules
-can be performed easily and efficiently by indexing all rules' heads with
-a discrimination tree at unbounded depth.
+Fissore~\cite{elpidet}. In particular, the test for overlapping rules can be
+performed easily and efficiently by indexing all rules' heads with a
+discrimination tree at unbounded depth.
 
-Another application, yet to be explored, is to use discrimination trees
-to implement a caching mechanism in the spirit of tabling, i.e. to index
-\emph{all} the goals that are generated during an expensive computation.
-I it hard to imagine a shallow index to perform well in this scenario.
+
+Another application, yet to be explored, is to use discrimination trees to
+implement a caching mechanism in the spirit of tabling~\cite{10.1145/191839.191927,10.1007/11532231_5,selsam2020tabledtypeclassresolution}, i.e., to index
+\emph{all} the goals that are generated during an expensive computation. It is
+hard to imagine a shallow index performing well in this scenario.
 
 \section{Compiler}\label{sec:compiler}
 

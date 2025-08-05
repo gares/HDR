@@ -706,3 +706,33 @@ eprint = {https://londmathsoc.onlinelibrary.wiley.com/doi/pdf/10.1112/blms/22.1.
 abstract = {By J. L. Bell: pp. 267. £35.00. (Oxford University Press, 1988)},
 year = {1990}
 }
+
+@InProceedings{10.1007/11532231_5,
+author="Pientka, Brigitte",
+editor="Nieuwenhuis, Robert",
+title="Tabling for Higher-Order Logic Programming",
+booktitle="Automated Deduction -- CADE-20",
+year="2005",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="54--68",
+abstract="We describe the design and implementation of a higher-order tabled logic programming interpreter where some redundant and infinite computation is eliminated by memoizing sub-computation and re-using its result later. In particular, we focus on the table design and table access in the higher-order setting where many common operations are undecidable in general. To achieve a space and time efficient implementation, we rely on substitution factoring and higher-order substitution tree indexing. Experimental results from a wide range of examples (propositional theorem proving, refinement type checking, small-step evaluator) demonstrate that higher-order tabled logic programming yields a more robust and more powerful proof procedure.",
+isbn="978-3-540-31864-4"
+}
+
+@inproceedings{10.1145/191839.191927,
+author = {Sagonas, Konstantinos and Swift, Terrance and Warren, David S.},
+title = {XSB as an efficient deductive database engine},
+year = {1994},
+isbn = {0897916395},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/191839.191927},
+doi = {10.1145/191839.191927},
+abstract = {This paper describes the XSB system, and its use as an in-memory deductive database engine. XSB began from a Prolog foundation, and traditional Prolog systems are known to have serious deficiencies when used as database systems. Accordingly, XSB has a fundamental bottom-up extension, introduced through tabling (or memoing)[4], which makes it appropriate as an underlying query engine for deductive database systems. Because it eliminates redundant computation, the tabling extension makes XSB able to compute all modularly stratified datalog programs finitely and with polynomial data complexity. For non-stratified programs, a meta-interpreter with the same properties is provided. In addition XSB significantly extends and improves the indexing capabilities over those of standard Prolog.  Finally, its syntactic basis in HiLog [2], lends it flexibility for data modelling.The implementation of XSB derives from the WAM [25], the most common Prolog engine. XSB inherits the WAM's efficiency and can take advantage of extensive compiler technology developed for Prolog. As a result, performance comparisons indicate that XSB is significantly faster than other deductive database systems for a wide range of queries and stratified rule sets. XSB is under continuous development, and version 1.3 is available through anonymous ftp.},
+booktitle = {Proceedings of the 1994 ACM SIGMOD International Conference on Management of Data},
+pages = {442–453},
+numpages = {12},
+location = {Minneapolis, Minnesota, USA},
+series = {SIGMOD '94}
+}
