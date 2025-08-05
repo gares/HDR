@@ -26,16 +26,16 @@
 - [ ] 2.8.3 Scope error as a (recondite) failure - english
 - [ ] 2.8.4 Symmetric CHR rules - english
 
-- [ ] 3.1 The first prototype - english
-- [ ] 3.2 Second attempt: a runtime for - english
-- [ ] 3.2.1 The Lλ fragment - english + rethink
-- [ ] 3.2.2 The Lβ λ fragment - english + rethink
-- [ ] 3.2.3 Indexing - english
-- [ ] 3.3 The API - english
-- [ ] 3.3.1 Quotations - english
-- [ ] 3.3.2 FFI - write
-- [ ] 3.4 Debugging - write
-- [ ] 3.4.1 Trace browser - write
+- [x] 3.1 The first prototype - english
+- [x] 3.2 Second attempt: a runtime for - english
+- [x] 3.2.1 The Lλ fragment - english + rethink
+- [x] 3.2.2 The Lβ λ fragment - english + rethink
+- [x] 3.2.3 Indexing - english
+- [x] 3.3 The API - english
+- [x] 3.3.1 Quotations - english
+- [x] 3.3.2 FFI - write
+- [x] 3.4 Debugging - write
+- [x] 3.4.1 Trace browser - write
 
 - [x] 4 Rocq-Elpi - english
 - [x] 4.1 Why extending Rocq in OCaml is hard - english

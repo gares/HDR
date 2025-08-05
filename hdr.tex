@@ -207,34 +207,39 @@ A to Z, both as a language and as an implementation of that language (we credit
 \cite{ridoux1998lambda}). The third describes the integration of Elpi in Rocq
 and the fourth one surveys the application developed for Rocq using Elpi.
 
+\url{https://github.com/LPCIC}
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 
-Elpi is a mix of two languages: $\lambda$Prolog and Contraint Handling Rules.
-The former is a higher order variant of Prolog based on
-Hereditary Harrop Formulas, a generalization of Horn Clauses.
-The latter is language to manipulate a store of constraints that,
-in the case of Elpi, is made of suspended goals, i.e. sequents
-made of heigenvariables, dynamic rules and a conjecture.
 
-We briefly introduce all the ingredients that constitute Elpi.
-Most of the syntax of Elpi is inherited from $\lambda$Prolog, as well
-as the type discipline~\cite{Miller_Nadathur_2012}; similarly most of
-its dynamic semantics is inherited from Prolog.
-We state this upfront with no claim of novelty but we will just say Elpi in what
-follows. We shall still highlight the novelties or simply differences from
-$\lambda$Prolog or Prolog as they appear.
+Elpi is a combination of two languages: $\lambda$Prolog~\cite{10.1093/logcom/1.4.497,Miller_Nadathur_2012}
+and Constraint Handling Rules~\cite{FRUHWIRTH199895,chr}. The former is a
+higher-order variant of Prolog~\cite{prolog0,prolog} based on Hereditary
+Harrop Formulas, a generalization of Horn Clauses. The latter is a language
+designed to manipulate a store of constraints which, in the case of Elpi,
+consists of suspended $\lambda$Prolog goals -- that is, sequents composed of
+eigenvariables, dynamic rules, and a conjecture.
+
+We briefly introduce all the components that constitute Elpi. Most of Elpi's
+syntax is inherited from $\lambda$Prolog, as is its type discipline
+~\cite{Miller_Nadathur_2012}; similarly, most of its dynamic semantics is
+inherited from Prolog~\cite{1989Vink}.
+We state this upfront, with no claim of novelty, and
+will simply refer to the language as Elpi in what follows. Nevertheless, we
+will highlight any novelties or differences from $\lambda$Prolog or Prolog as
+they arise.
 
 \section{Elpi v.s. Prolog}
 
-Regarding an introduction to Prolog, the reader is spoiled for choice.
-Here, we limit ourselves to establishing the terminology and highlighting
-the key characteristics of Elpi and differences from standard Prolog from the
-perspective of the programmer. We identify three of them: data types, rules
-and search.
 
-The first feature worth pointing out is algebraic data types, such as
-list and trees. Here the declaration of binary tress in Elpi syntax:
+For an introduction to Prolog, the reader is spoiled for choice. Here, we
+limit ourselves to establishing terminology and highlighting the key
+characteristics of Elpi, as well as its differences from standard Prolog, from
+the programmer's perspective. We identify three main aspects: data types,
+rules, and search.
+
+The first feature worth noting is the support for algebraic data types, such
+as lists and trees. Below is the declaration of binary trees in Elpi syntax:
 
 \begin{elpicode}
 kind tree type.
@@ -242,46 +247,46 @@ type leaf tree.
 type node int -> tree -> tree -> tree. 
 \end{elpicode}
 
-The \elpi{leaf} and \elpi{node} symbols can be used to
-build terms and have arity 0 and 3 respectively. Elpi
-follows the tradition of typed functional languages by prescribing not only
-an arity but a more precise type to \elpi{leaf} and \elpi{node}.
-In this document we refer to them as term constructors, or simply constructors.
+
+The \elpi{leaf} and \elpi{node} symbols can be used to build terms and have
+arities 0 and 3, respectively. Elpi follows the tradition of typed functional
+languages by prescribing not only an arity but also a more precise type for
+\elpi{leaf} and \elpi{node}. In this document, we refer to them as term
+constructors, or simply constructors.
 \begin{wrapfigure}{r}{.2\textwidth}
   \begin{forest}
     [46 [93 [-] [-]] [-]]
   \end{forest}
 \end{wrapfigure}
-Types play no role at run time but grately contribute to the static analysis
-of the code, allowing to report typos and sometime even true errors, early.
-As an example the term
-\elpi{(tree 46 (tree 93 leaf leaf) leaf)}
+Types play no role at run time but greatly contribute to the static analysis
+of the code, allowing typos and sometimes even true errors to be reported
+early. The term \elpi{(tree 46 (tree 93 leaf leaf) leaf)}
 represents the tree depicted on the right.
-To the reader familiar with
-Prolog we point out that Elpi adopts the syntactic convention
-of $\lambda$-calculus for function calls, namely $(f~ x~ y)$ rather than the
-mathematical convention $f(x,y)$ adopted by Prolog.
+For readers familiar with Prolog, note that Elpi adopts the syntactic
+convention of $\lambda$-calculus for function calls, namely $(f~ x~ y)$,
+rather than the mathematical convention $f(x,y)$ used by Prolog.
 
-
-The second feature we discuss is that the code is organized into
-rules, that constitue the smallest code unit\footnote{In this document we prefer the
-word rule to clause.}. A rule is made of two parts, the head and the premises.
-Intuitively the head drives the selection of a rule, reducing the current
-problem, that we goal, to simpler ones. Operationally the head is unified with the
-goal, possibly assigning value to the rule parameters that are embodied by
-unification variables. As an example we provide the code computing the size of
-a tree, together with its signature:
+The second feature we discuss is that code is organized into rules, which
+constitute the smallest code unit\footnote{In this document we prefer the word
+rule to clause, but occasionally we shall use the latter.}.
+A rule consists of two parts: the head and the premises.
+Intuitively, the head drives the selection of a rule, reducing the current
+problem (the goal) to simpler ones. Operationally, the head is unified with
+the goal, possibly assigning values to the rule parameters, which are
+embodied by unification variables. As an example, we provide the code for
+computing the size of a tree, together with its signature:
 
 \begin{elpicode}
 type size tree -> int -> prop.
 size leaf 0.
 size (node _ L R) N :- size L N1, size R N2, N is 1 + N1 + N2.
 \end{elpicode}
-Again we favor a type assignment to a simple arity. \elpi{prop} is the
-type of executable code, meaning that \elpi{size}, when applied to two
-arguments, becomes a goal and a program can be run to solve it.
-On the contrary \elpi{node}, applied to any number of arguments,
-is just a piece of data, it is not a goal.
+
+Again, we favor a type assignment over a simple arity. \elpi{prop} is the type
+of executable code, meaning that \elpi{size}, when applied to two arguments,
+becomes a goal and a program can be run to solve it. In contrast, \elpi{node},
+when applied to any number of arguments, is just a piece of data; it is not a
+goal.
 
 \begin{elpicode}
 goal> size T N.
@@ -289,16 +294,15 @@ goal> size T N.
 Success
   N = 2
 \end{elpicode}
-Operations on built-in data types, such as integers, are provided via
-the built-in \elpi{is} operator that evaluates its right hand side
-and unifies the result with the left hand side.
+Operations on built-in data types, such as integers, are provided via the
+built-in \elpi{is} operator, which evaluates its right-hand side and unifies
+the result with the left-hand side.
 ~\\
-It is worth pointing out that variables do not need to be used linearly
-in the head of a rule: since the head is unified with the goal, it makes sense to
-write there any therm, not just terms that happen to be patterns in
-the sense of functional programming languages. For example the following
-piece of code succeeds only if the tree is empty or made of two
-identical subtrees.
+It is worth noting that variables do not need to be used linearly in the head
+of a rule: since the head is unified with the goal, it makes sense to write
+any term there, not just terms that happen to be patterns in the sense of
+functional programming languages. For example, the following piece of code
+succeeds only if the tree is empty or made of two identical subtrees.
 
 \begin{elpicode}
 type symmetric tree -> prop.
@@ -307,10 +311,9 @@ symmetric (node _ T T).
 \end{elpicode}
 
 The third characteristic is that Elpi internalizes a form of search called
-backtracking: all rules are potentially applied and there is no committment to
-the first rule whose head unifies with the goal.
-Here an example of code relying on backtracking to test
-the membership of an element ot a tree.
+backtracking: all rules are potentially applied, and there is no commitment to
+the first rule whose head unifies with the goal. Here is an example of code
+that relies on backtracking to test the membership of an element in a tree.
 
 \begin{elpicode}
 type mem tree -> int -> prop.
@@ -318,83 +321,83 @@ mem (node N _ _) N.
 mem (node _ L _) N :- mem L N.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}
-Backtracking is a very powerful feature but without control leads to
-unnecessarily bad computational complexity. The one contruct to control
+Backtracking is a very powerful feature, but without control it can lead to
+unnecessarily poor computational complexity. The main construct to control
 backtracking is the cut operator.
 
 \begin{elpicode}
 mem (node N _ _) N :- !.
 mem (node _ L _) N :- mem L N, !.
 mem (node _ _ R) N :- mem R N.
-\end{elpicode}  
-Operationally the cut is not a premise to be solved, but rather telling
-the runtime the intention to commit to the current rule and solution.
-The former cut indicates that if the number is found in the current node
-we commit to this rule and discard the following ones: we do not care
-if the number also occurs deeped in the tree. The second cut indicates
-that if the number was found in the left sub tree we shall not look in
-the right sub tree so we discard the last rule\footnote{To be precise
-the second cut also discard any alternative solution (yet to be computed)
-to the preceeding premises. Technically speaking, Elpi implements a hard cut.}.
+\end{elpicode}
+Operationally, the cut is not a premise to be solved, but rather a directive
+to the runtime, indicating the intention to commit to the current rule and
+solution. The first cut indicates that if the number is found in the current
+node, we commit to this rule and discard the following ones: we do not care if
+the number also occurs deeper in the tree. The second cut indicates that if
+the number was found in the left subtree, we should not look in the right
+subtree, so we discard the last rule\footnote{To be precise, the second cut
+also discards any alternative solution (yet to be computed) to the preceding
+premises. Technically speaking, Elpi implements a hard cut.}.
 
-\subsection{What really matters (to us)}
+\subsection{What really matters (to me)}
 
-Algebraic data types are an essential tool to write succint code
-to describe and process syntax trees. They are available in languages
-from the Prolog family, but also in most functional languages. Hence they do
-not constitute the feature that tips the balance in favor of a logic
-programming language.
 
-On the contrary functional languages do not usually come with backtracking
-while it is undeniable that logic programming and backtracking are linked by
-a strong bond and that the ability to ``compute relations'' is a typical
-selling point. Still, according to our experience, the vast majority of code
-written in Elpi does not need this feature. In~\cite{elpidet} we
-estimate that 96\% of the existing Elpi code computes functions!
+Algebraic data types are an essential tool for writing succinct code to
+describe and process syntax trees. They are available in languages from the
+Prolog family, as well as in most functional languages. Thus, they do not
+constitute the feature that tips the balance in favor of a logic programming
+language.
 
-So, in conclusion, we believe that the most interesting
-characteristic of Elpi is of being rule based.
-It trades the elaborate syntax offered by most
-programming languages with the notion of a smaller code unit.
-A code unit has a meaning per se and the operation of adding or removing it
-to/from a program is well defined.
+By contrast, functional languages do not usually provide backtracking, whereas
+logic programming and backtracking are undeniably linked by a strong bond, and
+the ability to ``compute relations'' is a typical selling point. Still,
+according to our experience, the vast majority of code written in Elpi does
+not require this feature. In~\cite{elpidet}, we estimate that 96\% of existing
+Elpi code computes functions!
 
-An assignment, a while loop, or a function definition do not
-constitute a code unit. An assignment is meaningless without a variable
-declaration, similarly a while loop: they can get a meaning, and even a formal 
-one, only in a larger context. Even the definition of a self contained function fails
-to be a unit in this sense: while adding it to a program makes some sense (although,
-since nobody calls it, serves little purpose),
-removing a used function just results in a broken program.
+In conclusion, we believe that the most interesting characteristic of Elpi is
+its rule-based nature. It trades the elaborate syntax offered by most
+programming languages for the notion of a smaller code unit. A code unit has
+meaning in itself, and the operation of adding or removing it from a program
+is well defined.
 
-A rule has a meaning given by its logical interpretation. Adding it or removing
-it from a logic program simply results in a different logic program. Typically
-by adding a rule the resulting program is able to handle one more case,
-a bit like a proof system lets you prove more theorems if one poses
-more axioms, or becomes more and more incomplete as axioms are removed.
-From the parallel with proof systems it is obvious that adding ``bad'' rules
-can result in a program that gives unexpected answers, but the operation
-of adding or removing them is still meaningful, even if one admits non logical
-constructs and departs for the ideal world of logic.
-If we admit non logical
-constructs then the order of rules becomes relevant and the insertion of a
-rule better be accompanied by a grafting directive, like begin added before
-or after another rule.
+An assignment, a while loop, or a function definition does not constitute a
+code unit. An assignment is meaningless without a variable declaration;
+similarly, a while loop only acquires meaning, even a formal one, in a larger
+context. Even the definition of a self-contained function fails to be a unit
+in this sense: while adding it to a program makes some sense (although, since
+nobody calls it, it serves little purpose), removing a used function simply
+results in a broken program.
 
-It it thanks to this rule-based nature that logic programming scales so
-naturally to the domain of syntax trees with binders (next section)
-and that it integrates so well with interactive provers (see \cref{sec:rocq}).
+A rule has meaning given by its logical interpretation. Adding or removing it
+from a logic program simply results in a different logic program. Typically,
+by adding a rule, the resulting program is able to handle one more case -- a bit
+like a proof system lets you prove more theorems if you add more axioms, or
+becomes more and more incomplete as axioms are removed. From the parallel
+with proof systems, it is clear that adding ``bad'' rules can result in a
+program that gives unexpected answers, but the operation of adding or removing
+them is still meaningful, even if one admits non-logical constructs and
+departs from the ideal world of logic. If we admit non-logical constructs,
+then the order of rules becomes relevant, and the insertion of a rule should
+be accompanied by a grafting directive, such as being added before or after
+another rule.
+
+It is thanks to this rule-based nature that logic programming scales so
+naturally to the domain of syntax trees with binders (next section) and
+integrates so well with interactive provers (see \cref{sec:rocq}).
 
 \section{Elpi v.s. $\lambda$Prolog}\label{sec:hello}
 
-The syntax trees we are interested in are the ones that constitute
-the foundational language of interactive provers like Rocq. A characteristic common
-to all of the them is the presence of binders, as forall and exists in
-the world of specification or (lambda) abstraction in the world of terms.
 
-The ``hello world'' example in this domain is simply typed lambda calculus,
-a formalism now almost a century old. The syntax of terms and types
-is declared as follows:
+The syntax trees of interest here are those that constitute the foundational
+language of interactive provers like Rocq. A characteristic common to all of
+them is the presence of binders, such as forall and exists in the world of
+specification, or (lambda) abstraction in the world of terms.
+
+The ``hello world'' example in this domain is the simply typed lambda
+calculus~\cite{Church1940AFO}.
+The syntax of terms and types is declared as follows:
 
 \begin{elpicode}
 kind term type.
@@ -406,30 +409,27 @@ type arr ty -> ty -> ty.
 \end{elpicode}
 
 The type declaration for terms introduces a pairing constructor \elpi{app},
-putting together a function and its argument, and a function former
-\elpi{lam} that abstracts a term over a (bound) variable representing the
-formal argument. The declaration uses the function space of
-the programming language in order to represent the abstraction:
-the function carried by \elpi{lam} can be applied to an actual argument in order
-to recoved the body of the expression where the formal argument is
-replaced by the actual argument.
+which combines a function and its argument, and a function former \elpi{lam}
+that abstracts a term over a (bound) variable representing the formal
+argument. The declaration uses the function space of the programming language
+to represent abstraction: the function carried by \elpi{lam} can be applied to
+an actual argument to recover the body of the expression, where the formal
+argument is replaced by the actual argument.
 
-In this syntax the function $fst = \lambda x.\lambda y.x$ is written as follows:
+In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
+follows:
 
 \begin{elpicode}
 Fst = (lam x\ lam y\ x)
 \end{elpicode}
 
-Note that \elpi{(x\ lam y\ x)} is a function of \elpi{x} (a
-variable of the Elpi programming language)
-and that the syntax tree of our object language, $\lambda$-calculus, does not
-feature a term constructor for variables since one can reuse the variables
-of Elpi.
-As sketched above the body of the first abstraction
-can be recovered by applying the function to an argument, for
-example the constant \elpi{c}: \elpi{((x\ lam y\ x) c)}
-evaluates to \elpi{(lam y\ c)}.
-
+Note that \elpi{(x\ lam y\ x)} is a function of \elpi{x} (a variable of the
+Elpi programming language), and that the syntax tree of our object language,
+$\lambda$-calculus, does not feature a term constructor for variables, since
+one can reuse the variables of Elpi. As sketched above, the body of the first
+abstraction can be recovered by applying the function to an argument -- for
+example, the constant \elpi{c}: \elpi{((x\ lam y\ x) c)} evaluates to
+\elpi{(lam y\ c)}.
 
 % \begin{elpicode}
 % type copy term -> term -> prop.
@@ -437,8 +437,9 @@ evaluates to \elpi{(lam y\ c)}.
 % copy (app A B) (app C D) :- copy A C, copy B D.
 % \end{elpicode}
 
-The type checker for the simply typed $\lambda$-calculus can be implemented by
-the following two rules:
+
+The type checker for the simply typed $\lambda$-calculus can be implemented
+using the following two rules:
 
 \begin{elpicode}
 type of term -> ty -> prop.
@@ -446,14 +447,12 @@ of (app H A) T :- of H (arr S T), of A S.
 of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
 \end{elpicode}
 
-The rule for application reads: in order to assign type \elpi{T} to
-the application of \elpi{H} to \elpi{A} we need to assign
-the type \elpi{S} arrow \elpi{T} to \elpi{H} and
-the type \elpi{S} to \elpi{A}. The one for abstraction
-assigns the type \elpi{S} arrow \elpi{T} if, given any
-fresh symbol \elpi{c} of type \elpi{S} the body of
-the function \elpi{F} has type \elpi{T} when the bound variable
-is substituted by \elpi{c}.
+The rule for application reads: to assign type \elpi{T} to the application of
+\elpi{H} to \elpi{A}, we need to assign the type \elpi{S} arrow \elpi{T} to
+\elpi{H} and the type \elpi{S} to \elpi{A}. The rule for abstraction assigns
+the type \elpi{S} arrow \elpi{T} if, given any fresh symbol \elpi{c} of type
+\elpi{S}, the body of the function \elpi{F} has type \elpi{T} when the bound
+variable is substituted by \elpi{c}.
 
 \begin{elpicode}
 goal> Fst = (lam x\ lam y\ x), of Fst Ty.
@@ -462,8 +461,8 @@ Success
   Ty = arr S1 (arr S2 S1)
 \end{elpicode}
 
-The two rules above closely match the ``inference rules'' commonly used in
-by logic or programming language communities:
+The two rules above closely match the ``inference rules'' commonly used by the
+logic and programming language communities:
 \label{inf:stlc}
 
 $$
@@ -482,8 +481,8 @@ $$
 
 
 The main difference is that $\Gamma$ is managed by Elpi: the \elpi{pi}
-operator guarantees the freshness of $c$, while \elpi{=>} augments
-the current program with an instance of the rule:
+operator guarantees the freshness of $c$, while \elpi{=>} augments the
+current program with an instance of the rule:
 
 $$
 \begin{bprooftree}
@@ -492,94 +491,96 @@ $$
 \end{bprooftree}
 $$
 
-While Prolog finds it roots on Horn clauses, $\lambda$Prolog and hence
-Elpi are based on Hereditary Harrop formulas~\cite{Miller_Nadathur_2012}.
-While the rule for application
-can be seen as a formula in the Horn fragment:
+
+While Prolog finds its roots in Horn clauses, $\lambda$Prolog -- and thus Elpi -- are
+based on Hereditary Harrop formulas~\cite{Miller_Nadathur_2012}. While the rule
+for application can be seen as a formula in the Horn fragment:
 
 $$
-\mathrm{of}~ H~(\mathrm{arr}~S~T) \land \mathrm{of}~A~S \Rightarrow \mathrm{of}~(\mathrm{app}~H~A)~T
+\mathrm{of}~ H~(\mathrm{arr}~S~T) \land \mathrm{of}~A~S \Rightarrow
+\mathrm{of}~(\mathrm{app}~H~A)~T
 $$
 
-\noindent the rule for lambda abstraction truly needs the $\forall$ quantifier
-and the use of (nested) implication:
+\noindent the rule for lambda abstraction truly requires the $\forall$
+quantifier and the use of (nested) implication:
 
 $$
-(\forall c, \mathrm{of}~c~S \Rightarrow  \mathrm{of}~(F~c)~T) \Rightarrow \mathrm{of}~(\mathrm{lam}~F)~(\mathrm{arr}~S~T)
+(\forall c, \mathrm{of}~c~S \Rightarrow  \mathrm{of}~(F~c)~T) \Rightarrow
+\mathrm{of}~(\mathrm{lam}~F)~(\mathrm{arr}~S~T)
 $$
 
-The reading of the rule for abstraction as an Hereditary Harrop formula
-makes it clear that the scope of $c$ and its companion rule
-are limited to the subgoal $\mathrm{of}~(F~c)~T$,
-unlike the \texttt{assert/1} and \texttt{retract/1} Prolog builtins\footnote{
-  although some Prolog implementation provide the notion of ``transaction''
-that can be used to simulate scoping.}.
+Reading the rule for abstraction as a Hereditary Harrop formula makes it clear
+that the scope of $c$ and its companion rule are limited to the subgoal
+$\mathrm{of}~(F~c)~T$, unlike the \texttt{assert/1} and \texttt{retract/1}
+Prolog builtins\footnote{Although some Prolog implementations provide the
+notion of ``transaction,'' which can be used to simulate scoping.}.
 
-As previously announced, we want to use Elpi in the context of an
-interactive prover like Rocq where syntax trees are often incomplete, i.e.
-they contain holes. For example we would like to run the
-type checker of this goal: \elpi{of (app F A) T}.
-This is where $\lambda$Prolog falls short, by lack of a way to avoid
-divergence by suspending search on certain goals and lack of a sub language
-to manipulate suspended goals.
+As previously mentioned, we want to use Elpi in the context of an interactive
+prover like Rocq, where syntax trees are often incomplete (i.e., they contain
+holes). For example, we would like to run the type checker on the goal
+\elpi{of (app F A) T} were \elpi{F} and \elpi{A} are unknown.
+This is where $\lambda$Prolog falls short, due to the
+lack of a mechanism to avoid divergence by suspending search on certain goals
+and the absence of a sublanguage to manipulate suspended goals.
 
 
 \subsection{Incomplete terms}
 
-$\lambda$Prolog provides native support for syntax trees with bound
-variables via the re-use of the function space of the programming language
-to represent binders. This technique is called Higher Order Abstract Syntax,
-or $\lambda$-tree syntax. The language also provides another kind
-of variables, meta-variables actually, that we call unification variables.
-These unification variables are equipped with a scope, a list of bound
-variables that can be used in their assignment. This is essential to
-avoid capturing variables by mistake, and it is well studiend in~\cite{miller92jsc}.
 
-The natural question is: \emph{can we reuse the unification variables of
-the programming language to represent holes in the syntax trees we manipulate?}
-In other words, the runtime of of our Logic programming language is already
-carrying a substitution for these variables, undoing its application upon
-backtracking, avoiding the generation of circular terms (i.e. not trees)
-by performing occur check, and avoiding captures: can we reuse all that?
+$\lambda$Prolog provides native support for syntax trees with bound variables
+by reusing the function space of the programming language to represent
+binders. This technique is called Higher Order Abstract Syntax, or
+$\lambda$-tree syntax. The language also provides another kind of variable:
+meta-variables, which we call unification variables. These unification
+variables are equipped with a scope -- a list of bound variables that can be
+used in their assignment. This is essential to avoid capturing variables by
+mistake, and it is well studied in~\cite{miller92jsc}.
 
-Elpi tries to give a positive answer to this question. Moreover it provides
-support to attach data to holes ``on the side'', similarly to what
-hypothetical rules are used for in the type checker above: attach a type
-to fresh constants.
+The natural question is: \emph{can we reuse the unification variables of the
+programming language to represent holes in the syntax trees we manipulate?}
+In other words, the runtime of our logic programming language already carries
+a substitution for these variables, undoes its application upon
+backtracking, avoids the generation of circular terms (i.e., not trees) by
+performing the occurs-check, and prevents variable capture. Can we reuse all
+that?
 
-From a programming perspective, the needs are the following ones:
+Elpi aims to answer this question positively. Moreover, it provides support
+to attach data to holes ``on the side,'' similar to how hypothetical rules are
+used in the type checker above to attach a type to fresh constants.
+
+From a programming perspective, the requirements are as follows:
 
 \begin{description}
-  \item[control instantiation of holes] in particular be able to opt out of the
-     generative behavior of Prolog based on the order of rules. According to
-     our experience when a hole is encountered one of the following two
-     actions need to be implemented: either suspend the computation and
-     generate a constraint, or synthesize an assignment for the hole
-     via a dedicated routine (more complex than unification)
-  \item[attach data to holes] from a simple boolean flag, as we will do
-    when implemeting ML type inference with equality types (\cref{sec:milner}),
-    to a full typing sequent as it is necessary to do when holes represent
-    Rocq terms
+  \item[control instantiation of holes] In particular, it should be possible
+    to opt out of the generative behavior of Prolog based on the order of
+    rules. According to our experience, when a hole is encountered, one of
+    the following two actions needs to be implemented: either suspend the
+    computation and generate a constraint, or synthesize an assignment for
+    the hole via a dedicated routine (more complex than unification).
+  \item[attach data to holes] This can range from a simple boolean flag, as
+    we will do when implementing ML type inference with equality types
+    (\cref{sec:milner}), to a full typing sequent, as is necessary when holes
+    represent Rocq terms.
 
-  \item[manipualte attached data] such as combine multiple data attached to the same
-     hole or perform a consistency check when the hole gets assigned
-
+  \item[manipulate attached data] For example, combine multiple pieces of
+    data attached to the same hole or perform a consistency check when the
+    hole is assigned.
 \end{description}
 
 
 \section{Modes and Constraints}\label{sec:modes}
 
-Elpi provides a notion of mode declaration that is uncommon to logic programming.
-In particular arguments that are flagged as input are not required to be
-ground in the goal, but are matched against the rule ``pattern'' instead 
-of being unified. This means that no unification variable occurring in
-the goal inside an input argument is instantiated when the rule is
-fired.
 
-Mode declaration comes together with the \elpi{uvar} keyword to denote
+Elpi provides a notion of mode declaration that is uncommon in logic
+programming. In particular, arguments flagged as input are not required to be
+ground in the goal, but are matched against the rule ``pattern'' instead of
+being unified. This means that no unification variable occurring in the goal
+inside an input argument is instantiated when the rule is fired.
+
+Mode declaration is accompanied by the \elpi{uvar} keyword, which denotes
 holes in the head of a rule.
 
-In the light of that we can rephrase the type checker for simply typed
+In light of this, we can rephrase the type checker for simply typed
 $\lambda$-calculus as follows:
 
 \begin{elpicode}
@@ -587,28 +588,30 @@ pred of i:term, o:ty.
 of (app H A) T :- of H (arr S T), of A S.
 of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
 of (uvar as E) T :- declare_constraint (of E T) [E].
-\end{elpicode} 
+\end{elpicode}
 
-The \elpi{pred} directive combines a type and mode declaration.
-The \elpi{uvar as E} binds to the unification variable \elpi{E}
-a hole in the goal and is semantically equivalent to the following,
-where \elpi{var/1} is the standard Prolog predicate testing if
-a variable is unbound.
-  
+The \elpi{pred} directive combines a type and mode declaration,
+in this case the first argument is in input mode (\elpi{i:}) while
+the second in output mode. The
+\elpi{uvar as E} binds the unification variable \elpi{E} to a hole in the
+goal and is semantically equivalent to the following, where \elpi{var/1} is
+the standard Prolog predicate for testing if a variable is unbound.
 \begin{elpicode}
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
 
-Many Prolog implementations feature a ``delay directive'' i.e. a sublanguage to
-prescribe when goals should be suspended or resumed. In Elpi we opeted for
-a more low level but also more flexible approach where the programmer declares
-constraints / suspends goals via  the \elpi{declare_constraint} built-in
-predicate. In the example above \elpi{[E]} is the list of variables
-that ``block'' the suspended goal: as soon as one of these variables
-is assigned the goal should be resumed.
 
-It is worth pointing out that the input mode described above can in principle
-be ``emulated'' via a program transformation that we sketch below:
+Many Prolog implementations feature a ``delay directive,'' that is, a
+sublanguage to prescribe when goals should be suspended or resumed. In Elpi,
+we opted for a lower-level but more flexible approach, where the programmer
+declares constraints or suspends goals using the \elpi{declare_constraint}
+built-in predicate. In the example above, \elpi{[E]} is the list of variables
+that ``block'' the suspended goal: as soon as one of these variables is
+assigned, the goal should be resumed (i.e. \elpi{E} is the trigger for
+the constraint resumption).
+
+It is worth noting that the input mode described above can, in principle, be
+described via a program transformation, which we sketch below:
 
 \begin{elpicode}
 of E T :- not (var E), E = (app H A), of H (arr S T), of A S.
@@ -617,8 +620,9 @@ of E (arr S T) :- not (var E), E = (lam F),
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
 
-With this mechanism in place the type checker can do something sensible
-on terms containing holes:
+
+With this mechanism in place, the type checker can handle terms containing
+holes in a meaningful way:
 
 \begin{elpicode}
 goal> of (app H A) T.
@@ -629,16 +633,14 @@ Constraints:
   of H (arr S T)  /* suspended on H */
 \end{elpicode}
 
-As one expects the incomplete term is well typed under the
-constraint that \elpi{A} has a type
-compatible with one expected by \elpi{H} that
-is turn is expected to be a function to \elpi{T},
-the type of the term passed to \elpi{of}.
+As expected, the incomplete term is well-typed under the constraint that
+\elpi{A} has a type compatible with that expected by \elpi{H}, which in turn
+is expected to be a function to \elpi{T}, the type of the term passed to
+\elpi{of}.
 
-When \elpi{H} materializes its corresponding
-constraint is resumed. Below we set \elpi{H} to
-the identity function, hence forcing its input and
-output types to be the same.
+When \elpi{H} is instantiated, its corresponding constraint is resumed.
+Below, we set \elpi{H} to the identity function, thereby forcing its input
+and output types to be the same.
 
 \begin{elpicode}
 goal> of (app H A) T, H = (lam x\ x).
@@ -649,29 +651,28 @@ Constraints:
   of A T  /* suspended on A */
 \end{elpicode}
 
-Remark how the remaining constraint differs from before:
-the type of \elpi{A} is now the same \elpi{T}
-of the whole term.
 
-It is reassuring that the very same result is given
-for the very similar goal where the value of \elpi{H} is given
-upfront \elpi{of (app (lam x\ x) A) T}.
-  
-Unfortunately the sole possibility of suspending and resuming goals is
-not enough to implement a satisfactory type checker. An example of
-goal giving an unexpected result is \elpi{of (app D D) T}
-that succeeds with constraints:
+Notice how the remaining constraint now differs from before: the type of
+\elpi{A} is now the same \elpi{T} as that of the whole term.
+
+It is reassuring that the same result is obtained for the very similar goal
+where the value of \elpi{H} is given upfront: \elpi{of (app (lam x\ x) A) T}.
+
+Unfortunately, the ability to suspend and resume goals alone is not enough to
+implement a satisfactory type checker. For example, the goal
+\elpi{of (app D D) T} succeeds with constraints:
 
 \begin{elpicode}
   of D S  /* suspended on D */
   of D (arr S T)  /* suspended on D */
 \end{elpicode}
 
-These constraints are clearly incompatible, hence the
-type checker should have failred.
 
-We need a language to combine the constraints attached to
-the hole \elpi{D}. We chose Constraints Handling Rules.
+These constraints are clearly incompatible; therefore, the type checker
+should have failed.
+
+We need a language to combine the constraints attached to the hole
+\elpi{D}. For this, we chose Constraint Handling Rules.
 
 \section{Constraints Handling Rules}\label{sec:chrui}
 
