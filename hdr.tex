@@ -2500,19 +2500,22 @@ presents an anomaly.
 
 \subsection{The \thefragment fragment}\label{sec:llambo}
 
-In~\cite{dunchev15lpar} we further restrict \theotherfragment as follows:
+
+In~\cite{dunchev15lpar}, we further restrict \theotherfragment as follows:
+
 
 \begin{definition}[\thefragment fragment]
-A term is in the reduction-free fragment \thefragment
-iff every occurrence of a unification variable $X^j$
-is applied to the $k$ arguments $\underbrace{c_j \ldots c_{j + k-1}}_{k~\mathrm{items}}$
-for $0 \leq k$ and $k=0$ means no arguments.
+A term is in the reduction-free fragment \thefragment if and only if every
+occurrence of a unification variable $X^j$ is applied to the $k$ arguments
+$\underbrace{c_j \ldots c_{j + k-1}}_{k~\mathrm{items}}$ for $0 \leq k$,
+where $k=0$ means no arguments.
 \end{definition}
 
-% We allow $k = 0$ to accept variables that are not applied. 
-Note that $X^j\ c_j \ldots c_{j + k-1}$ admits a space efficient
-representation (the \ocaml{UVar} node) since one can just
-store $j$ and $k$, two integers.
+
+% We allow $k = 0$ to accept variables that are not applied.
+Note that $X^j\ c_j \ldots c_{j + k-1}$ admits a space-efficient
+representation (the \ocaml{UVar} node), since one can simply store $j$ and
+$k$, two integers.
 
 \begin{ocamlcode}
 type term =
@@ -2521,42 +2524,43 @@ type term =
   | Arg  of int  * int (* number of arguments *)
 \end{ocamlcode}
 
+
 \noindent
-These nodes are a leaf, i.e. their size is constant in the
-number of binders that were crossed (and put in scope of the uvar/arg)
-while the nodes \ocaml{AppUVar} and \ocaml{AppArg} are linear.
+These nodes are leaves, i.e., their size is constant in the number of binders
+that were crossed (and put in scope of the uvar/arg), while the nodes
+\ocaml{AppUVar} and \ocaml{AppArg} are linear in that number.
 
-Also note that $X^j\ c_j \ldots c_{j + k-1}$ can be rewritten
-as a $Y^{j+k}$ by assining to $X^j$ the term $\lambda c_j \ldots c_{j + k-1}. Y^{j+k}$.
-Moreover, for a unification variable in the compact form $X^n$,
-checking if a name $c_m$ is in scope is a trivial as checking
-$m < n$, no need to look for $c_m$ in the list of distinct arguments
-the \theotherfragment fragment allows for.
-When scope checking fails for a variable it is easy to
-prune it, i.e. $X^n = Y^m$ with $n < m$ can be solved by assigning to $Y^m$
-a fresh $Z^n$.
-Finally, all global symbols, being
-represented by a negative integers, also pass the scope check.
 
-It is also worth pointing out that, in DBL notation, the variables
-bound by the context are invariant by shifting, hence ``moving around'' an
-\ocaml{UVar} node is always efficient, unlike the more general case
-of \ocaml{AppUVar} where the arguments may need shifting (their type
-is \ocaml{term}, they can be anything, even $\mathcal{I}$).
+Also note that $X^j\ c_j \ldots c_{j + k-1}$ can be rewritten as a $Y^{j+k}$
+by assigning to $X^j$ the term $\lambda c_j \ldots c_{j + k-1}. Y^{j+k}$.
+Moreover, for a unification variable in the compact form $X^n$, checking if a
+name $c_m$ is in scope is as trivial as checking $m < n$; there is no need to
+look for $c_m$ in the list of (distinct) arguments that the \theotherfragment
+fragment allows for. When scope checking fails for a variable, it is easy to
+prune it; i.e., $X^n = Y^m$ with $n < m$ can be solved by assigning to $Y^m$ a
+fresh $Z^n$. Finally, all global symbols, being represented by negative
+integers, naturally pass the scope check.
 
-For quite some time the Elpi runtime only had higher-order unification
+
+It is also worth pointing out that, in DBL notation, the variables bound by the
+program are invariant by shifting. Hence, ``moving around'' an \ocaml{UVar} node
+is always efficient, unlike the more general case of \ocaml{AppUVar}, where
+the arguments may need shifting (their type is \ocaml{term}; they can be
+anything, even $\mathcal{I}$).
+
+
+For quite some time, the Elpi runtime only had higher-order unification
 implemented for the \thefragment fragment (although it always had full
-$\beta$-reduction). The Elpi test suite, that includes many
-$\lambda$Prolog programs taken from the Tyjus examples or $\lambda$Prolog
-related publications, was mostly passing. Our intuition
-is that, in practice, higher-order unification is used either to simply
-pass data around, or to ensure proper scoping of bound names (as in making
-a unification step fail). It is more rarely used to reconciliate different
-scopes, i.e. finding the purmutation to send one list of distinct names to
-another one or computing the intersection of two for pruning flexible terms
-and keep execution going.
-It only around 2016 that I extended the unification procedure
-to the full \theotherfragment fragment.
+$\beta$-reduction). The Elpi test suite, which includes many $\lambda$Prolog
+programs taken from the Teyjus examples or $\lambda$Prolog-related
+publications, was mostly passing. Our intuition is that, in practice,
+higher-order unification is used either to simply pass data around or to
+ensure proper scoping of bound names (e.g., making a unification step fail).
+It is more rarely used to reconcile different scopes, i.e., finding the
+permutation to send one list of distinct names to another, or computing the
+intersection of two for pruning flexible terms and keeping execution going.
+It was only around 2016 that I extended the unification procedure to the full
+\theotherfragment fragment.
 
 
 \subsection{Indexing}
