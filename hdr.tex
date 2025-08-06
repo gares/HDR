@@ -1448,25 +1448,26 @@ before running programs.
 \subsection{Namespaces}
 
 Elpi code is constructed by accumulating files -- that is, by concatenating lists
-of rules, possibly written by different authors. It is not impossible for two
-files, e.g., \texttt{file1} and \texttt{file2}, to contain declarations for a
-predicate with the same name, say \texttt{p}.
+of rules, which may be written by different authors. It is possible for two
+files, such as \texttt{file1} and \texttt{file2}, to contain declarations for a
+predicate with the same name, for example, \texttt{p}.
 
-When the types for \texttt{p} do not match, Elpi fails immediately and warns
-the programmer. But when the types match, it may happen that the predicate
-changes meaning or computational complexity, especially in the case of failure.
+If the types for \texttt{p} do not match, Elpi fails immediately and issues a
+warning to the programmer. However, if the types do match, the predicate may
+change its meaning or computational complexity, particularly in cases involving
+failure.
 
-A simple solution could be to include the file name as part of predicate
-names, e.g., \texttt{file1.p} and \texttt{file2.p}.
+A straightforward solution is to include the file name as part of the predicate
+names, such as \texttt{file1.p} and \texttt{file2.p}.
 
-To alleviate the syntactic overhead, Elpi provides two syntactic facilities:
+To reduce syntactic overhead, Elpi provides two syntactic features:
 \texttt{namespace} and \texttt{shorten}. The former prefixes all predicate
-names contained in a block, while the latter makes predicates accessible via a
+names within a block, while the latter allows predicates to be accessed using a
 short name inside a file or block.
 
-In the following snippet, the predicate \elpi{p} lives in the namespace
-\elpi{n} and is thus accessible via the long name \elpi{n.p} (outside of the
-namespace).
+In the following example, the predicate \elpi{p} lives in the namespace
+\elpi{n} and is therefore accessible via the long name \elpi{n.p} outside the
+namespace.
 
 \begin{elpicode}
 namespace n {
