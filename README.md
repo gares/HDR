@@ -18,13 +18,13 @@
 - [ ] 2.5.1 Operational semantics - english
 - [ ] 2.6.0 Syntactic sugar - english
 - [x] 2.6.1 Namespaces - english
-- [ ] 2.6.2 Spilling - english
-- [ ] 2.7 A complete example: Hindley Milner type inference - english+
-- [ ] 2.7.1 A word on bidirectionality - english
-- [ ] 2.8.1 Misleading precedence of => - english
-- [ ] 2.8.2 Treacherous anonymous clauses - english
-- [ ] 2.8.3 Scope error as a (recondite) failure - english
-- [ ] 2.8.4 Symmetric CHR rules - english
+- [x] 2.6.2 Spilling - english
+- [x] 2.7 A complete example: Hindley Milner type inference - english+
+- [x] 2.7.1 A word on bidirectionality - english
+- [x] 2.8.1 Misleading precedence of => - english
+- [x] 2.8.2 Treacherous anonymous clauses - english
+- [x] 2.8.3 Scope error as a (recondite) failure - english
+- [x] 2.8.4 Symmetric CHR rules - english
 
 - [x] 3.1 The first prototype - english
 - [x] 3.2 Second attempt: a runtime for - english
@@ -69,6 +69,7 @@
 - [x] 6.1.4 Rocq tools written in Elpi - english
 - [ ] 6.2 Current and future work - english + rethink
 
+- [ ] TODOs
 - [ ] citare commissione
 - [ ] clause -> rule
 - [ ] URL elpi

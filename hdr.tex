@@ -396,7 +396,7 @@ them is the presence of binders, such as forall and exists in the world of
 specification, or (lambda) abstraction in the world of terms.
 
 The ``hello world'' example in this domain is the simply typed lambda
-calculus~\cite{Church1940AFO}.
+calculus. %~\cite{Church1940AFO}.
 The syntax of terms and types is declared as follows:
 
 \begin{elpicode}
@@ -416,7 +416,18 @@ to represent abstraction: the function carried by \elpi{lam} can be applied to
 an actual argument to recover the body of the expression, where the formal
 argument is replaced by the actual argument.
 
-TODO: introduce HOAS/ltree syntax
+This approach to representing data with binders is known as Higher Order
+Abstract Syntax (HOAS)~\cite{10.1145/960116.54010}, or more precisely,
+$\lambda$-tree syntax~\cite{Miller2018MechanizedMR}. The term HOAS is often
+used in contexts where the function space of the programming language is not
+well suited to the task, in contrast to $\lambda$Prolog. For the representation
+of syntax with binders to be faithful, the function space must permit only
+abstraction and substitution. In contrast, functional languages typically allow
+additional operations, such as conditional expressions, which can result
+in so-called exotic terms. In this approach, we refer to the language being
+encoded as the \emph{object language} (in this case, the simply typed lambda
+calculus), while the language used for the encoding is called the meta language,
+or simply the programming language.
 
 In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
 follows:
@@ -1512,7 +1523,7 @@ The curly braces identify a term to be \emph{spilled} to the closest
 \emph{execution point}, determined by walking the terms from the outside in
 and identifying the first expression of type \elpi{prop}.
 
-Spilling can be nested. Its elaboration is akin to the generation of the
+Spilling can be nested and its elaboration is akin to the generation of the
 administrative normal form, which is commonly used in functional programming
 languages.
 
@@ -1524,6 +1535,8 @@ point, the elaboration becomes more sophisticated. For example:
 
 \begin{elpicode}
 code Result :- Result = (lam x\ {mk-app f [x]}).
+
+% is elaborated to
 code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
 \end{elpicode}
 
@@ -1544,8 +1557,6 @@ the original \elpi{x} with the one abstracted by \elpi{pi y}.
 
 \subsubsection{Spilling and impliction}
 
-TODO: first occurrence of HOAS
-
 When working under binders of the object language it is often
 necessary to augment the context via
 the implication operator. For example if the \elpi{lam}
@@ -1558,6 +1569,7 @@ checker under the binder.
   code Ty Result :- 
     % we call of under the binder for x
     Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+
   % desugars to
   code Ty Result :-
     % the spilled expression keeps the implication
@@ -1565,15 +1577,16 @@ checker under the binder.
     Result = (lam Ty x\ lam (TMP x) y\ ...)
 \end{elpicode}
 
-\noindent.
-This is frequent when spilling combined with quotations, as we
+\noindent
+This is frequent when spilling is combined with quotations, as we
 will better describe in~\cref{sec:quotations}. For example
-here we call an \elpi{api} under the object language binder for
-\elpi{x}.
+here we call an predicate \elpi{api} under the object language binder
+for \elpi{x}.
 
 \begin{elpicode}
   code Result :-
     Result = {{ λx : nat => lp:{{ app f {api x}  }}  }}
+
   % desugars to
   code Result :-
     (pi x\ of x {{ nat }} => api x (TMP x)),
@@ -1583,25 +1596,27 @@ here we call an \elpi{api} under the object language binder for
 \noindent
 As we will discuss at length in~\cref{FFI}, the code of \elpi{api} needs the
 context of the object language in order to work properly, hence the
-spilled expression must be executed under the implication.
+spilled expression must be executed under the implication, that this time
+is not written by the programmer but rather generated out of the binder
+for \elpi{x} of the object language.
 
 \paragraph{Spilling ambiguities}
 
-Not all that glitters is gold. Sometimes the closest execution point may not
-be what the programmer intends.
+Not all that glitters is gold. Occasionally, the nearest execution point may not
+correspond to the programmer's intention.
 
 \begin{elpicode}
   code D TodoForLater  :-
     TodoForLater = [ this, that {rev D} ].
 \end{elpicode}
 
-If \elpi{this} and \elpi{that} are predicates, the latter becomes
-\elpi{(rev D TMP, that TMP)}, meaning that \elpi{D} is reversed when
-\elpi{TodoForLater} is executed, and not when the todo list is generated, as
-one might have intended.
+If \elpi{this} and \elpi{that {rev D}} are predicates, the latter expands to
+\elpi{(rev D TMP, that TMP)}, indicating that \elpi{D} is reversed when
+the items constituting \elpi{TodoForLater} are executed, rather than when
+the todo list is generated, which may have been the intended behavior.
 
-According to our experience, the closest execution point is more often than
-not what the programmer expects.
+Based on our experience, the closest execution point generally aligns with
+the programmer's expectations, but it has been undeniably a sorce of debate.
 
 \section{A complete example: Hindley-Milner type inference}\label{sec:milner}
 
