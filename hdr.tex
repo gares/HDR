@@ -1439,6 +1439,8 @@ We point the interested
 reader to~\cite{TASSI_2019} for a more formal description of the
 operational semantics of the $\mathcal{CHR}$ procedure.
 
+TODO describe actualy syntax for dummy trigger and filters
+
 \section{Syntactic sugar}
 
 
@@ -1474,9 +1476,10 @@ namespace n {
   pred p.
   p :- ... p ...
 }
-q :- n.p
+q :- n.p.
 \end{elpicode}
 
+\noindent
 Long names can be shortened via the \elpi{shorten} directive.
 
 \begin{elpicode}
@@ -1541,6 +1544,7 @@ code Result :- Result = (lam x\ {mk-app f [x]}).
 code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
 \end{elpicode}
 
+\noindent
 To run the spilled code in a context with the bound variable \elpi{x}, the
 expression must be placed under a \elpi{pi y}. Similarly, the temporary
 variable \elpi{TMP} needs to be abstracted over the variable, so that we can identify
@@ -1752,16 +1756,18 @@ of (global "undup")  (all tt x\ mono (list x --> list x)).
 \end{elpicode}
 \noindent
 The specialization of a type schema allows one to plug type expressions in
-place of quantified variables. When the substituted variable stands for an
-equality type, one must check that the type expression supports an equality
-test.
+place of quantified variables.
 
 $$
 \displaystyle\frac{\tau' = \left\{\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
 $$
+ When the substituted variable stands for an
+equality type, one must check that the type expression supports an equality
+test.
 $$
 \displaystyle\frac{\tau' = \left\{\bar\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau) \quad \overline{eq}(\tau_i)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
 $$
+
 $$
 \begin{array}{ll}
   \overline{eq}(\mbox{bool}) & \\
@@ -1784,6 +1790,7 @@ specialize (all ff F) T :- specialize (F Fresh_) T.
 specialize (all tt F) T :- specialize (F Fresh) T, eqbar Fresh.
 \end{elpicode}
 
+\noindent
 The \elpi{eqbar} predicate traverses concrete type expressions and suspends
 when variables are found.
 
@@ -1804,6 +1811,7 @@ pred theta i:list tye.
 theta L :- declare_constraint (theta L) [_].
 \end{elpicode}
 
+\noindent
 The auxiliary constraint \elpi{theta} is used to gather the (duplicate-free)
 list of unification variables constrained to be equality types.
 
@@ -1811,7 +1819,13 @@ The use of constraints here is convenient but not essential. One could thread
 a state -- the list of all type variables used so far, paired with their
 equality type status. The constraint store offers a global state carried
 alongside the goals, and constraint handling rules provide the possibility to
-organize the state, such as grouping all entries into a list.
+organize the state, such as grouping all entries into a list. Since
+constraints are only combined via a CHR rule when they share a trigger,
+we list the designated trigger \elpi{_} in all of them.
+% Also, note that
+% we filter the context of hypothetical rules of constraints keeping only
+% rules for the \elpi{of} predicate, and that will serve a purpose later
+% when we implement \elpi{gammabar}.
 
 The declarative code for the type inference algorithm is given below. The
 rules for lambda abstraction and application are the same as for the simply
@@ -1845,8 +1859,10 @@ $$
 
 
 Elpi rules are very close to their pen-and-paper counterparts. The only
-difference is that the rule for variables is intentionally extended to any
-term, so that it can apply to global constants as well.
+difference is that the rule for variables, the last one,
+is intentionally extended to any term, so that it can apply to global
+constants as well.\footnote{One could have asserted \elpi{name X}, i.e.,
+forced \elpi{X} to be a \elpi{pi}-introduced name}.
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -1870,6 +1886,7 @@ of (eq LHS RHS) (mono bool) :-
 of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
 \end{elpicode}
 
+\noindent
 We have already described how \elpi{specialize} relates to $\sqsubseteq$.
 What remains to be described is the $\overline{\Gamma}$ operation.
 
@@ -1916,12 +1933,11 @@ generalize Theta Gamma (mono T) PolyT ToQuantify :-
 \end{elpicode}
 
 \noindent
-
 The code to implement $\overline{\Gamma}(\tau)$ performs two tasks:
 
 \begin{itemize}
   \item It abstracts \elpi{T} into a schema \elpi{POLYT} and returns it by
-    assigning \elpi{TS}.
+    assigning \elpi{TS};
   \item It cleans up the store of constraints by removing the \elpi{eqbar}
     constraints on variables that are now bound in the schema, and updates
     \elpi{theta} by recomputing it.
@@ -1966,8 +1982,6 @@ implication, because the \elpi{constraint of ?- gammabar eqbar theta
 rm-eqbar} directive tells Elpi to filter the context of suspended goals
 (constraints) and keep only entries for the \elpi{of} predicate.
 
-TODO: is the filter documented?
-
 The second is that, at the meta level of constraint handling rules, the
 \elpi{uvar} keyword becomes a regular syntax tree node and has two arguments.
 The first is the unique identifier of the unification variable; the second is
@@ -1992,12 +2006,13 @@ free (A --> B) L L1 :- free B {free A L} L1.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
 
+\noindent
 The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is the
 code to bind (locally used) unification variables to universal
 quantifications. The key is the \elpi{copy} predicate, which implements
 substitution by traversing a type expression. Since this substitution is not
 the built-in one (i.e., not function application), we can alter its behavior
-by loading into the program context some ad hoc rules. In particular, for
+by loading into the program some ad hoc rules. In particular, for
 each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
 \elpi{c} and load a rule to copy \elpi{uvar X _} to \elpi{c}.
 
@@ -2018,6 +2033,7 @@ copy (A --> B) (C --> D) :- copy A C, copy B D.
 copy (uvar _ _ as V) V.
 \end{elpicode}
 
+\noindent
 For completeness, the remaining code follows. It may be worth explaining the
 signature of the polymorphic, higher-order \elpi{filter} predicate. In
 particular, \texttt{i:(pred i:A)} stands for an input predicate over
@@ -2035,6 +2051,7 @@ filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
 filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
+\noindent
 The code amounts to about 100 lines of Elpi. It is a toy, in the sense that
 it lacks code for error reporting, but its size is quite remarkable: it
 roughly matches the length of a pen-and-paper presentation of the same
@@ -2060,6 +2077,7 @@ assert T TY ETY :-
   halt "Error: term" T "has type" TY "but its context expects" ETY.
 \end{elpicode}
 
+\noindent
 Note how \elpi{TH} is not related to \elpi{TA} before the call to
 \elpi{of A (mono TA)}, and how the code only checks after the fact that
 \elpi{TH = (TA --> T)}.
@@ -2086,11 +2104,11 @@ that parses with these precedences and added a
 warning whenever \elpi{A, B => C, D} is used. This warning can be silenced by
 writing \elpi{A, (B => C), D}.
 
-\subsection{Treacherous anonymous clauses}
+\subsection{Treacherous one-rule anonymous predicates}
 
 The higher-order capabilities of Elpi let one write code like
 \begin{elpicode}
-map L (x\r\p x A, q A r) L'
+code L L' :- map L (x\r\p x A, q A r) L'.
 \end{elpicode}
 where \elpi{A} is arguably quantified (allocated) in the wrong place. By
 convention, variables are considered parameters of the entire rule, not of the
@@ -2098,21 +2116,23 @@ inlined sub-rule.
 
 The correct way to write the code above is
 \begin{elpicode}
-map L (x\r\sigma A\p x A, q A r) L'
+code L L' :- map L (x\r\sigma A\p x A, q A r) L'.
 \end{elpicode}
 where each call to the anonymous rule has a different \elpi{A}.
+The \elpi{sigma} operator binds \elpi{A} and declares it as
+a unification variable when it is executed. It is standard in
+$\lambda$Prolog and fully supported by Elpi, but it is also
+too easy to forget it.
 
-TODO: explain sigma
-
-We believe it would be safer to allow only (partially applied) predicates as
+We believe it would
+be safer to allow only (partially applied) predicates as
 higher arguments. The syntactic overhead is often compensated by the extra
 clarity a (well-)named predicate provides.
 
 \begin{elpicode}
 p-then-q X R :- p X A, q A R.
-map L p-then-q L'
+code L L' :- map L p-then-q L'.
 \end{elpicode}
-
 Although we have not implemented this idea (and thus not validated it), it
 seems reasonable to warn whenever a variable \emph{only} occurs in the body of
 an anonymous rule (a term of function type to \elpi{prop}).
