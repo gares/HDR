@@ -1,5 +1,18 @@
 accumulate hm.
 
-main :-
-  theta [],
-  of (let (lam x\ eq (global "nil") x) f\f) Ty, print "result" Ty.
+pred test i:list string.
+test ["1"] :- theta [], of (let (lam x\ eq (glo "nil") x) f\f) Ty, print "result" Ty.
+
+test ["2"] :- theta [],
+  of (let (lam x\ eq (glo "nil") x) f\
+       app (app (glo "pr")
+        (app f (app (app (glo "cons") (glo "true")) (glo "nil"))))
+        (app f (app (app (glo "cons") (glo "1"))    (glo "nil")))
+      ) Ty, print "result" Ty.
+
+test ["3"] :- theta [],
+  of (let (lam x\ eq (glo "nil") x) f\
+       app (app (glo "pr")
+        (app f (glo "nil")))
+        (app f (app (app (glo "cons") (glo "1"))    (glo "nil")))
+      ) Ty, print "result" Ty.

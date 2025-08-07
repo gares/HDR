@@ -1115,7 +1115,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallM}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, al) = \ConsHdNP{\alts[']}\ConsTlNP{al'}$}
+    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, al) = \ConsHdNP{\alts[']}\ConsTlNP{al'}$}
     \AxiomC{\runCmdQR{\alts[']}{(al'\ \atsign\ al)}}
     \RightLabelM{\ruleCall}
     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{al}{\subst}}
@@ -1124,7 +1124,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallMF}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, a::al) = \EmptyList$}
+    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, a::al) = \EmptyList$}
     \AxiomC{\runCmdQR{a}{al}}
     \RightLabelM{\ruleCallF}
     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{(a :: al)}{\subst}}
@@ -1133,7 +1133,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallMFH}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog, \pred\ \vecL{t}, \vecL{g}, \subst, \EmptyList) = \EmptyList$}
+    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, \EmptyList) = \EmptyList$}
     \RightLabelM{\ruleCallFH}
     \UnaryInfC{\runCmdF{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{\EmptyList}{\subst}}
   \end{myRule}
@@ -1283,7 +1283,7 @@ made of a constraint store, a substitution and a list of goals.
   \ruleImplM{1}
   \ruleCallBeta{1}
   
-  \caption{Semantics: logic programming}
+  \caption{Semantics: higher-order logic programming}
     \label{fig:basic-interp-l}
 \end{figure}
 
@@ -1302,7 +1302,7 @@ alternatives.
 %An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
 
 Rules in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}
-are applied in the given order. Rules~\cref{rule:delay} and~\cref{rule:resume}
+are applied in the given order. Rules~\ref{rule:delay} and~\ref{rule:resume}
 cover the constraint part of the language: the former updates the constraint
 store when a new constraint is declared, while the latter resume a constraint
 as soon as the substituion \subst acts on its trigger. The second rule
@@ -1312,21 +1312,21 @@ The rule attaches to the resumeg goal the current alternatives as cut-to
 alternatives, but that will never be used since constraints are applicative
 terms (i.e. not the cut operator).
 
-Rule~\cref{rule:stop} applies when all goals are solved and returns
+Rule~\ref{rule:stop} applies when all goals are solved and returns
 the substitution along with the still unexplored alternatives.
-Rule~\cref{rule:callabort} applies when no rule applies to the
+Rule~\ref{rule:callabort} applies when no rule applies to the
 current goal and not alternative is avilable.
-Rule~\cref{rule:callbacktrack} implements (chronological) backtracking by simply
+Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
 popping the last alternative (going back to the most recent choice point).
-Rule~\cref{rule:cut} implements a hard cut by restoring the cut-to alternatives
+Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
 saved by $\bchain$ (see its description below).
-Rule~\cref{rule:call} backchains all applicable rules generating new
+Rule~\ref{rule:call} backchains all applicable rules generating new
 alternatives, the first one of which becomes the new goal.
-Rule~\cref{rule:beta} takes into account the higher order programming part
+Rule~\ref{rule:beta} takes into account the higher order programming part
 of $\lambda$Prolog: unification variables can be used to pass
 predicates around.
-Rule~\cref{rule:pi} introduces a fresh name into the program
-while rule~\cref{rule:impl} introduces a new rule into the program.
+Rule~\ref{rule:pi} introduces a fresh name into the program
+while rule~\ref{rule:impl} introduces a new rule into the program.
 
 \paragraph{Definition of $\bchain$ (backchain)}
 
@@ -1355,7 +1355,7 @@ an alternative for each rules that applies to the given goal.
 
 It is worth pointing out that each new goal (in each alternative)
 carries the same cut-to alternative and that the value passed to
-$\bchain$ by rule \cref{rule:call} is the list of alternatives
+$\bchain$ by rule \ref{rule:call} is the list of alternatives
 before the backchaining happened, i.e. it does not contain any
 alternative being created nor any alternative created in the future
 by exploring the new alternatives.
@@ -1388,7 +1388,7 @@ Constraint rule application follows the refined operational
 semantics~\cite{10.1007/978-3-540-27775-0_7} that amounts to a precise nesting of iterations.
 
 The starting point is the so called ``active constraint'' that, in the context of Elpi, is
-the constraint just declared as $\cst\ c\ t$ by the rule~\cref{rule:delay}.
+the constraint just declared as $\cst\ c\ t$ by the rule~\ref{rule:delay}.
 
 $$
 \mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts) = (\vecL{g}, k')\ \mathrm{where}
@@ -1420,26 +1420,49 @@ $$
 where $\mathbb{N}$ is the set of nominal constants introduced by \elpi{pi}
 and $\mathcal{I}$ is the set of rules available to solve $c$.
 Pragmatically, only hypothetical rules are stored in the constraint since all
-static rules are common to all constraints. In addition to that the
-user can specify a filer to discard rules for predicates of no interest for
-the constraint (typically rules for predicates unrelated to $c$).
-Moreover, for simplicity, $\mathcal{I}$ is presented as a list: if the
+static rules are common to all constraints. 
+For simplicity, the context $\mathcal{I}$ is presented as a list: if the
 user wants to compare these ``contexts'' as sets he has to implement the
-quotienting in the rule's guard $Q$. Once more pragmatically, unless
+quotienting in the rule's guard $Q$. 
+In order to simplify context management, the
+user can specify a filter to discard rules for predicates of no interest for
+the constraint (typically rules for predicates unrelated to $c$).
+For reference, the concrete syntax for a block of rules about constraints
+\elpi{p} and \elpi{q} under a context made of \elpi{r} and \elpi{s}
+is:
+
+\begin{elpicode}
+constraint r s ?- p q {
+  % rules about p and q
+}
+\end{elpicode}
+Once more pragmatically, unless
 the user explicitly opts out, step 4 only considers the permutations of
 constaints with a trigger that overlaps with the trigger $t$ of the active
 constraint: according to our experience this is more often than not what
 the user needs and drastically cuts down the number of permutations to consider.
+For reference, the syntax to opt-out is the following one:
+\begin{elpicode}
+code :- declare_constraint (p X) [X, _].
+\end{elpicode}
+The special trigger \elpi{_} is a designated, unnamed, variable.
+It cannot be assigned, so it plays no role as a trigger. In
+the example above the trigger \elpi{[X, _]} is equivalent to
+\elpi{[X]} when it comes to~\ref{rule:resume},
+But it is common to all triggers that specify it when it comes
+to computing if two triggers overlap, i.e. \elpi{[X, _]}
+and \elpi{[Y, _]} do overlap.
+
 Finally the system enfoces the disjointness of names used in each constraint, that
 is step 1 really adds $((\mathbb{N'},\mathcal{I'}),\ c',\ t)$ to $k$
 where each name in $\mathbb{N'}$ is fresh in $k$, and where
 $\mathcal{I'}$ and $c'$ are obtained by subtituting each name in
 $\mathbb{N}$ with the corresponding one in $\mathbb{N}'$.
+
 We point the interested
 reader to~\cite{TASSI_2019} for a more formal description of the
 operational semantics of the $\mathcal{CHR}$ procedure.
 
-TODO describe actualy syntax for dummy trigger and filters
 
 \section{Syntactic sugar}
 
@@ -1472,10 +1495,19 @@ In the following example, the predicate \elpi{p} lives in the namespace
 namespace.
 
 \begin{elpicode}
+% directive to begin a namespace called n
 namespace n {
+
+  % predicate p belongs to the current namespace
   pred p.
+
+  % predicates in the current name space have short names..
   p :- ... p ...
+
+% ..until the end of the namespace
 }
+
+% outside the name space, p is called n.p
 q :- n.p.
 \end{elpicode}
 
@@ -1483,9 +1515,14 @@ q :- n.p.
 Long names can be shortened via the \elpi{shorten} directive.
 
 \begin{elpicode}
-shorten n.{ p }. % shortens n.p naming n. implicit
+% directive to shortens n.p by making n. implicit
+shorten n.{ p }.
+
+% this shorter code..
 q :- p.
-% desugars to: q :- n.p.
+
+% ..desugars to the more verbose
+q :- n.p.
 \end{elpicode}
 
 \subsection{Spilling}\label{sec:spilling}
@@ -1660,13 +1697,13 @@ $$
   & \vert & e_1 = e_2 \\
 \end{array}
 $$
-\end{minipage}
+\end{minipage}~~
 \begin{minipage}{0.60\textwidth}
 \vspace{0.5em}
 %elpi:hm.elpi
 \begin{elpicodelj}
 kind term   type.
-type global string -> term.
+type glo string -> term.
 type app    term -> term -> term.
 type lam    (term -> term) -> term.
 type let    term -> (term -> term) -> term.
@@ -1678,7 +1715,7 @@ type eq     term -> term -> term.
 ~\\  
 
 As in~\cref{sec:hello}, we use a HOAS encoding of terms. However, we add a
-\elpi{global} term constructor to enable the setup of a minimal environment
+\elpi{glo} term constructor to enable the setup of a minimal environment
 for our examples.
 
 Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
@@ -1745,14 +1782,15 @@ special: it requires the element of the list to have an equality type.
 %elpi:hm.elpi
 \begin{elpicode}
 pred of i:term, o:ty.
-of (global "1")      (mono int).
-of (global "plus")   (mono (int --> int --> int)).
-of (global "nil")    (all ff x\ mono (list x)).
-of (global "cons")   (all ff x\ mono (x --> list x --> list x)).
-of (global "pr")     (all ff x\ all ff y\ mono (x --> y --> (pair x y))).
-of (global "fst")    (all ff x\ all ff y\ mono (pair x y --> x)).
-of (global "size")   (all ff x\ mono (list x --> int)).
-of (global "undup")  (all tt x\ mono (list x --> list x)).
+of (glo "1")      (mono int).
+of (glo "true")   (mono bool).
+of (glo "plus")   (mono (int --> int --> int)).
+of (glo "nil")    (all ff x\ mono (list x)).
+of (glo "cons")   (all ff x\ mono (x --> list x --> list x)).
+of (glo "pr")     (all ff x\ all ff y\ mono (x --> y --> (pair x y))).
+of (glo "fst")    (all ff x\ all ff y\ mono (pair x y --> x)).
+of (glo "size")   (all ff x\ mono (list x --> int)).
+of (glo "undup")  (all tt x\ mono (list x --> list x)).
 \end{elpicode}
 \noindent
 The specialization of a type schema allows one to plug type expressions in
@@ -1786,11 +1824,18 @@ constraining them to be equality types.
 \begin{elpicode}
 pred specialize i:ty, o:tye.
 specialize (mono T) T.
-specialize (all ff F) T :- specialize (F Fresh_) T.
-specialize (all tt F) T :- specialize (F Fresh) T, eqbar Fresh.
+specialize (all ff F) T :- prune Fresh [], specialize (F Fresh) T.
+specialize (all tt F) T :- prune Fresh [], specialize (F Fresh) T, eqbar Fresh.
 \end{elpicode}
 
 \noindent
+The only detail worth describing is the use of the \elpi{prune} builtin
+to restrict the scope of \elpi{Fresh} to the empty one. While this is not
+necessary for the algorithm to work properly, is simplifies the output
+we shall comment at the end of the section. Finally, it is not hurting either
+since the the types we deal with in this example are not dependent -- binders
+are for terms only but \elpi{Fresh} represents a type.
+
 The \elpi{eqbar} predicate traverses concrete type expressions and suspends
 when variables are found.
 
@@ -2052,8 +2097,72 @@ filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
 \noindent
-The code amounts to about 100 lines of Elpi. It is a toy, in the sense that
-it lacks code for error reporting, but its size is quite remarkable: it
+
+We can run the type inference algorithm on the following term, which defines a
+function $f$ that tests whether the input list is empty and then applies it to
+two different expressions:
+$$
+\mathtt{let}\ f = \lambda x. x = []\ \mathrm{in}\ (f [\mathrm{true}], f [1])
+$$
+As expected, the inferred type is $\mathrm{bool} \times \mathrm{bool}$.
+\begin{elpicode}
+goal> theta [],
+  of (let (lam x\ eq (glo "nil") x) f\
+       app (app (glo "pr")
+        (app f (app (app (glo "cons") (glo "true")) (glo "nil"))))
+        (app f (app (app (glo "cons") (glo "1"))    (glo "nil")))
+     ) Ty.
+
+Success
+  Ty = mono (pair bool bool)
+ 
+Constraints:
+  theta [int, bool]  /* suspended on X0 */
+\end{elpicode}
+It is important to note that \elpi{f} is used at two different types and that
+\elpi{theta} contains two types, both of which used to be a variable representing an
+equality type. Both were assigned to the types at which \elpi{f} is used.\footnote{
+For simplicity, we did not write code to remove assigned items from
+\elpi{theta}, since \elpi{bind} simply ignores items that are not variables.}
+Note that \elpi{f} uses the comparison operator on the input list, so it is
+expected to require this list to be an equality type.\footnote{In this specific
+case, one of the lists used in the comparison is empty, so the requirement is
+not strictly necessary, but the type discipline is not precise regarding the
+behavior of the equality test.}
+
+It may be instructive to run the example on a term that does not completely
+constrain the type, such as
+$$
+\mathtt{let}\ f = \lambda x. x = []\ \mathrm{in}\ (f [], f [1])
+$$
+In this case, the first use of \elpi{f} is on an empty list, which leaves the
+type parameter unassigned.
+\begin{elpicode}
+goal> theta [],
+  of (let (lam x\ eq (glo "nil") x) f\
+        app (app (glo "pr")
+          (app f (glo "nil")))
+          (app f (app (app (glo "cons") (glo "1")) (glo "nil"))))
+     Ty.
+
+Success
+  Ty = mono (pair bool bool)
+ 
+Constraints:
+ theta [int, X0] 
+   /* suspended on X1 */
+ {c0} : of c0 (all tt c1 \ mono (list c1 --> bool)) ?- eqbar X0 
+   /* suspended on X0, X1 */
+\end{elpicode}
+This time, \elpi{theta} contains an unassigned variable \elpi{X0}. On this same
+variable, we also have an \elpi{eqbar} constraint. Since constraints store their
+context, and the variable is generated under the binder for \elpi{f}, we see
+the type of \elpi{f} as synthesized by the algorithm: \ocaml{''a list -> bool},
+i.e., a polymorphic function from lists to bool, requiring the type parameter to
+be an equality type.
+
+The code amounts to about 100 lines of Elpi. It is a toy example, in the sense
+that it lacks code for error reporting, but its size is quite remarkable: it
 roughly matches the length of a pen-and-paper presentation of the same
 algorithm.
 
