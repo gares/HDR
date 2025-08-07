@@ -100,114 +100,163 @@ To Cinzia and Anna
 
 \section{Prologue}
 
-\subsection{Beyond the odd order theorem}
 
-I had the luck to be part of this project.
-After its completion the good question was what it made it possible
-other than having Georges Gonthier lead the project. How to make
-it possible for others to build such an impressive machine checked
-proof. I've always been interested into building tools, since I believe
-a tool can democratize...
+In life, there are many questions without an answer. One of them is, apparently,
+what this HDR document is for, other than fulfilling an administrative duty.
+The University of Nice suggests wrapping with skinny introduction and conclusion
+the copy-pasting of abstracts from papers published after the PhD.
+While that would have been easier to write and shorter, it would also have been
+a completely useless exercise, resulting in a document that, in ten years from
+now, I myself would have no pleasure in skimming through. So I took the
+opportunity to write a document that brings together most of the research I did
+in the last ten years around a single thread -- the Elpi language -- and puts it in
+perspective, trying to distill some conclusions, such as what worked and what
+did not. It will not cast a shadow on earth, but hopefully I will not be ashamed
+to put it online either.
 
-3 points 1) engineering practices, not new but too often
-ignored by the community; 2) formalization technique known as boolean
-reflection (or small scale reflection) that carves a light weight
-``classical math'' framework in Rocq (EM, UIP, FUNEXT) in Rocq when
-constructivism allows for it; 3) ``creative'' programming of the
+So here it is how it all begins.
+
+\subsection{Beyond the Odd Order Theorem}
+
+
+I was fortunate to be part of a major mechanization project that culminated in
+the formalization of a 250-page proof in Rocq~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}.
+After its completion, the natural question arose: what made such an achievement
+possible, aside from the leadership of Georges Gonthier? More importantly, how
+could others be empowered to construct similarly impressive machine-checked
+proofs?
+
+In my humble opinion three main factors contributed to the project's success: (1) sound engineering
+practices -- nothing new, but too often overlooked by the formal-proofs community; (2) the
+formalization technique known as boolean reflection (or small-scale reflection),
+which carves out a lightweight ``classical mathematics'' framework in Rocq
+i.e. making excluded middle, function extensionality and proof irrelevant available
+when constructivism allows; and (3) the ``creative'' programming of the
 Rocq elaborator.
 
-We focused on 3. These programs make Rocq behave as an informed readers,
-that is a reader that knows some base facts and that is expected to
-be able to combine them using some well known rules. It was customary,
-at that time, to see Rocq as a ``dumb reader'': you have to explain
-every single detail to him. These programs changed the game  for the
-oothm and made it possible to use notations as in math, that is convoy
-a lot of information implicitly, by convention.
+Our focus was on the third point. These programs enabled Rocq to behave like an
+informed reader -- one who knows some basic facts and can combine them using
+well-known rules. At the time, Rocq was often seen as a ``dumb reader'' who
+required every detail to be spelled out. These new programs changed the game for
+the Odd Order Theorem, making it possible to use mathematical notations that
+convey a lot of information implicitly, by convention.
 
-The objective was to help users craft these programs. Programming
-the elaborator as we did was hard. Structuring the library to that
-knowledge could be organized by the author an retrieved by these
-programs was even harder. The programming mechanism is called CS,
-and is strictly related to the UH I studied during my PhD.
-Independently, about at the same time,
-Rocq got extended with type classes, which happened to be usd for similar
-purposes, and immediately raised similar programming issues.
+Our goal hence became to help users craft such programs, since programming the elaborator as we
+did was challenging. Structuring the library so that knowledge could be
+organized by the author and retrieved by these programs was even harder. The
+programming mechanism, called Canonical Structure inference~\cite{tassi13}, is closely related
+to the language of Unification Hints~\cite{asperti09} I studied during
+my Ph.D. Around the same time, Rocq was extended with type classes~\cite{fctc}, which were
+used for similar purposes and immediately raised similar programming issues.
 
-To my eyes, these programs were strikingly related to Prolog.
-Our programs were organized in rules and driven by unification.
-At that time I had barely heard about Prolog.
-It happened that the Parsifal team
-at Inria Saclay worked on a language or that family
-and thanks to Assia Mahboubi and Stephane Legrand I could give a talk
-at a STTT workshop they were hosting.
+To me, these programs were strikingly similar to Prolog. Our code was organized
+as rules and driven by unification. At that time, I had barely heard of Prolog.
+Coincidentally, the Parsifal team at Inria Saclay was working on a language of
+that family, and thanks to Assia Mahboubi and Stephane Legrand, I was invited to
+give a talk at a workshop they were hosting.
 
-In my talk I did explain some of the programs we wrote and why they
-were helping us writing math in Rocq. Dale Miller, asked a few questions
-and suggested that his $\lambda$Prolog language was probably what I
-was looking for, but since I did not know anything about it I could
-just nod and ask to continue to the discussion offline.
+In my talk, I explained some of the programs we had written and how they helped
+us write mathematics in Rocq. Dale Miller asked a few questions and suggested
+that his $\lambda$Prolog language~\cite{10.1093/logcom/1.4.497} was probably what I was looking for. Since I
+knew nothing about it, I could only nod and ask to continue the discussion
+offline.
 
-not just the rules but also their animation and maybe also the entire
-elab algorithm.
+Dale was kind enough to set up a meeting with Claudio Sacerdoti and myself
+to discuss about a language well suited to describe the elaboration process
+of an interactive theorem prover.
 
-Dale was kind
-to set up a meeting with Claudio Sacerdoti and myself. 
-
-\subsection{The beginning: a snowy day}
+\subsection{A snowy day}
 
 On that day ``Paris'' was frozen, in the sense that a supposedly
-``show storm'' convinced authorities to close buildings and other facilities,
+apocalictic show storm convinced authorities to close buildings and other facilities,
 reduce public transportations to the bare minimum. For some reasons
-the XXX building was not closed, so the 3 of us agreed to buy a sandwich,
+only the PCRI building was open, so the 3 of us agreed to buy a sandwich,
 walk up the hill (with boots) and meet in a desert building.
 
-After two hours of gentle introduction, after having savoured the
-elegance of \elpi{copy}, I clearly remember I say ``sold...'',
-but I also completed the sentence with ``how do I do evars?''.
-
+After two hours of gentle introduction to $\lambda$Prolog, after having
+savoured the elegance of the \elpi{copy} predicate, I clearly remember
+I said ``sold...'', but I also completed the sentence with
+``How do I do evars?''.
 $\lambda$Prolog could easily describe the rules my programs were
 made of and elegantly manipulate the data type of Rocq terms that
-notably contains many binders. But also holes, evars in Rocq slang,
-that are the other beast one has to tame in order to implement an
-elaborator and, in general, the outern layers of a toll like Rocq.
+notably contains binders. But terms also contain holes, evars in
+Rocq slang, that are the other beast one has to tame in order
+to implement an elaborator and, in general, the outern layers of a tool
+like Rocq. The answer was not on the shelf, so that was likely
+the beginning out this line of research.
 
-It was the beginning.
+$\lambda$Prolog was not an idealized programming language, it had
+a full implementation in the Teyjus~\cite{teyjus} system.
+In a visit to Bologna, together with Claudio Sacerdoti, we
+could write a toy elaborator for a dependent type theory in one day,
+but we could not find a good solution for evars. Our intuition was
+to try to reuse the unification variables of $\lambda$Prolog to
+represent evars, but that turned out to be extremely hard since
+$\lambda$Prolog do not really give you a way to control their
+assignment: and an elaborator takes in input a term with holes
+and returns a term where only some holes are assigned, not all of them.
+One obvious option was to reify them as it is done in the code of Rocq, i.e.
+represent them with numbers and explicitly thread around a state
+associating a type and an assignment to each evar. By doing so
+the conciseness and elegance of the code we were writing was gone.
 
-Teyjus in bologna, we could write a toy elaborator in one day
-but we could not find a good solution. Reification is ugly, one has
-to pass a subst and reimplement unif. At the same time reusing unif
-variables seemed possible, but extremely hard since the pure core
-of LP, and Teyjus, do not really give you systems to control their
-assignment and an elaborator takes in input a term with holes
-and returns a term where only some holes are assigned...
+I was convinced that it was worth trying devising a variant of
+$\lambda$Prolog to overcome this problem, but changing Teyjus or
+trying to integrate it in Rocq seemed too hard. Teyjus is
+a compiler, generating bytecode for a virtual machine
+written in C: adding constructs to the source language would have
+required mastering the entire pipeline, not to mention to complexity of
+using C code from OCaml, the language in which Rocq is written.
+So I wrote a proof of concept interpreter of $\lambda$Prolog in OCaml,
+for both better understanding the language, and to ease its integration
+with Rocq, or its lightwight twin Matita~\cite{DBLP:conf/cade/AspertiRCT11}.
+On that toy interpreter it was easy make experiments, evaluate hacks,
+and so on. We did manage to write an elaborator for the
+Calculus of Inductive constructions with it, and have Matita run it
+on the statements of the theorems in its arithmetic library.
+It was working! Almost, at least. The performance were bad, very bad,
+like 22K times bad. Still, the experiments we could run on the
+prototype made it clear that most of the hacks could be explained in terms of
+constraints (as is constraint-logic programming) and rules to manipulate
+these constraints.
 
-It was worth trying but using teyjus in Matita or Rocq was too hard.
-I write a POC interpreter of LP in OCaml for embedding it into
-Matita and Rocq, elpi. It was easy to add hacks and experiment with
-it, and that ... Elab in matita was kind of working, we could run
-it on the arithmetic library. It was clear that:
-the perf were bad, very bad, like 22K times bad.
-the hacks could be explained in terms of constraints and rules to
-suspend, resume, combined them.
+Together with Claudio Sacerdoti we rewrote the interpreter to make it
+reasonably fast and later extend the language with constraints. I gave
+this piece of software the name ELPI, that stands for Embeddable
+Lambda
+Prolog Interpreter.~\cite{dunchev15lpar}
+When the language started to differ from $\lambda$Prolog,
+i.e. when we mixed it with Constraint Handling Rules~\cite{FRUHWIRTH199895},
+we started to use Elpi for the language itself, and not just the implementation.
 
+Since the very beginning Elpi was conceived to be embedded into a host
+application such as Rocq. It never aimed at being a general purpose
+programming language or to scale to large applications. It always had
+a niche domain of application (compared to mainstream programming languages).
+We believe this clear focus was instrumental to mage good use of the resources
+we had.
 
 \section{Elpi}
-Elpi is both a language and an implementation of that language.
 
-With CSC we rewrote the runtime, first the FO part then the HO part
-and 
+Elpi is free software, it comes as a library distributed under the terms
+of the LGPL license. It is developed in the open, at
+\url{https://github.com/LPCIC} where we gather the interepter \texttt{elpi},
+its integration in Rocq \texttt{Rocq-elpi}, and the extensions for
+Visual Studio Code \texttt{elpi-lang} and \texttt{roc-elpi-lang}.
 
-line stats
+This document describes the research we did in the last decade
+around this language and using this language.
 
-I perceived many times, in academic circles, some mistrust in logic programming.
+The first two chapters of this document describe Elpi from A to Z, both as a
+language and as an implementation of that language. We credit Ridoux~\cite{ridoux1998lambda}
+for the titles of these two chapters and we thank him for writing and HDR
+manuscript that we enjoyed reading.
+The third chapter describes the integration of Elpi in Rocq
+and the fourth one surveys the application developed using Elpi,
+most of which are Rocq extensions.
 
-
-We organize this document in four parts. The first two describe Elpi from
-A to Z, both as a language and as an implementation of that language (we credit
-\cite{ridoux1998lambda}). The third describes the integration of Elpi in Rocq
-and the fourth one surveys the application developed for Rocq using Elpi.
-
-\url{https://github.com/LPCIC}
+Sections \ref{sec:milner} and \ref{sec:tb} contain full examples of Elpi
+and Rocq-Elpi programs tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 

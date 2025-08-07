@@ -14,9 +14,9 @@
 - [x] 2.2.1 incomplete terms - english
 - [x] 2.3 Modes and Constraints - english
 - [x] 2.4 Constraints Handling Rules - english
-- [ ] 2.5 Elpi = λProlog + CHR - write
-- [ ] 2.5.1 Operational semantics - english
-- [ ] 2.6.0 Syntactic sugar - english
+- [x] 2.5 Elpi = λProlog + CHR - write
+- [x] 2.5.1 Operational semantics - english
+- [x] 2.6.0 Syntactic sugar - english
 - [x] 2.6.1 Namespaces - english
 - [x] 2.6.2 Spilling - english
 - [x] 2.7 A complete example: Hindley Milner type inference - english+
