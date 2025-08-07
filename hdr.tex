@@ -816,25 +816,57 @@ the role played by unification variable scopes in dependent type theory.
 
 \section{Elpi = $\lambda$Prolog + CHR}\label{sec:elpiLP+CHR}
 
-The integration on constraints with standard
-Selective Linear Definite (SLD) clause resolution works as follows:
-each new constraint becomes
-a goal that is considered as the leftmost conjuct of the current
-resolution state. Since a new goal can in turn declare a new constraint,
-the CHR loop can continue. In other words constraint handling takes
-priority over SLD resolution.
+
+Before providing a precise semantics for Elpi, we offer an intuitive overview of
+how $\lambda$Prolog and CHR interact, as illustrated in~\cref{fig:chr}.
+
+\begin{figure}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{chr.png}
+    \caption{\label{fig:chr}An Elpi computation}
+  \end{center}
+\end{figure}
 
 
-%\begin{figure}
-  \includegraphics[width=0.8\textwidth]{chr.png}
-%  \caption{\label{chr:fig}Elpi runtime (TODO clause/rule)}
-%\end{figure}
-TODO
+One can think of the execution of a $\lambda$Prolog program as the construction
+of a proof tree for the query, following a depth-first strategy (in the figure,
+this corresponds to bottom-up, left to right). This process treats
+$\lambda$Prolog rules as nodes in the proof tree, where the number of premises
+determines the branching factor. Action (1) operates on the leftmost open tree
+branch: the \emph{active} goal $g$ is circled in blue, while the other goals,
+circled with dashes, are \emph{inert} until the tree branch corresponding to the
+active goal is completed or \emph{suspended}. Suspension, depicted as action (2),
+forms the bridge to CHR and involves pausing the exploration of a tree branch,
+marking the unsolved goal as a constraint with a wakeup trigger (in the figure,
+moving it into the red rounded box).
+
+By suspending a branch, the proof tree construction can proceed to the next
+inert goal, promoting it to active. During tree construction, action (1) may
+assign a unification variable, which serves as the trigger for a constraint.
+When this occurs, action (3) \emph{resumes} the constraint by making it the next
+active goal. Finally, action (4) operates on the entire set of suspended
+branches. As a result of a constraint handling rule, a constraint can be
+removed -- thus blocking any further work on the corresponding tree branch by (1)
+or (3) -- or a new branch can be created and its goal made active.
+
+Although we will provide a logical interpretation of the application of
+constraint handling rules, these rules sometimes cannot be easily described as a
+tree-building strategy. For example, a rule that identifies two identical
+branches and eliminates one is effectively building a DAG, at least in memory, by
+sharing the two subtrees. Another example is the detection of two suspended,
+incompatible goals such as \elpi{even X} and \elpi{odd X}, and the replacement
+of one by \elpi{false}. In this case, a theorem linking the two predicates is
+used to justify immediate backtracking, rather than allowing the proof search to
+eventually discover the unsatisfiability of the two suspended goals once
+\elpi{X} is instantiated, concluding by producing an incomplete tree (which the
+theorem deems impossible to complete).
+
+
 
 \subsection{Abstract syntax and operational semantics}\label{sec:sem}
 
-The objective of this section is to act as a reference for
-the semantics of Elpi.
+% The objective of this section is to act as a reference for
+% the semantics of Elpi.
 
 \newcommand{\vecL}[1]{\overrightarrow{\vphantom{t}#1}}
 \newcommand{\BASE}{\ensuremath{\mathbb{B}}}
@@ -906,6 +938,7 @@ the semantics of Elpi.
 \newcommand{\dom}{\texttt{vars}}
 \newcommand{\clauseCmd}[3]{\ensuremath{#1\ #2\ \cdash\ #3}}
 
+The abstract syntax of Elpi is given in~\cref{fig:syntax}.
 We assume a set \PRED of functors (term/predicate constructors), and a set \VAR of term variables
 ($X,Y,\ldots$ for unification variables and $x,y,\ldots$ for bound variables).
 % The non-terminal \CALL groups callable symbols ($c,d,\ldots$): either predicate names or variables.
@@ -1245,6 +1278,8 @@ We write $\prog~\pred$ for the clauses of predicate \pred in $\mathcal{I}$
 and we write $x + \prog$ to add the name $x$ to $\mathbb{N}$
 and we write $h + \prog$ to prepend the extra clause $h$  to $\mathcal{I}$
 (hence $h$ has the highest priority in the new program).
+The rules acting on the store $\mathcal{R = \vecL{\mathbb{C}}}$ are
+morally part of the program, but since they never change we omit them.
 
 A constraint store $\kappa$ of type $K = \vecL{\PROG \times \APP \times \vecL{\VAR}}$
 is a multiset of triples $(\prog,c,t)$
@@ -1288,45 +1323,44 @@ made of a constraint store, a substitution and a list of goals.
 \end{figure}
 
 
-The operational, big step, semantics of Elpi is given by the function
+
+The operational, big-step semantics of Elpi is defined by the function
 $$
 \run{} : \alt \times \vecL{\alt} \to (K  \times \Sigma \times \vecL{\alt}) + \bot
 $$
-in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}.
+shown in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}.
 We write \runCmd{\vecL{g}}{a}{\subst}{\kappa}{a'}{\subst'}{\kappa'}
-when a goal list $\vecL{g}$ in a constraint store $\kappa$ and under a substitution \subst and alternatives $a$
-terminates with an updated constraint store $\kappa'$, a substitution $\subst'$ and a remaining list of
-(still unexplored) alternatives $a'$. We write  \runCmdF{\vecL{g}}{a}{\subst}
-when the execution halts: fails to solve one of the given goals and runs out of
-alternatives. 
+to indicate that a goal list $\vecL{g}$ in a constraint store $\kappa$, under a
+substitution $\subst$ and alternatives $a$, terminates with an updated
+constraint store $\kappa'$, a substitution $\subst'$, and a remaining list of
+(still unexplored) alternatives $a'$. We write \runCmdF{\vecL{g}}{a}{\subst}
+when the execution halts, that is, when it fails to solve one of the given goals
+and runs out of alternatives.
 %An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
 
-Rules in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}
-are applied in the given order. Rules~\ref{rule:delay} and~\ref{rule:resume}
-cover the constraint part of the language: the former updates the constraint
-store when a new constraint is declared, while the latter resume a constraint
-as soon as the substituion \subst acts on its trigger. The second rule
-is in accordance with~\cite{Michaylov1993HigherOrderLP} that too investigates
-how to mix higher-order logic programming with constraint programming.
-The rule attaches to the resumeg goal the current alternatives as cut-to
-alternatives, but that will never be used since constraints are applicative
-terms (i.e. not the cut operator).
+The rules in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}
+are applied in the specified order. Rules~\ref{rule:delay} and~\ref{rule:resume}
+address the constraint aspect of the language: the former updates the constraint
+store when a new constraint is declared, while the latter resumes a constraint
+as soon as the substitution $\subst$ acts on its trigger. The second rule
+follows~\cite{Michaylov1993HigherOrderLP}, which also investigates how to
+combine higher-order logic programming with constraint programming. The rule
+attaches the current alternatives to the resumed goal as cut-to alternatives,
+but these will never be used since constraints are applicative terms (i.e., not
+the cut operator).
 
-Rule~\ref{rule:stop} applies when all goals are solved and returns
-the substitution along with the still unexplored alternatives.
-Rule~\ref{rule:callabort} applies when no rule applies to the
-current goal and not alternative is avilable.
+Rule~\ref{rule:stop} applies when all goals are solved and returns the
+substitution along with the still unexplored alternatives. Rule~\ref{rule:callabort}
+applies when no rule matches the current goal and no alternative is available.
 Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
-popping the last alternative (going back to the most recent choice point).
+popping the last alternative, returning to the most recent choice point.
 Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
-saved by $\bchain$ (see its description below).
-Rule~\ref{rule:call} backchains all applicable rules generating new
-alternatives, the first one of which becomes the new goal.
-Rule~\ref{rule:beta} takes into account the higher order programming part
-of $\lambda$Prolog: unification variables can be used to pass
-predicates around.
-Rule~\ref{rule:pi} introduces a fresh name into the program
-while rule~\ref{rule:impl} introduces a new rule into the program.
+saved by $\bchain$ (see its description below). Rule~\ref{rule:call} backchains
+all applicable rules, generating new alternatives, the first of which becomes
+the new goal. Rule~\ref{rule:beta} accounts for the higher-order programming
+aspect of $\lambda$Prolog: unification variables can be used to pass predicates
+around. Rule~\ref{rule:pi} introduces a fresh name into the program, while
+Rule~\ref{rule:impl} introduces a new rule into the program.
 
 \paragraph{Definition of $\bchain$ (backchain)}
 
@@ -1353,42 +1387,41 @@ an alternative for each rules that applies to the given goal.
   \end{array}
   $$
 
-It is worth pointing out that each new goal (in each alternative)
-carries the same cut-to alternative and that the value passed to
-$\bchain$ by rule \ref{rule:call} is the list of alternatives
-before the backchaining happened, i.e. it does not contain any
-alternative being created nor any alternative created in the future
-by exploring the new alternatives.
+It is worth noting that each new goal (in each alternative) carries the same
+cut-to alternative, and that the value passed to $\bchain$ by rule
+\ref{rule:call} is the list of alternatives prior to backchaining. In other
+words, it does not include any alternatives being created, nor any that will be
+created in the future by exploring the new alternatives.
 
 \paragraph{Definition of $\cselect$ (select)}
 
-Function $\cselect$ is used to filter rules, keeping only the ones the
-apply. Unlike standard Prolog, arguments flagged by the user
-as input (written $\vecL{tu_i}$) are matched, while
-the ones flagges as output (written $\vecL{tu_o}$) are unified.
+The function $\cselect$ is used to filter rules, retaining only those that
+apply. Unlike standard Prolog, arguments marked by the user as input (denoted
+$\vecL{tu_i}$) are matched, while those marked as output (denoted
+$\vecL{tu_o}$) are unified.
 
   $$
   \begin{array}{l}
   \cselect(\vecL{tu}, \subst) = \fold\ \unify\ \vecL{tu_o}\ (\fold\ \match\ \vecL{tu_i}\ \subst)
   \end{array}
   $$
-  
-The list processing combinator \fold %and \map 
-is defined by the following equations:
+
+The list processing combinator \fold is defined by the following equations:
 $$
 \begin{array}{lll}
-\fold\ \_\ \_\ \bot = \bot & \fold\ f\ (x :: xs)\ a = \fold\ f\ xs\ (f\ x\ a) & \fold\ \_\ \EmptyList\ a = a %\\
-% \map\ \_\ \EmptyList = \EmptyList & \map\ f\ (x :: xs) = f\ x :: \map\ f\ xs
+\fold\ \_\ \_\ \bot = \bot & \fold\ f\ (x :: xs)\ a = \fold\ f\ xs\ (f\ x\ a) & \fold\ \_\ \EmptyList\ a = a
 \end{array}
 $$
 
 \paragraph{Definition of $\mathcal{CHR}$ (simpagation)}
  
-Constraint rule application follows the refined operational
-semantics~\cite{10.1007/978-3-540-27775-0_7} that amounts to a precise nesting of iterations.
 
-The starting point is the so called ``active constraint'' that, in the context of Elpi, is
-the constraint just declared as $\cst\ c\ t$ by the rule~\ref{rule:delay}.
+Constraint rule application follows the refined operational
+semantics~\cite{10.1007/978-3-540-27775-0_7}, which amounts to a precise
+nesting of iterations.
+
+The starting point is the so-called “active constraint,” which, in the context
+of Elpi, is the constraint just declared as $\cst\ c\ t$ by rule~\ref{rule:delay}.
 
 $$
 \mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts) = (\vecL{g}, k')\ \mathrm{where}
@@ -1407,61 +1440,56 @@ $$
 \item move to the next rule
 \end{enumerate}
 
-This description how CHR rules update the constraint store is
-essentially the standard operational semantics~\cite{10.1007/978-3-540-27775-0_7}
-adapted to constraints that are composed of a program $\prog$ and
-an applicative term $c$. As anticipated in~\cref{sec:modes} adapting CHR to Elpi, or
-better its $\lambda$Prolog part, requires some extra care. In particular
-a constraint $((\mathbb{N},\mathcal{I}),\ c,\ t)$ represents a $\lambda$Prolog goal:
+This description of how CHR rules update the constraint store is essentially the
+standard operational semantics~\cite{10.1007/978-3-540-27775-0_7}, adapted to
+constraints composed of a program $\prog$ and an applicative term $c$. As
+anticipated in~\cref{sec:modes}, adapting CHR to Elpi—or more precisely, to its
+$\lambda$Prolog part—requires some extra care. In particular, a constraint
+$((\mathbb{N},\mathcal{I}),\ c,\ t)$ represents a $\lambda$Prolog goal:
 $$
 \mathbb{N} \triangleright  \mathcal{I} \vdash c
 $$
-\noindent
-where $\mathbb{N}$ is the set of nominal constants introduced by \elpi{pi}
-and $\mathcal{I}$ is the set of rules available to solve $c$.
-Pragmatically, only hypothetical rules are stored in the constraint since all
-static rules are common to all constraints. 
-For simplicity, the context $\mathcal{I}$ is presented as a list: if the
-user wants to compare these ``contexts'' as sets he has to implement the
-quotienting in the rule's guard $Q$. 
-In order to simplify context management, the
-user can specify a filter to discard rules for predicates of no interest for
-the constraint (typically rules for predicates unrelated to $c$).
-For reference, the concrete syntax for a block of rules about constraints
-\elpi{p} and \elpi{q} under a context made of \elpi{r} and \elpi{s}
-is:
+where $\mathbb{N}$ is the set of nominal constants introduced by \elpi{pi}, and
+$\mathcal{I}$ is the set of rules available to solve $c$. Pragmatically, only
+hypothetical rules are stored in the constraint, since all static rules are
+common to all constraints.
+
+For simplicity, the context $\mathcal{I}$ is presented as a list: if the user
+wants to compare these “contexts” as sets, they must implement the quotienting
+in the rule’s guard $Q$. To simplify context management, the user can specify a
+filter to discard rules for predicates not relevant to the constraint
+(typically, rules for predicates unrelated to $c$). For reference, the concrete
+syntax for a block of rules about constraints \elpi{p} and \elpi{q} under a
+context made of \elpi{r} and \elpi{s} is:
 
 \begin{elpicode}
 constraint r s ?- p q {
   % rules about p and q
 }
 \end{elpicode}
-Once more pragmatically, unless
-the user explicitly opts out, step 4 only considers the permutations of
-constaints with a trigger that overlaps with the trigger $t$ of the active
-constraint: according to our experience this is more often than not what
-the user needs and drastically cuts down the number of permutations to consider.
-For reference, the syntax to opt-out is the following one:
+
+Once more, pragmatically, unless the user explicitly opts out, step 4 only
+considers permutations of constraints with a trigger that overlaps with the
+trigger $t$ of the active constraint. According to our experience, this is
+usually what the user needs and drastically reduces the number of permutations
+to consider. For reference, the syntax to opt out is as follows:
 \begin{elpicode}
 code :- declare_constraint (p X) [X, _].
 \end{elpicode}
-The special trigger \elpi{_} is a designated, unnamed, variable.
-It cannot be assigned, so it plays no role as a trigger. In
-the example above the trigger \elpi{[X, _]} is equivalent to
-\elpi{[X]} when it comes to~\ref{rule:resume},
-But it is common to all triggers that specify it when it comes
-to computing if two triggers overlap, i.e. \elpi{[X, _]}
-and \elpi{[Y, _]} do overlap.
+The special trigger \elpi{_} is a designated, unnamed variable. It cannot be
+assigned, so it plays no role as a trigger. In the example above, the trigger
+\elpi{[X, _]} is equivalent to \elpi{[X]} with respect to~\ref{rule:resume},
+but it is common to all triggers that specify it when computing whether two
+triggers overlap; i.e., \elpi{[X, _]} and \elpi{[Y, _]} do overlap.
 
-Finally the system enfoces the disjointness of names used in each constraint, that
-is step 1 really adds $((\mathbb{N'},\mathcal{I'}),\ c',\ t)$ to $k$
-where each name in $\mathbb{N'}$ is fresh in $k$, and where
-$\mathcal{I'}$ and $c'$ are obtained by subtituting each name in
-$\mathbb{N}$ with the corresponding one in $\mathbb{N}'$.
+Finally, the system enforces the disjointness of names used in each constraint;
+that is, step 1 really adds $((\mathbb{N'},\mathcal{I'}),\ c',\ t)$ to $k$,
+where each name in $\mathbb{N'}$ is fresh in $k$, and where $\mathcal{I'}$ and
+$c'$ are obtained by substituting each name in $\mathbb{N}$ with the
+corresponding one in $\mathbb{N'}$.
 
-We point the interested
-reader to~\cite{TASSI_2019} for a more formal description of the
-operational semantics of the $\mathcal{CHR}$ procedure.
+We refer the interested reader to~\cite{TASSI_2019} for a more formal
+description of the operational semantics of the $\mathcal{CHR}$ procedure.
 
 
 \section{Syntactic sugar}
