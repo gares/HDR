@@ -1420,7 +1420,7 @@ Constraint rule application follows the refined operational
 semantics~\cite{10.1007/978-3-540-27775-0_7}, which amounts to a precise
 nesting of iterations.
 
-The starting point is the so-called “active constraint,” which, in the context
+The starting point is the so-called ``active constraint,'' which, in the context
 of Elpi, is the constraint just declared as $\cst\ c\ t$ by rule~\ref{rule:delay}.
 
 $$
@@ -1443,8 +1443,8 @@ $$
 This description of how CHR rules update the constraint store is essentially the
 standard operational semantics~\cite{10.1007/978-3-540-27775-0_7}, adapted to
 constraints composed of a program $\prog$ and an applicative term $c$. As
-anticipated in~\cref{sec:modes}, adapting CHR to Elpi—or more precisely, to its
-$\lambda$Prolog part—requires some extra care. In particular, a constraint
+anticipated in~\cref{sec:modes}, adapting CHR to Elpi -- or more precisely, to its
+$\lambda$Prolog part -- requires some extra care. In particular, a constraint
 $((\mathbb{N},\mathcal{I}),\ c,\ t)$ represents a $\lambda$Prolog goal:
 $$
 \mathbb{N} \triangleright  \mathcal{I} \vdash c
@@ -1455,8 +1455,8 @@ hypothetical rules are stored in the constraint, since all static rules are
 common to all constraints.
 
 For simplicity, the context $\mathcal{I}$ is presented as a list: if the user
-wants to compare these “contexts” as sets, they must implement the quotienting
-in the rule’s guard $Q$. To simplify context management, the user can specify a
+wants to compare these ``contexts'' as sets, they must implement the quotienting
+in the rule's guard $Q$. To simplify context management, the user can specify a
 filter to discard rules for predicates not relevant to the constraint
 (typically, rules for predicates unrelated to $c$). For reference, the concrete
 syntax for a block of rules about constraints \elpi{p} and \elpi{q} under a
@@ -1467,7 +1467,7 @@ constraint r s ?- p q {
   % rules about p and q
 }
 \end{elpicode}
-
+\noindent
 Once more, pragmatically, unless the user explicitly opts out, step 4 only
 considers permutations of constraints with a trigger that overlaps with the
 trigger $t$ of the active constraint. According to our experience, this is
