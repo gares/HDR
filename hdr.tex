@@ -48,6 +48,9 @@
 \usepackage[backend=biber,style=alphabetic,maxnames=20]{biblatex}
 \DeclareUnicodeCharacter{2200}{$\forall$}
 \DeclareUnicodeCharacter{03BB}{$\lambda$}
+\DeclareUnicodeCharacter{2217}{\(\ast\)}
+\DeclareUnicodeCharacter{21A6}{\(\mapsto\)}
+
 \addbibresource{hdr.bib}
 \addbibresource{other.bib}
 
@@ -108,7 +111,7 @@ To Cinzia and Anna
 Life is full of unanswered questions. One of them, it seems, is the true purpose
 of this Habilitation to Direct Research (HDR) document, beyond fulfilling an administrative requirement. The
 University of Nice recommends a brief introduction and conclusion, wrapping
-the abstracts of papers published after the PhD. While that approach would have
+the abstracts of papers published after the Ph.D.. While that approach would have
 been easier and shorter, it would also have resulted in a document that, ten
 years from now, I would have no interest in revisiting. Instead, I chose to use
 this opportunity to organize and reflect on the research I have conducted over
@@ -138,26 +141,29 @@ irrelevance available when constructivism allows and using
 computation as a reliable form of automation; and (3) the innovative way of
 programming of the Rocq elaborator.
 
-Our focus was on the third point. The elaborator is the components that fills
+Our focus was on the third point. The elaborator is the component that bridges
 the gap between the text input by the user and the formal terms understood by
-Rocq. By extending the elaboration process by writing little programs
-made Rocq behave like an informed reader -- one who knows some basic facts and can combine them using
-well-known rules. At the time, Rocq was often seen as a dumb reader, who
-does not get tired but requires every detail to be spelled out. These new programs changed the game for
-the Odd Order Theorem, making it possible to use mathematical notations that
-convey a lot of information implicitly, by convention.
+Rocq. By extending the elaboration process with small programs, we enabled Rocq
+to behave like an informed reader -- one who knows some basic facts and can
+combine them using well-known rules. Previously, Rocq was often seen as a
+dumb reader: tireless, but requiring every detail to be spelled out. These
+new programs changed the game for the Odd Order Theorem, making it possible to
+use mathematical notations that convey a great deal of information implicitly,
+by convention. 
 
-Our goal became to help users craft such programs, since programming the
-elaborator as we did was challenging. Structuring the library so that knowledge
-could be organized by the author and retrieved by these programs was even
-harder. The programming mechanism, called Canonical Structure
+Our goal became to help users craft such programs, since
+programming the elaborator as we did was challenging. Structuring the library
+so that knowledge could be organized by the author and retrieved by these
+programs was possibly even harder, but we started from the fist one.
+The programming mechanism, called Canonical Structure
 inference~\cite{tassi13}, is closely related to the language of Unification
 Hints~\cite{asperti09} I studied during my Ph.D. Around the same time, Rocq was
 extended with type classes~\cite{fctc}, which were used for similar purposes
 and immediately raised similar programming issues.
 
-To me, these programs were strikingly similar to Prolog. Our code was organized
-as rules and driven by unification. At that time, I had barely heard of Prolog.
+To me, these programming languages were strikingly similar to Prolog. Our code was organized
+as rules and driven by unification. At that time, I had barely heard of Prolog;
+I even have passed over that course in my uversity curricula.
 Coincidentally, the Parsifal team at Inria Saclay was working on a language of
 that family, and thanks to Assia Mahboubi and Stephane Legrand, I was invited
 to give a talk at a workshop they were hosting.
@@ -175,7 +181,7 @@ interactive theorem prover.
 \subsection{A snowy day}
 
 
-On that day, ``Paris'' was frozen -- a supposedly apocalyptic snowstorm convinced
+On the day of the meeting, ``Paris'' was frozen -- a supposedly apocalyptic snowstorm forced
 authorities to close all buildings and facilities in the Plateau de Saclay,
 reducing public transportation
 to a minimum. For some reason, only the PCRI building remained open, so the
@@ -184,7 +190,7 @@ a deserted building.
 
 After two hours of gentle introduction to $\lambda$Prolog, and after savoring
 the elegance of the \elpi{copy} predicate, I remember clearly saying "sold..."
-but immediately following with, ``How do I do evars?'' $\lambda$Prolog could
+but immediately following with, ``How do I do evars?''. $\lambda$Prolog could
 easily describe the rules my programs were made of and elegantly manipulate the
 data type of Rocq terms, which notably contain binders. But terms also contain
 holes -- evars in Rocq slang -- which are another beast to tame when implementing an
@@ -200,13 +206,15 @@ intuition was to try to reuse the unification variables of $\lambda$Prolog to
 represent evars, but that turned out to be extremely hard, since $\lambda$Prolog
 does not really give you a way to control their assignment. An elaborator takes
 as input a term with holes and returns a term where only some holes are
-assigned -- not all of them. One obvious option was to reify them as is done in
+assigned -- not all of them. In interactive proofs, it is the user
+that drives the proof constructon, not the prover.
+One obvious option was to reify evars as is done in
 the code of Rocq: represent them with numbers and explicitly thread around a
 state associating a type and an assignment to each evar. But doing so destroyed
 the conciseness and elegance of the code we were writing.
 
 I became convinced it was worth devising a variant of $\lambda$Prolog to
-overcome this problem, but changing Teyjus or integrating it into Rocq seemed
+overcome this limitation, but changing Teyjus or integrating it into Rocq seemed
 too difficult. Teyjus is a compiler that generates bytecode for a virtual
 machine written in C; adding constructs to the source language would have
 required mastering the entire pipeline, not to mention the complexity of using
@@ -214,27 +222,27 @@ C code from OCaml, the language in which Rocq is written. So I wrote a proof of
 concept interpreter of $\lambda$Prolog in OCaml, both to better understand the
 language and to ease its integration with Rocq or its lightweight twin
 Matita~\cite{DBLP:conf/cade/AspertiRCT11}. On that toy interpreter, it was easy
-to experiment, evaluate hacks, and so on. We managed to write an elaborator for
+to experiment, evaluate hacks, etc. We managed to write an elaborator for
 the Calculus of Inductive Constructions with it, and had Matita run it on the
 statements of the theorems in its arithmetic library. It worked! Almost, at
 least. The performance was bad -- very bad -- something like 22,000 times
 slower than acceptable. Still, the experiments we could run on the prototype
 made it clear that most of the hacks could be explained in terms of constraints
-(as in constraint-logic programming) and rules to manipulate these constraints.
+(as in constraint logic programming) and rules to manipulate these constraints.
 
 Together with Claudio Sacerdoti, we rewrote the interpreter to make it
 reasonably fast and later extended the language with constraints. I named this
 piece of software ELPI, which stands for Embeddable Lambda Prolog
 Interpreter~\cite{dunchev15lpar}. When the language started to differ from
-$\lambda$Prolog—specifically, i.e., when we mixed it with Constraint Handling
-Rules~\cite{FRUHWIRTH199895} -- we started to use Elpi for the language itself,
+$\lambda$Prolog, i.e., when we mixed it with Constraint Handling
+Rules~\cite{FRUHWIRTH199895}, we started to use Elpi for the language itself,
 not just the implementation.
 
 From the very beginning, Elpi was conceived to be embedded into a host
 application such as Rocq. It was never intended as a general-purpose
-programming language and to scale to large applications. It always had a niche
-domain of application (compared to mainstream programming languages). We
-believe this clear focus was instrumental in making good use of the resources
+programming language, nor to scale to large applications. It always had a niche
+domain of application compared to mainstream programming languages.
+In retrospect this clear focus was instrumental in making good use of the resources
 we had.
 
 \section{Elpi}
@@ -242,20 +250,24 @@ we had.
 
 Elpi is free software, distributed as a library under the LGPL license. It is
 developed openly at \url{https://github.com/LPCIC}, where we maintain the
-interpreter \texttt{elpi}, its integration in Rocq (\texttt{Rocq-elpi}), and
+interpreter \texttt{elpi}, its integration in Rocq (\texttt{rocq-elpi}), and
 the Visual Studio Code extensions \texttt{elpi-lang} and \texttt{roc-elpi-lang}.
 
 This document describes the research we have conducted over the past decade
-around and with this language.
+around and with this language.\\
 
 The first two chapters cover Elpi from A to Z, both as a language and as an
-implementation. We credit Ridoux~\cite{ridoux1998lambda} for the titles of
+implementation. We credit Olivier Ridoux~\cite{ridoux1998lambda} for the titles of
 these chapters and thank him for writing an HDR manuscript we enjoyed reading.
 The third chapter describes the integration of Elpi in Rocq, and the fourth
 surveys applications developed using Elpi, most of which are Rocq extensions.
 
 Sections \ref{sec:milner} and \ref{sec:tb} contain full examples of Elpi and
-Rocq-Elpi programs, tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
+Rocq-Elpi programs, in particular the Hindley-Milner type inference
+algorithm and a proof transfer tool. The former demonstrates how Elpi
+can deal with terms containing holes, while the latter takes advantage of
+the rule-based nature of Elpi to implement a smooth integration with Rocq.
+Both are tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 
@@ -314,6 +326,10 @@ For readers familiar with Prolog, note that Elpi adopts the syntactic
 convention of $\lambda$-calculus for function calls, namely $(f~ x~ y)$,
 rather than the mathematical convention $f(x,y)$ used by Prolog.
 
+\index[concept]{Clause|seealso{ Rule}}
+\index[concept]{Rule}
+\index[concept]{Rule!Head}
+\index[concept]{Rule!Premise}
 The second feature we discuss is that code is organized into rules, which
 constitute the smallest code unit\footnote{In this document we prefer the word
 rule to clause, but occasionally we shall use the latter.}.
@@ -464,7 +480,9 @@ to represent abstraction: the function carried by \elpi{lam} can be applied to
 an actual argument to recover the body of the expression, where the formal
 argument is replaced by the actual argument.
 
-\index[concept]{bli!bla}
+\index[concept]{H.O.A.S.|seealso{ $\lambda$-tree syntax}}
+\index[concept]{$\lambda$-tree syntax}
+\index[concept]{Object language}
 This approach to representing data with binders is known as Higher Order
 Abstract Syntax (HOAS)~\cite{10.1145/960116.54010}, or more precisely,
 $\lambda$-tree syntax~\cite{Miller2018MechanizedMR}. The term HOAS is often
@@ -491,7 +509,10 @@ $\lambda$-calculus, does not feature a term constructor for variables, since
 one can reuse the variables of Elpi. As sketched above, the body of the first
 abstraction can be recovered by applying the function to an argument -- for
 example, the constant \elpi{c}: \elpi{((x\ lam y\ x) c)} evaluates to
-\elpi{(lam y\ c)}.
+\elpi{(lam y\ c)}, thanks to the $\beta$-rule. For the sake of
+completeness we recall that the equational theory of $\lambda$Prolog
+also includes the $\eta$-rule, e.g., \elpi{f = x\ f x}.
+\index[concept]{Equational theory ($\lambda$Prolog)}
 
 % \begin{elpicode}
 % type copy term -> term -> prop.
@@ -552,6 +573,15 @@ $$
   \UnaryInfC{$\Gamma \vdash x : T$}
 \end{bprooftree}
 $$
+
+\index[concept]{Rule!Hypothetical}
+\index[concept]{Rule!Dynamic|seealso{ Hypothetical}}
+\index[concept]{Rule!Static}
+Rules added via implication are called dynamic, or hypothetical.
+Variables bounds by \elpi{pi} are said to be bound by the program,
+or by the $\lambda$Prolog context.
+\index[concept]{Program (bound by the)|seealso{ Context}}
+\index[concept]{Context (bound by the)|seealso{ Program}}
 
 
 While Prolog finds its roots in Horn clauses, $\lambda$Prolog -- and thus Elpi -- are
@@ -863,19 +893,14 @@ the role played by unification variable scopes in dependent type theory.
 %   \item schedule constraints
 % \end{itemize}
 
+\newpage
+~
+\newpage
 \section{Elpi = $\lambda$Prolog + CHR}\label{sec:elpiLP+CHR}
 
 
 Before providing a precise semantics for Elpi, we offer an intuitive overview of
 how $\lambda$Prolog and CHR interact, as illustrated in~\cref{fig:chr}.
-
-\begin{figure}
-  \begin{center}
-    \includegraphics[width=0.9\textwidth]{chr.png}
-    \caption{\label{fig:chr}An Elpi computation}
-  \end{center}
-\end{figure}
-
 
 One can think of the execution of a $\lambda$Prolog program as the construction
 of a proof tree for the query, following a depth-first strategy (in the figure,
@@ -910,8 +935,14 @@ eventually discover the unsatisfiability of the two suspended goals once
 \elpi{X} is instantiated, concluding by producing an incomplete tree (which the
 theorem deems impossible to complete).
 
+\begin{figure}[p]
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{chr.png}
+    \caption{\label{fig:chr}An Elpi computation}
+  \end{center}
+\end{figure}
 
-
+\newpage
 \subsection{Abstract syntax and operational semantics}\label{sec:sem}
 
 % The objective of this section is to act as a reference for
@@ -1107,7 +1138,7 @@ with $y$ inside $t$.
 \newcommand{\ruleStopM}[1]{
   \begin{myRule}{#1}
     % STOP
-    \AxiomC{\phantom{\ensuremath{\bchain}}}
+    \AxiomC{\vspace{2em}\phantom{\ensuremath{\bchain}}}
     \RightLabelM{\ruleStop}
     \UnaryInfC{\runCmd{\EmptyList}{\alts}{\subst}{\kappa}{\alts}{\subst}{\kappa}}
   \end{myRule}
@@ -1163,7 +1194,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCstM}[1]{
   \begin{myRule}{#1}
     % suspend
-    \AxiomC{\ensuremath{\mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts[']) = (\vecL{g'}, k')}}
+    \AxiomC{\ensuremath{\mathcal{CHR}(k,\ \prog,\ \subst\ c,\ t,\ \alts[']) = (\vecL{g'}, k')}}
     \AxiomC{\runCmdRK{\vecL{g'} \atsign \vecL{g}}{\alts}{\subst}{k'}}
     \RightLabelM{\ruleCst}
     \BinaryInfC{\runCmdRK{\ConsHdNP{\goalCmd{\prog}{\cst\ c\ t}{\alts[']}}\ConsTlNP{\vecL{g}}}{a}{\subst}{k}}
@@ -1342,17 +1373,17 @@ so called \emph{cut-to} alternatives.
 An alternative $a$ of type $\alt$ is a triple of type $K \times \Sigma \times \vecL{\g}$
 made of a constraint store, a substitution and a list of goals.
 
-\begin{figure}[!]
+\begin{figure}[p]
     \centering
 
   % \ruleCHRM{.4}
-  \ruleCstM{.4}
   \ruleTcsM{.4}
+  \ruleCstM{.4}
   \caption{Semantics: constraints}
     \label{fig:basic-interp-c}
 \end{figure}
 
-  \begin{figure}[!]
+  \begin{figure}[p]
   \centering
   \ruleStopM{.37}
   \ruleCallMFH{0.44}
@@ -1602,6 +1633,31 @@ q :- p.
 q :- n.p.
 \end{elpicode}
 
+\subsection{Macros}\label{sec:macros}
+
+Elpi provides hygenic macros to provide short syntax to recurrent patterns.
+For example:
+
+\begin{elpicode}
+%     macro  arguments   expansion
+macro @pi-of T F      :- pi x\ of x T => F x.
+\end{elpicode}
+
+\noindent allows one to write the type checker rule for lambda abstraction
+as follows:
+
+\begin{elpicode}
+of (lam F) (arr S T) :- @pi-of S c\ of (F c) T.
+
+% desugnars to
+of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
+\end{elpicode}
+
+\noindent
+As in this case macros are mostly useful to describe idioms rather than
+making the code shorter.
+
+
 \subsection{Spilling}\label{sec:spilling}
 
 
@@ -1634,7 +1690,7 @@ the arguments flagged as input.'' For example, the code above can be written as
 follows:
 
 \begin{elpicode}
-code L1 L2 Result :- rev {append L1 L2} Result.
+code L1 L2 Result :- Result = {rev {append L1 L2}}.
 \end{elpicode}
 
 The curly braces identify a term to be \emph{spilled} to the closest
@@ -1742,7 +1798,7 @@ the programmer's expectations, but it has been undeniably a sorce of debate.
 
 The most significant type inference algorithm is the one crafted by Milner
 for the ML language~\cite{MILNER1978348}. The version we study here covers
-equality type variables, the \texttt{''a} abstraction in standard ML syntax
+equality type variables, the \texttt{''a} abstraction in standard ML syntax~\cite{10.7551/mitpress/2319.001.0001}
 for decidable types -- that is, types that can be effectively compared, unlike
 the function space.
 
@@ -1780,7 +1836,7 @@ $$
 %elpi:hm.elpi
 \begin{elpicodelj}
 kind term   type.
-type glo string -> term.
+type glo    string -> term.
 type app    term -> term -> term.
 type lam    (term -> term) -> term.
 type let    term -> (term -> term) -> term.
@@ -4929,7 +4985,7 @@ translation for non-bare-bone relations.
 
 \subsubsection{The role of Rocq-Elpi in Trocq}
 
-In his PhD dissertation~\cite[Page 115]{enzo}, Crance highlights how naturally
+In his Ph.D. dissertation~\cite[Page 115]{enzo}, Crance highlights how naturally
 pen-and-paper Trocq rules can be transposed into Elpi. It is worth mentioning
 that Crance uses Constraints Handling Rules to store axiom requirements when
 translating an expression, and only when all requirements are known does he
@@ -5030,8 +5086,30 @@ patches and early feedback to Elpi and Rocq-Elpi.
 
 \subsection{eIris}
 
-TODO
+In his master disseration \cite{Maas2024}, Luko van der Maas reimplemented\footnote{\url{https://github.com/lukovdm/MasterThesisIrisElpi}}
+some parts of the Iris proof mode~\cite{10.1007/978-3-662-54434-1_26} in
+Rocq-Elpi. Later, Krebbers, Maas and myself studied an encoding of inductive
+predicates as fixpoints internal to the Iris logic an implemented,
+in Rocq-Elpi, a command that takes an indcutive specification, as the example
+below, and generates the corresponding induction principle~\cite{TODO}.
 
+\begin{rocqcode}
+Iris Inductive is_del_list : loc → list val → iProp :=
+| is_del_list_nil l : l ↦ NIL -∗ is_del_list l []
+| is_del_list_cons l l' v vs :
+    l ↦ CONS (#l',v) -∗ is_del_list l' vs -∗ is_del_list l (v :: vs)
+| is_del_list_del l l' vs :
+    l ↦ DEL #l' -∗ is_del_list l' vs -∗ is_del_list l vs.
+\end{rocqcode}
+
+\subsubsection{The role of Rocq-Elpi in eIris}
+The example above takes advantage of the capability of Elpi commands to
+raceive Gallina declarations as arguments, also in \emph{raw} form.
+In particular the inductive declaration above does not make any sense
+taken as a Gallina term, if only because it uses the linear function
+space of separation logic, and the \rocq{iProp} sort.
+It is only after the elaboration performed by
+the Elpi code that the declaration becomes a well typed construction.
 
 \subsection{ProofCert}
 
@@ -5041,7 +5119,7 @@ project led by Miller, which aimed to devise a foundation for integrating a
 broad spectrum of formal methods and to establish formal properties of computer
 systems. The project centered around the notion of foundational proof
 certificates (FPC)~\cite{Marek_2016}, which has a reference implementation in
-$\lambda$Prolog. In his PhD dissertation~\cite{rob}, Blanco studied some
+$\lambda$Prolog. In his Ph.D. dissertation~\cite{rob}, Blanco studied some
 applications of FPC and ran their implementation with both Teyjus and Elpi.
 Blanco is likely the first Elpi user. Later, Manighetti, Blanco, Miller, and
 Momigliano linked FPC with Rocq by translating proof evidence from one system
@@ -5049,13 +5127,13 @@ to the other using Rocq-Elpi~\cite{matteo,alberto}.
 
 \subsubsection{The role of Elpi in ProofCert}
 
-While Elpi played a very minor role in Blanco's PhD, the glue between
+While Elpi played a very minor role in Blanco's Ph.D., the glue between
 $\lambda$Prolog and Rocq provided by Rocq-Elpi was instrumental for the later
 works.
 
 \subsection{MLTS}
 
-As part of his PhD, G\'{e}rard designed and implemented a
+As part of his Ph.D., G\'{e}rard designed and implemented a
 functional programming language with support for binder mobility, called MLTS~\cite{mlts}.
 His implementation relies on Elpi for animating the rules defining its
 semantics, and he made a prototype available in the browser by transpiling
@@ -5069,11 +5147,11 @@ Elpi to JavaScript, see~\cref{fig:mlts}.
 
 \subsubsection{The role of Elpi in MLTS}
 
-In G\'{e}rard's PhD, Elpi played only a technological role: being a
+In G\'{e}rard's Ph.D., Elpi played only a technological role: being a
 relatively simple, self-contained interpreter written in OCaml, Elpi could be
 transpiled to a JavaScript library quite easily.
 
-At the same time, G\'{e}rard's PhD was quite inspirational to me, since
+At the same time, G\'{e}rard's Ph.D. was quite inspirational to me, since
 bridging the gap between the logic and functional paradigms, and bringing
 automatic binder management to the latter, seems within reach thanks to his
 work.
@@ -5093,6 +5171,7 @@ helped me fix quite a number of bugs involving $\eta$-equivalence in Elpi's
 unifier. In particular, the unifier was very incomplete when dealing with
 $\eta$-equivalence of non-ground terms. In a way, I feel Guermond's
 experiments were more instrumental to Elpi than Elpi was to his experiment.
+Thanks Nathan!
 
 \chapter{Conclusion}
 
@@ -5266,7 +5345,7 @@ two bugs were incorrect, but fortunately not very relevant in practice,
 optimizations in the higher-order unification algorithm.
 
 As we are mechanizing~\cite{elpidet}, we have begun to take the first steps in
-this direction, but we believe it would take a full PhD to complete the
+this direction, but we believe it would take a full Ph.D. to complete the
 mechanization of the runtime.
 
 \subsection{Program logic}
@@ -5329,7 +5408,7 @@ All these parts could benefit from Elpi, or at least from some of its
 implementation techniques, but it is unclear how realistic it would be to
 replace them with Elpi-based alternatives in a production system such as Rocq.
 
-As part of his PhD, Fissore has implemented an alternative type class solver.
+As part of his Ph.D., Fissore has implemented an alternative type class solver.
 It is based on an Elpi program that compiles type class instances into rules,
 which are then queried each time Rocq needs to resolve a type class
 instance~\cite{newtc,unifforfree}. While the approach seems promising, the
