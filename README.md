@@ -2,10 +2,12 @@
 
 ## TODO
 
-- [ ] 1.1.0 prologue - write
-- [ ] 1.1.1 beyond OOTHM - english
-- [ ] 1.1.2 The begining/showy day - english
-- [ ] 1.2 Elpi - write
+- [ ] 0 thanks - write
+
+- [x] 1.1.0 prologue - write
+- [x] 1.1.1 beyond OOTHM - english
+- [x] 1.1.2 The begining/showy day - english
+- [x] 1.2 Elpi - write
 
 - [x] 2.0 Elpi the language: de A a Z - english
 - [x] 2.1 Elpi v.s. Prolog - english

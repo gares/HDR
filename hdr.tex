@@ -16,6 +16,8 @@
 \usepackage{stackengine}
 \usepackage{cleveref}
 \usepackage{rotating}
+\usepackage{imakeidx}
+\makeindex[name=concept,title=Index of concepts ,intoc]
 
 \SetWatermarkText{Draft \today}
 
@@ -86,6 +88,7 @@
   }
 \title{Elpi: rule-based extension language}
 \begin{document}
+
 \maketitle
 \chapter*{Dedication}
 \begin{dedication}
@@ -112,7 +115,7 @@ this opportunity to organize and reflect on the research I have conducted over
 the past decade, all centered around a single theme -- the Elpi language. My aim is
 to put this work in perspective, drawing some conclusions about what succeeded
 and what did not. It will not leave a lasting mark, but I hope I will not be
-ashamed to share it online.
+ashamed to have put it online either.
 
 So, here is how it all begins.
 
@@ -121,7 +124,7 @@ So, here is how it all begins.
 
 
 I was fortunate to participate in this major mechanization project that culminated
-in the formalization of a 250-page proof in Rocq~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}.
+in the formalization of a 250-pages long proof in Rocq~\cite{DBLP:conf/itp/GonthierAABCGRMOBPRSTT13}.
 After its completion, a natural question emerged: what made such an achievement
 possible, beyond the leadership of Georges Gonthier? More importantly, how could
 others be empowered to construct similarly impressive machine-checked proofs?
@@ -131,11 +134,14 @@ engineering practices—nothing new, but too often overlooked by the formal-proo
 community; (2) the formalization technique known as boolean reflection (or
 small-scale reflection), which carves out a lightweight classical-mathematics
 framework in Rocq, making excluded middle, function extensionality, and proof
-irrelevance available when constructivism allows; and (3) the creative
+irrelevance available when constructivism allows and using
+computation as a reliable form of automation; and (3) the innovative way of
 programming of the Rocq elaborator.
 
-Our focus was on the third point. These programs enabled Rocq to behave like an
-informed reader -- one who knows some basic facts and can combine them using
+Our focus was on the third point. The elaborator is the components that fills
+the gap between the text input by the user and the formal terms understood by
+Rocq. By extending the elaboration process by writing little programs
+made Rocq behave like an informed reader -- one who knows some basic facts and can combine them using
 well-known rules. At the time, Rocq was often seen as a dumb reader, who
 does not get tired but requires every detail to be spelled out. These new programs changed the game for
 the Odd Order Theorem, making it possible to use mathematical notations that
@@ -265,7 +271,7 @@ eigenvariables, dynamic rules, and a conjecture.
 We briefly introduce all the components that constitute Elpi. Most of Elpi's
 syntax is inherited from $\lambda$Prolog, as is its type discipline
 ~\cite{Miller_Nadathur_2012}; similarly, most of its dynamic semantics is
-inherited from Prolog~\cite{1989Vink}.
+inherited from Prolog~\cite{1989Vink} and CHR~\cite{10.1007/978-3-540-27775-0_7}.
 We state this upfront, with no claim of novelty, and
 will simply refer to the language as Elpi in what follows. Nevertheless, we
 will highlight any novelties or differences from $\lambda$Prolog or Prolog as
@@ -458,6 +464,7 @@ to represent abstraction: the function carried by \elpi{lam} can be applied to
 an actual argument to recover the body of the expression, where the formal
 argument is replaced by the actual argument.
 
+\index[concept]{bli!bla}
 This approach to representing data with binders is known as Higher Order
 Abstract Syntax (HOAS)~\cite{10.1145/960116.54010}, or more precisely,
 $\lambda$-tree syntax~\cite{Miller2018MechanizedMR}. The term HOAS is often
@@ -1712,7 +1719,7 @@ spilled expression must be executed under the implication, that this time
 is not written by the programmer but rather generated out of the binder
 for \elpi{x} of the object language.
 
-\paragraph{Spilling ambiguities}
+\subsubsection{Spilling ambiguities}
 
 Not all that glitters is gold. Occasionally, the nearest execution point may not
 correspond to the programmer's intention.
@@ -2267,7 +2274,7 @@ Note how \elpi{TH} is not related to \elpi{TA} before the call to
 Over the years, we have put Elpi in the hands of a good number of users. Here
 are some pitfalls that have tricked everyone (ourselves included).
 
-\subsection{Misleading precedence of \elpi{=>}}
+\subsection{Misleading precedence of implication}
 
 When one writes \elpi{A, B => C, D}, what he really means is \elpi{A, B => (C, D)}.
 This
@@ -3388,7 +3395,7 @@ Operationally, the \ocaml{ctx_readback} function is executed first to obtain
 the host application context, after which the datum is read back with that
 context available.
 
-\subsubsection{Built-in Predicates}\label{sec:builtins}
+\subsubsection{Built-in predicates}\label{sec:builtins}
 
 The signature and OCaml code of a built-in predicate are encapsulated by the
 \ocaml{Pred} constructor, as shown in~\cref{fig:ffi}. The former is a GADT that
@@ -3637,7 +3644,7 @@ one can replace bits of its code here by replacing a rule defined there with a
 new one defined here, where the problem shows up, and in the end conduct a
 much faster investigation.
 
-\section{HOAS of Rocq terms and contexts}\label{GALLINA}
+\section{Encoding Rocq terms and contexts}\label{GALLINA}
 
 
 The main data type that Rocq-Elpi programs work with is the one of terms. The
@@ -3755,7 +3762,7 @@ The only missing piece is \ocaml{sigma}, the environment assigning type
 judgements to holes, i.e., the call to the \ocaml{get_sigma} and
 \ocaml{set_sigma} APIs, which we focus on in the next section.
 
-\section{HOAS of holes (missing terms)}\label{sec:hoasholes}
+\section{Encoding holes (missing terms)}\label{sec:hoasholes}
 
 
 Each Rocq hole has an entry in \ocaml{sigma} that resembles a typing sequent.
@@ -3959,7 +3966,7 @@ Interested readers can consult a longer tutorial on Elpi tactics
 ~\cite{tuto:tactics}, as well as eltac~\cite{app:eltac}, a collection of Rocq
 tactics rewritten in Elpi for didactic purposes.
 
-\subsection{Databases, homoiconicity and rules}\label{sec:homo}
+\subsection{Databases}\label{sec:homo}
 
 
 A database is, in essence, an Elpi program, but unlike commands and tactics,
@@ -4409,7 +4416,7 @@ translation in the fall of 2017, motivated by his interest in applying the
 translation to the Rocq-EAL project. I based the unary version on his code. Each
 translation consists of about 250 lines of Elpi code.
 
-\subsection{Deep induction}
+\subsection{Deep induction principles}
 
 
 We say that an induction principle is deep if the induction hypothesis is
@@ -4613,7 +4620,7 @@ To conclude, both equality tests and their proofs are constructed
 compositionally. In~\cite{tassi:hal-01897468}, we also discuss why these proofs
 can be kept opaque without interfering with the termination checker.
 
-\subsection{Fast equality tests}
+\subsection{Fast (to check) equality tests}
 
 The results in~\cite{tassi:hal-01897468} are further refined in
 ~\cite{gregoire:hal-03800154}, where we focus on the size (and thus the type
@@ -4838,7 +4845,7 @@ To the best of our knowledge, most of the time spent in HB today is actually
 consumed by calls to the Rocq API, typically to typecheck and define the terms
 that are automatically synthesized.
 
-\section{Other tools}
+\section{Other applications}
 
 
 Elpi and Rocq-Elpi have found applications in other projects in which I did not
@@ -5152,7 +5159,7 @@ Unsurprisingly, its development was driven by the applications written in it, pa
 
 Rocq-Elpi was developed as an open source project from the very beginning, keeping the Rocq development team informed of the effort. Their commitment to providing patches to Rocq-Elpi whenever a Rocq API evolved made its development sustainable over more than seven years. Contributions from the Rocq community were also very important, especially from power users such as BlueRock Systems, who contributed a substantial amount of code.
 
-\subsection{Rocq tools written in Elpi}
+\subsection{Applications written in Elpi}
 
 A significant number of tools for Rocq have been written in Elpi, either by myself or by Rocq power users.
 
@@ -5352,11 +5359,12 @@ case, while the substitution grows unchecked in the latter. Reworking the proof
 engine to validate this efficiency claim would require substantial engineering
 effort.
 
-\subsubsection{Rocq framework}
+\subsection{Rocq framework}
 
 TODO
 
 %\nocite{*}
+\printindex[concept]
 \printbibliography[title={Our Bibliography}, keyword=me]
 \printbibliography[title={Bibliography}, keyword=they]
 \end{document}
