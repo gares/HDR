@@ -790,8 +790,12 @@ constraint of {
 The rule reads: if the constraint \elpi{of X T1} is present in the store
 together with \elpi{of X T2}, then remove the latter and generate a new goal
 \elpi{T1 = T2}. This is sufficient to make the type checker reject
-\elpi{of (app D D) T}, since the goal \elpi{S = arr S T} fails (because of
-the occurs check).
+\elpi{of (app D D) T}, since the goal \elpi{S = arr S T} fails.
+The variable \elpi{S} occurring on the left also
+occurs under a rigid term constructor \elpi{arr} on the right:
+The equation fails the so called \emph{occurs check} and is rejected
+to avoid creating a cyclic term.
+\index[concept]{Occurs Check}
 
 One detail to note is that constraints are matched against the constraint
 handling rules; that is, the non-linear occurrence of \elpi{X} does not risk
