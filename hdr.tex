@@ -559,7 +559,12 @@ The rule for application reads: to assign type \elpi{T} to the application of
 the type \elpi{S} arrow \elpi{T} if, given any fresh symbol \elpi{c} of type
 \elpi{S}, the body of the function \elpi{F} has type \elpi{T} when the bound
 variable is substituted by \elpi{c}.
+Fresh symbols like \elpi{c} are also called eigenvariables or fresh names.
+\index[concept]{Fresh constant}
+\index[concept]{Fresh name|seealso {Fresh constant}}
+\index[concept]{Eigenvariable|seealso {Fresh constant}}
 
+We can now run the type checker on the $fst$ function:
 \begin{elpicode}
 goal> Fst = (lam x\ lam y\ x), of Fst Ty.
 
@@ -588,21 +593,27 @@ $$
 
 The main difference is that $\Gamma$ is managed by Elpi: the \elpi{pi}
 operator guarantees the freshness of $c$, while \elpi{=>} augments the
-current program with an instance of the rule:
-
+current program with an instance of the usual rule for variables:
 $$
 \begin{bprooftree}
   \AxiomC{$x : T \in \Gamma$}
   \UnaryInfC{$\Gamma \vdash x : T$}
 \end{bprooftree}
 $$
+\noindent but specialized to $c$, namely
+$$
+\begin{bprooftree}
+  \AxiomC{}
+  \UnaryInfC{$\Gamma \vdash c : T$}
+\end{bprooftree}
+$$
 
 \index[concept]{Rule!Hypothetical}
 \index[concept]{Rule!Dynamic|seealso{ Hypothetical}}
 \index[concept]{Rule!Static}
-Rules added via implication are called dynamic, or hypothetical.
-Variables bounds by \elpi{pi} are said to be bound by the program,
-or by the $\lambda$Prolog context.
+Rules added via implication are called \emph{dynamic}, or \emph{hypothetical}.
+Variables bounds by \elpi{pi} are said to be bound by the \emph{program},
+or by the $\lambda$Prolog \emph{context}.
 \index[concept]{Program (bound by the)|seealso{ Context}}
 \index[concept]{Context (bound by the)|seealso{ Program}}
 
@@ -637,6 +648,22 @@ holes). For example, we would like to run the type checker on the goal
 This is where $\lambda$Prolog falls short, due to the
 lack of a mechanism to avoid divergence by suspending search on certain goals
 and the absence of a sublanguage to manipulate suspended goals.
+For example, the following query results in the rule for application to
+be applied indefinitely:
+\begin{elpicode}
+goal> of X T. % never returns 
+\end{elpicode}
+Indeed by applying the rule:
+\begin{elpicode}
+of (app H A) T :- of H (arr S T), of A S.
+\end{elpicode}
+one assigns \elpi{app H1 A1} to \elpi{X} and the runs the subgoal
+\begin{elpicode}
+of H1 (arr S1 T1). 
+\end{elpicode}
+to which the same rule applied, and that in turns assigns to \elpi{H}
+a term \elpi{app H2 A2} and generates as a subgoal \elpi{of H2 (arr S2 T2)},
+and this process never ends.
 
 
 \subsection{Incomplete terms}
@@ -644,15 +671,19 @@ and the absence of a sublanguage to manipulate suspended goals.
 
 $\lambda$Prolog provides native support for syntax trees with bound variables
 by reusing the function space of the programming language to represent
-binders. This technique is called Higher Order Abstract Syntax, or
-$\lambda$-tree syntax. The language also provides another kind of variable:
-meta-variables, which we call unification variables. These unification
+binders. 
+% This technique is called Higher Order Abstract Syntax, or
+% $\lambda$-tree syntax. 
+The language also provides another kind of variable that we call \emph{unification
+variables}.\footnote{Sometimes also called meta-variables} These unification
 variables are equipped with a scope -- a list of bound variables that can be
 used in their assignment. This is essential to avoid capturing variables by
 mistake, and it is well studied in~\cite{miller92jsc}.
+\index[concept]{Unification variable}
+\index[concept]{Meta variable|seealso {Unification variable}}
 
 The natural question is: \emph{can we reuse the unification variables of the
-programming language to represent holes in the syntax trees we manipulate?}
+programming language to represent holes in object language?}
 In other words, the runtime of our logic programming language already carries
 a substitution for these variables, undoes its application upon
 backtracking, avoids the generation of circular terms (i.e., not trees) by
@@ -661,7 +692,7 @@ that?
 
 Elpi aims to answer this question positively. Moreover, it provides support
 to attach data to holes ``on the side,'' similar to how hypothetical rules are
-used in the type checker above to attach a type to fresh constants.
+used in the type checker we just wrote to attach a type to fresh constants.
 
 From a programming perspective, the requirements are as follows:
 
@@ -675,9 +706,9 @@ From a programming perspective, the requirements are as follows:
   \item[attach data to holes] This can range from a simple boolean flag, as
     we will do when implementing ML type inference with equality types
     (\cref{sec:milner}), to a full typing sequent, as is necessary when holes
-    represent Rocq terms.
+    represent missing Rocq terms.
 
-  \item[manipulate attached data] For example, combine multiple pieces of
+  \item[manipulate the attached data] For example, combine multiple pieces of
     data attached to the same hole or perform a consistency check when the
     hole is assigned.
 \end{description}
@@ -687,10 +718,12 @@ From a programming perspective, the requirements are as follows:
 
 
 Elpi provides a notion of mode declaration that is uncommon in logic
-programming. In particular, arguments flagged as input are not required to be
+programming. In particular, arguments flagged as \emph{input} are not required to be
 ground in the goal, but are matched against the rule ``pattern'' instead of
 being unified. This means that no unification variable occurring in the goal
 inside an input argument is instantiated when the rule is fired.
+\index[concept]{Input mode (Elpi specific)}
+~\\
 
 Mode declaration is accompanied by the \elpi{uvar} keyword, which denotes
 holes in the head of a rule.
@@ -707,14 +740,16 @@ of (uvar as E) T :- declare_constraint (of E T) [E].
 
 The \elpi{pred} directive combines a type and mode declaration,
 in this case the first argument is in input mode (the \texttt{i:} marker)
-while the second in output mode. The
-\elpi{uvar as E} binds the unification variable \elpi{E} to a hole in the
+while the second in output mode.
+The \elpi{uvar as E} syntax, reminiscent of ML,
+binds the unification variable \elpi{E} to a hole in the
 goal and is semantically equivalent to the following, where \elpi{var/1} is
 the standard Prolog predicate for testing if a variable is unbound.
 \begin{elpicode}
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
-
+\index[concept]{\elpi{uvar as E} (syntax)}
+\index[concept]{\elpi{var} (built-in predicate)}
 
 Many Prolog implementations feature a ``delay directive,'' that is, a
 sublanguage to prescribe when goals should be suspended or resumed. In Elpi,
@@ -722,8 +757,9 @@ we opted for a lower-level but more flexible approach, where the programmer
 declares constraints or suspends goals using the \elpi{declare_constraint}
 built-in predicate. In the example above, \elpi{[E]} is the list of variables
 that ``block'' the suspended goal: as soon as one of these variables is
-assigned, the goal should be resumed (i.e. \elpi{E} is the trigger for
-the constraint resumption).
+assigned, the goal should be resumed. We say that \elpi{E} is the \emph{trigger} of
+the constraint.
+\index[concept]{Trigger (of a constraint)}
 
 It is worth noting that the input mode described above can, in principle, be
 described via a program transformation, which we sketch below:
@@ -769,7 +805,6 @@ Constraints:
 
 Notice how the remaining constraint now differs from before: the type of
 \elpi{A} is now the same \elpi{T} as that of the whole term.
-
 It is reassuring that the same result is obtained for the very similar goal
 where the value of \elpi{H} is given upfront: \elpi{of (app (lam x\ x) A) T}.
 
@@ -785,6 +820,7 @@ implement a satisfactory type checker. For example, the goal
 
 These constraints are clearly incompatible; therefore, the type checker
 should have failed.
+~\\
 
 We need a language to combine the constraints attached to the hole
 \elpi{D}. For this, we chose Constraint Handling Rules.
@@ -826,7 +862,7 @@ handling rules; that is, the non-linear occurrence of \elpi{X} does not risk
 constraints about the same variable are in the store.
 
 Another important aspect is that constraint handling rules can match multiple
-goals at once (whereas logic programming rules only match or unify one). While
+goals at once (whereas logic programming rules only applies to one). While
 the execution of an Elpi program can be seen as a depth-first construction of
 a proof tree, with the possibility of suspending the exploration of a branch,
 the application of a constraint handling rule operates on all suspended
@@ -852,9 +888,9 @@ of fresh constants generated by \elpi{pi} and hypothetical rules introduced by
 sequent $E \triangleright  \Gamma \vdash P$, where $E$ is the set of fresh
 constants (names) and $\Gamma$ is the set of hypothetical rules.
 
-The previous rule to model uniqueness of typing is therefore incomplete,
+The previous rule we used to model uniqueness of typing is therefore incomplete,
 since the same hole can occur under different contexts. The more elaborate
-version below accepts different contexts and sets of fresh constants.
+version below accepts different contexts and different sets of fresh constants.
 
 
 \begin{elpicode}
@@ -879,11 +915,10 @@ that is, \elpi{E1} and \elpi{E2} are made disjoint.
 
 While correct for simple types, this rule does not scale to a type
 discipline like that of Rocq, where terms can occur in types. For example,
-the constants in \elpi{S1} may occur in \elpi{T1}, and possibly different
+the constants in \elpi{S1} may occur in \elpi{T1}, and the
 ones in \elpi{S2} may occur in \elpi{T2}: one needs to align \elpi{T1}
-with \elpi{T2} before equating them -- more precisely, to move \elpi{T2} into
-the space of names \elpi{E1}.
-We refer the reader to~\cite{TASSI_2019} for details of a CHR rule modeling
+with \elpi{T2} before equating them.
+We refer the interested reader to~\cite{TASSI_2019} for details of a CHR rule modeling
 the uniqueness of typing property in Rocq's logic, and to~\cite{Jojgov} for
 the role played by unification variable scopes in dependent type theory.
 
@@ -945,7 +980,8 @@ By suspending a branch, the proof tree construction can proceed to the next
 inert goal, promoting it to active. During tree construction, action (1) may
 assign a unification variable, which serves as the trigger for a constraint.
 When this occurs, action (3) \emph{resumes} the constraint by making it the next
-active goal. Finally, action (4) operates on the entire set of suspended
+active goal (the previous active goal becomes inert).
+Finally, action (4) operates on the entire set of suspended
 branches. As a result of a constraint handling rule, a constraint can be
 removed -- thus blocking any further work on the corresponding tree branch by (1)
 or (3) -- or a new branch can be created and its goal made active.
@@ -1044,7 +1080,36 @@ theorem deems impossible to complete).
 \newcommand{\ground}{\texttt{ground}}
 \newcommand{\dom}{\texttt{vars}}
 \newcommand{\clauseCmd}[3]{\ensuremath{#1\ #2\ \cdash\ #3}}
+\newcommand{\atsign}{\ensuremath{\mbox{\footnotesize\raisebox{-1pt}{\ensuremath{@}}}}}
+\newcommand{\Keyword}[1]{\texttt{{\fontfamily{qcr}\selectfont #1}}}
+\newcommand{\kIF}{\Keyword{if}}
+\newcommand{\kTHEN}{\Keyword{then}}
+\newcommand{\kELSE}{\Keyword{else}}
+\newcommand{\kAS}{\Keyword{as}}
 
+\paragraph{Conventions}
+We write \(\vecL{t}\) to denote \(t_1 \ldots t_n\) i.e. a (possibly
+empty) list of \(t\)s.
+Similarly, we write \(\vecL{tu}\) to denote the
+element-wise pairing (zipping) of \(\vecL{t}\) and \(\vecL{u}\) into a list of
+pairs. %The zipping process continues up to the length of the shorter list.
+% \todo{check for dead cod here if we hide the proofs}
+Finally write
+$t[x/y]$ for the usual, capture avoiding, operation of replacing the variable $x$
+with $y$ inside $t$.
+
+We use $\EmptyList$ for the empty list and $x :: xs$ for prepending an element $x$
+to a list $xs$; $\atsign$ for list concatenation;
+$[e\ \kIF\ p\ |\ x \in \vec{x}]$ for list comprehension (we omit the filter when $p$ is true).
+
+We denote with $\_\times\_$, $\_+\_$, $\vecL{\phantom{i}\_~}$ and $\_\to\_$ the product, disjoint union, list and
+function space of types, respectively, and with $\B = \{ \top, \bot\}$ the booleans.
+By abuse of notation we use non-terminals as types, i.e., $\mathbb{A}$
+is the type of atoms.
+% We omit the conversion between the (isomorphic) types $A \times B \to C$
+% and $A \to B \to C$, e.g. we may write $\map\ f\ \vecL{tu}$ instead of $\map\ (\lambda x.f\ (\text{fst}\ x)\ (\text{snd}\ x))\ \vecL{tu}$.
+
+\paragraph{Syntax}
 The abstract syntax of Elpi is given in~\cref{fig:syntax}.
 We assume a set \PRED of functors (term/predicate constructors), and a set \VAR of term variables
 ($X,Y,\ldots$ for unification variables and $x,y,\ldots$ for bound variables).
@@ -1069,16 +1134,7 @@ its resumption.
 % \elpi{(eq X X :- .)} and signature\todo{dire che poly è solo su exp}
 % $\ctx\ \texttt{eq} = \dtype{\detI}{}{\expI\ \expI}$: a deterministic predicate\todo{should add var to static check}
 % with two outputs of the same type.
-We write \(\vecL{t}\) to denote \(t_1 \ldots t_n\) i.e. a (possibly
-empty) list of \(t\)s.
-Similarly, we write \(\vecL{tu}\) to denote the
-element-wise pairing (zipping) of \(\vecL{t}\) and \(\vecL{u}\) into a list of
-pairs. %The zipping process continues up to the length of the shorter list.
-% \todo{check for dead cod here if we hide the proofs}
 
-We write
-$t[x/y]$ for the usual, capture avoiding, operation of replacing the variable $x$
-with $y$ inside $t$.
 % We say that $\vars\ t$ is the set
 % of free variables occurring in $t$ (the binders are \elpi{pi} and $\lambda$).
 % When $\vars\ t = \EmptyList$ we say that
@@ -1118,19 +1174,12 @@ with $y$ inside $t$.
   \end{minipage}
 }
 \newcommand{\arr}{\ensuremath{\rightsquigarrow}}
-\newcommand{\atsign}{\ensuremath{\mbox{\footnotesize\raisebox{-1pt}{\ensuremath{@}}}}}
 \makeatletter
 \newcommand{\customlabel}[2]{%
   \protected@write \@auxout {}{\string \newlabel {#1}{{\ensuremath{#2}}{\thepage}{#2}{#1}{}} }%
   \hypertarget{#1}{\ensuremath{#2}}
 }
 \makeatother
-\newcommand{\Keyword}[1]{\texttt{{\fontfamily{qcr}\selectfont #1}}}
-
-\newcommand{\kIF}{\Keyword{if}}
-\newcommand{\kTHEN}{\Keyword{then}}
-\newcommand{\kELSE}{\Keyword{else}}
-\newcommand{\kAS}{\Keyword{as}}
 \newcommand{\runCmdR}[3]{\ensuremath{\run\ (k,\ #3,\ #1)\ #2 \arr r}}
 \newcommand{\runCmdRK}[4]{\ensuremath{\run\ (#4,\ #3,\ #1)\ #2 \arr r}}
 \newcommand{\runCmd}[7]{\ensuremath{\run\ (#4,\ #3,\ #1)\ #2 \arr (#7,\ #6,\ #5)}}
@@ -1255,7 +1304,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallM}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, al) = \ConsHdNP{\alts[']}\ConsTlNP{al'}$}
+    \AxiomC{$\bchain(k,\ \prog,\ \pred\ \vecL{t},\ \vecL{g},\ \subst,\ al) = \ConsHdNP{\alts[']}\ConsTlNP{al'}$}
     \AxiomC{\runCmdQR{\alts[']}{(al'\ \atsign\ al)}}
     \RightLabelM{\ruleCall}
     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{al}{\subst}}
@@ -1264,7 +1313,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallMF}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, a::al) = \EmptyList$}
+    \AxiomC{$\bchain(k,\ \prog,\ \pred\ \vecL{t},\ \vecL{g},\ \subst,\ a::al) = \EmptyList$}
     \AxiomC{\runCmdQR{a}{al}}
     \RightLabelM{\ruleCallF}
     \BinaryInfC{\runCmdR{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{(a :: al)}{\subst}}
@@ -1273,7 +1322,7 @@ with $y$ inside $t$.
 \newcommand{\ruleCallMFH}[1]{
   \begin{myRule}{#1}
     % CALL
-    \AxiomC{$\bchain(\prog,\ \pred\ \vecL{t}, \vecL{g}, \subst, \EmptyList) = \EmptyList$}
+    \AxiomC{$\bchain(k,\ \prog,\ \pred\ \vecL{t},\ \vecL{g},\ \subst,\ \EmptyList) = \EmptyList$}
     \RightLabelM{\ruleCallFH}
     \UnaryInfC{\runCmdF{\ConsHdNP{\goalCmd{\prog}{\callCmd{\pred}{\vecL{t}}}{\_}}\ConsTlNP{\vecL{g}}}{\EmptyList}{\subst}}
   \end{myRule}
@@ -1340,16 +1389,7 @@ with $y$ inside $t$.
   {\vecL{\match\ #2\ #3}}
   {\match\ #2\ #3}\ #4 = #5}}
 
-We use $\EmptyList$ for the empty list and $x :: xs$ for prepending an element $x$
-to a list $xs$; $\atsign$ for list concatenation;
-$[e\ \kIF\ p\ |\ x \in \vec{x}]$ for list comprehension (we omit the filter when $p$ is true).
-
-\noindent
-
-We denote with $\_\times\_$, $\_+\_$, $\vecL{\phantom{i}\_~}$ and $\_\to\_$ the product, disjoint union, list and
-function space of types, respectively, and with $\B = \{ \top, \bot\}$ the booleans.
-% We omit the conversion between the (isomorphic) types $A \times B \to C$
-% and $A \to B \to C$, e.g. we may write $\map\ f\ \vecL{tu}$ instead of $\map\ (\lambda x.f\ (\text{fst}\ x)\ (\text{snd}\ x))\ \vecL{tu}$.
+\paragraph{Semantics}
 
 A substitution $\subst$ of type $\Sigma$
 %is a pair $(s,m)$ where $s$ 
@@ -1370,7 +1410,7 @@ The empty substitution is written $\EmptySubst$. % is so that $\dom\ \EmptySubst
 We assume a function $\unify$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
 such that if $\unifyCmd{t_1}{t_2}{\subst}{\subst[']} \not= \bot$ 
 then \subst['] is the most general extension of \subst 
-such that $\subst['] t_1 = \subst['] t_2$.
+such that $\subst['] t_1 = \subst['] t_2$~\cite{miller92jsc}.
 We assume a function $\match$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
 such that if $\matchCmd{t}{p}{\subst}{\subst[']} \not= \bot$
 then \subst[']  is the most general extension of  $\subst$
@@ -1381,18 +1421,20 @@ A program $\prog$ of type $\PROG$ is a pair $(\mathbb{N}, \mathcal{I})$
 where $\mathbb{N}$ is a set of names and $\mathcal{I}$ an index
 mapping predicate names to an \emph{ordered list} of rules.
 We write $x \# \prog$ to find a name fresh in $\mathbb{N}$.
-We write $\prog~\pred$ for the clauses of predicate \pred in $\mathcal{I}$
+We write $\prog~\pred$ for the rules of predicate \pred in $\mathcal{I}$
 and we write $x + \prog$ to add the name $x$ to $\mathbb{N}$
-and we write $h + \prog$ to prepend the extra clause $h$  to $\mathcal{I}$
+and we write $h + \prog$ to prepend the extra rules $h$  to $\mathcal{I}$
 (hence $h$ has the highest priority in the new program).
-The rules acting on the store $\mathcal{R = \vecL{\mathbb{C}}}$ are
-morally part of the program, but since they never change we omit them.
+
 
 A constraint store $\kappa$ of type $K = \vecL{\PROG \times \APP \times \vecL{\VAR}}$
 is a multiset of triples $(\prog,c,t)$
 where $\prog$ is a program, where $c$ stands for a constraint (an applicative term in $\APP$) and $t$
 of type $\vecL{\VAR}$ is the trigger. The empty store is written $\EmptySubst$;
 we use $k - (\prog,c,t)$ to remove a constraint from the store.
+The rules acting on the constraint store $\mathcal{R = \vecL{\mathbb{C}}}$ are
+morally part of the program, but since they never change we omit them.
+
 
 A goal $g$ of type $\g = \PROG \times \ATOM \times \vecL{\alt}$
 is a triple made of a program, an atom and a list of
@@ -1445,8 +1487,27 @@ when the execution halts, that is, when it fails to solve one of the given goals
 and runs out of alternatives.
 %An initial query looks like \runQuery{[\goalCmd{\prog}{\pred\ \vecL{t}}{\EmptyList}]}{\EmptyList}
 
-The rules in Figures~\cref{fig:basic-interp-c} and~\cref{fig:basic-interp-l}
-are applied in the specified order. Rules~\ref{rule:delay} and~\ref{rule:resume}
+The rules in~\cref{fig:basic-interp-l} are syntax directed, while the ones
+in~\cref{fig:basic-interp-c} are given top priority and are applied in order. 
+Even if rules for CHR have precence we start by explaining the ones
+in~\cref{fig:basic-interp-l} because they give a meaning to the cut-to
+alternatives.
+
+Rule~\ref{rule:stop} applies when all goals are solved and returns the
+constraint store and the
+substitution along with the still unexplored alternatives. Rule~\ref{rule:callabort}
+applies when no rule matches the current goal and no alternative is available.
+Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
+popping the first alternative, returning to the most recent choice point.
+Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
+saved by $\bchain$ (see its description below). Rule~\ref{rule:call} backchains
+all applicable rules, generating new alternatives, the first of which becomes
+the new goal. Rule~\ref{rule:beta} accounts for the higher-order programming
+aspect of $\lambda$Prolog: unification variables can be used to pass predicates
+around. Rule~\ref{rule:pi} introduces a fresh name into the program, while
+Rule~\ref{rule:impl} introduces a new rule into the program.
+
+Rules~\ref{rule:delay} and~\ref{rule:resume}
 address the constraint aspect of the language: the former updates the constraint
 store when a new constraint is declared, while the latter resumes a constraint
 as soon as the substitution $\subst$ acts on its trigger. The second rule
@@ -1456,46 +1517,34 @@ attaches the current alternatives to the resumed goal as cut-to alternatives,
 but these will never be used since constraints are applicative terms (i.e., not
 the cut operator).
 
-Rule~\ref{rule:stop} applies when all goals are solved and returns the
-substitution along with the still unexplored alternatives. Rule~\ref{rule:callabort}
-applies when no rule matches the current goal and no alternative is available.
-Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
-popping the last alternative, returning to the most recent choice point.
-Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
-saved by $\bchain$ (see its description below). Rule~\ref{rule:call} backchains
-all applicable rules, generating new alternatives, the first of which becomes
-the new goal. Rule~\ref{rule:beta} accounts for the higher-order programming
-aspect of $\lambda$Prolog: unification variables can be used to pass predicates
-around. Rule~\ref{rule:pi} introduces a fresh name into the program, while
-Rule~\ref{rule:impl} introduces a new rule into the program.
-
 \paragraph{Definition of $\bchain$ (backchain)}
 
-The role of $\bchain$ of type $K \times \APP \times \vecL{\g} \times \Sigma \times \vecL{\alt} \to \vecL{\alt}$ is to generate
-an alternative for each rules that applies to the given goal.
+The role of $\bchain$ of type $K \times \mathcal{P} \times \APP \times \vecL{\g} \times \Sigma \times \vecL{\alt} \to \vecL{\alt}$ is to generate
+an alternative for each rule that applies to the given goal.
 
   $$
   \begin{array}{l}
-  \bchain(\prog,\ \pred\, \vecL{t},\ \vecL{g},\ \subst,\ a) =\\
-  \qquad
+    \vspace{1em}
+  \bchain(k,\ \prog,\ \pred\, \vecL{t},\ \vecL{g},\ \subst,\ a) =\\
+  \quad
   \bigg[
-    %\bigg(
-    \subst['],
-    %\Big(
-    %\underbrace{
-      \big(\big[(\prog, g, a) \mid g \in\! \vecL{b}\big] \atsign\ \vecL{g}\big)
-    %}_{\mathrm{premises}} \atsign ~ \vecL{g}
-    \ \kIF\ \cselect(\vecL{tu}, \subst) = \subst['] \not= \bot
-    %\Big)
-    %\bigg)
-    ~\bigg|~
-    (\clauseCmd{\pred}{\vecL{u}}{\vecL{b}}) \in \prog\ \pred
+    \underbrace{
+      (k,\ 
+      \subst['],\ 
+      \big(\big[(\prog, g, a) \mid g \in\! \vecL{b}\big]\ \atsign\ \vecL{g}\big))
+    }_{
+      \mathrm{of~type}~\mathcal{A}
+    }
+    \ \kIF\ \cselect(\vecL{tu},\ \subst) = \subst['] \not= \bot
+    ~\bigg|\\
+    \hspace{23em}
+    \underbrace{(\clauseCmd{\pred}{\vecL{u}}{\vecL{b}})}_{\mathrm{of~type~}\mathbb{R}} \in \prog\ \pred
     \bigg]\vspace{1em}
   \end{array}
   $$
 
 It is worth noting that each new goal (in each alternative) carries the same
-cut-to alternative, and that the value passed to $\bchain$ by rule
+cut-to alternative $a$, and that the value passed to $\bchain$ by rule
 \ref{rule:call} is the list of alternatives prior to backchaining. In other
 words, it does not include any alternatives being created, nor any that will be
 created in the future by exploring the new alternatives.
@@ -1527,29 +1576,31 @@ Constraint rule application follows the refined operational
 semantics~\cite{10.1007/978-3-540-27775-0_7}, which amounts to a precise
 nesting of iterations.
 
-The starting point is the so-called ``active constraint,'' which, in the context
+The starting point is the so-called \emph{active constraint}, which, in the context
 of Elpi, is the constraint just declared as $\cst\ c\ t$ by rule~\ref{rule:delay}.
+\index[concept]{Active constraint}
 
 $$
-\mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts) = (\vecL{g}, k')\ \mathrm{where}
+\mathcal{CHR}(k,\ \prog,\ c,\ t,\ \alts) = (g', k')\ \mathrm{where}
 $$
 \begin{enumerate}
-\item add the active constraint $(\prog,\ c,\ t)$ to $k$ to obtain $k'$
-\item for each rule $P_1 \ldots P_x\ \backslash\ P_{x+1} \ldots P_n\ |\ Q \Leftrightarrow g$
+\item add the active constraint $(\prog,\ c,\ t)$ to $k$ to obtain $k'$, and set $g'$ to $\EmptyList$
+\item for each rule $P_1 \ldots P_x\ \backslash\ P_{x+1} \ldots P_n\ |\ Q \Leftrightarrow G$
 \item for each position $0 < j \leq n$
-\item for each permutation of $C_1 \ldots C_n$ constraints in $k'$ having $C_j = (\prog,\ c,\ t)$
-\item match all $C_i$ with $P_i$ and run $Q$. If it succeeds:
+\item for each permutation of $C_1 \ldots C_n$ constraints in $k'$ having $C_j = (\prog,\ c,\ t)$ ($C_j$ is
+the active constraint)
+\item match all $C_i$ with $P_i$ and if $\runCmd{[\pi_0,Q,\EmptyList]}{\EmptyList}{\EmptySubst}{\EmptyList}{\_}{\subst}{\EmptyList}$
+  where $\pi_0$ is the initial program:
   \begin{itemize}
     \item remove $C_{x+1} \ldots C_n$ from $k'$
     \item remove all permutations involving $C_{x+1} \ldots C_n$
-    \item add $g$ to $\vecL{g}$
+    \item add $\subst G$ to $g'$
   \end{itemize}
-\item move to the next rule
+\item move to the next rule (point 2)
 \end{enumerate}
 
-This description of how CHR rules update the constraint store is essentially the
-standard operational semantics~\cite{10.1007/978-3-540-27775-0_7}, adapted to
-constraints composed of a program $\prog$ and an applicative term $c$. As
+
+ As
 anticipated in~\cref{sec:modes}, adapting CHR to Elpi -- or more precisely, to its
 $\lambda$Prolog part -- requires some extra care. In particular, a constraint
 $((\mathbb{N},\mathcal{I}),\ c,\ t)$ represents a $\lambda$Prolog goal:
@@ -1562,24 +1613,26 @@ hypothetical rules are stored in the constraint, since all static rules are
 common to all constraints.
 
 For simplicity, the context $\mathcal{I}$ is presented as a list: if the user
-wants to compare these ``contexts'' as sets, they must implement the quotienting
+wants to compare these contexts as sets, they must implement the quotienting
 in the rule's guard $Q$. To simplify context management, the user can specify a
-filter to discard rules for predicates not relevant to the constraint
+filter to discard sypothetical rules for predicates not relevant to the constraint
 (typically, rules for predicates unrelated to $c$). For reference, the concrete
 syntax for a block of rules about constraints \elpi{p} and \elpi{q} under a
 context made of \elpi{r} and \elpi{s} is:
 
 \begin{elpicode}
 constraint r s ?- p q {
-  % rules about p and q
+  % rules for sequents on p or q under p, q, r and s
 }
 \end{elpicode}
 \noindent
 Once more, pragmatically, unless the user explicitly opts out, step 4 only
 considers permutations of constraints with a trigger that overlaps with the
-trigger $t$ of the active constraint. According to our experience, this is
-usually what the user needs and drastically reduces the number of permutations
-to consider. For reference, the syntax to opt out is as follows:
+trigger $t$ of the active constraint.
+This lets the user group constraints into clusters,
+drastically reducing the number of permutations
+to consider. In order to opt out the user can add a designated, inert,
+trigger to all constraints as follows:
 \begin{elpicode}
 code :- declare_constraint (p X) [X, _].
 \end{elpicode}
@@ -1602,28 +1655,40 @@ description of the operational semantics of the $\mathcal{CHR}$ procedure.
 \section{Syntactic sugar}
 
 
-Elpi features some simple syntactic sugar that is eliminated by the compiler
+Elpi features some simple syntactic sugar that is eliminated by the compiler (see~\cref{sec:compiler})
 before running programs.
 
 \subsection{Namespaces}
 
-Elpi code is constructed by accumulating files -- that is, by concatenating lists
+Elpi programs are constructed by accumulating files -- that is, by concatenating lists
 of rules, which may be written by different authors. It is possible for two
 files, such as \texttt{file1} and \texttt{file2}, to contain declarations for a
 predicate with the same name, for example, \texttt{p}.
 
-If the types for \texttt{p} do not match, Elpi fails immediately and issues a
-warning to the programmer. However, if the types do match, the predicate may
-change its meaning or computational complexity, particularly in cases involving
-failure.
+If the types for \texttt{p} do not match, Elpi fails immediately and issues an
+error. However, if the types do match, the union of the two sets of
+rules can change the meaning of the predicate or its computational complexity,
+particularly in cases involving failure. For example the following code
+does not take a linear time to fail (when the element is not in the list):
+
+\begin{elpicode}
+pred mem i:list A, i:A.
+
+mem [X|_] X.
+mem [_|XS] X :- mem XS X.
+% from another file
+mem [Y|_] Y.
+mem [_|YS] Y :- mem YS Y.
+\end{elpicode}
 
 A straightforward solution is to include the file name as part of the predicate
-names, such as \texttt{file1.p} and \texttt{file2.p}.
+names, such as \texttt{file1\_p} and \texttt{file2\_p}.
 
 To reduce syntactic overhead, Elpi provides two syntactic features:
 \texttt{namespace} and \texttt{shorten}. The former prefixes all predicate
 names within a block, while the latter allows predicates to be accessed using a
-short name inside a file or block.
+short name inside a file or block. By convention \elpi{.} is used as
+the namespace separator.
 
 In the following example, the predicate \elpi{p} lives in the namespace
 \elpi{n} and is therefore accessible via the long name \elpi{n.p} outside the
@@ -1693,7 +1758,7 @@ important form of documentation, and poorly chosen names are the primary cause
 of unreadable code.
 
 The time a careless programmer saves by using \elpi{TMP}, \elpi{AUX}, or
-\elpi{X'} instead of thinking of an appropriate name is repaid, with
+\elpi{X'} instead of thinking of an appropriate name is payd back, with
 interest, by any reader of the code -- including the programmer themselves.
 
 Logic programming, even in its higher-order flavor, distinguishes commands
@@ -1710,7 +1775,6 @@ often reads:
 \begin{elpicode}
 code L1 L2 Result :- append L1 L2 TMP, rev TMP Result.
 \end{elpicode}
-
 Elpi provides a syntactic facility that allows one to use partially applied
 predicates as function calls. By partially applied, we mean ``applied to all
 the arguments flagged as input.'' For example, the code above can be written as
@@ -1721,11 +1785,12 @@ code L1 L2 Result :- Result = {rev {append L1 L2}}.
 \end{elpicode}
 
 The curly braces identify a term to be \emph{spilled} to the closest
-\emph{execution point}, determined by walking the terms from the outside in
+\emph{execution point}, determined by walking the terms inside out
 and identifying the first expression of type \elpi{prop}.
 
 Spilling can be nested and its elaboration is akin to the generation of the
-administrative normal form, which is commonly used in functional programming
+administrative normal form, which is commonly used in 
+the compilation of functional programming
 languages.
 
 \subsubsection{Spilling under a binder}
@@ -1743,7 +1808,8 @@ code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
 
 \noindent
 To run the spilled code in a context with the bound variable \elpi{x}, the
-expression must be placed under a \elpi{pi y}. Similarly, the temporary
+expression must be placed under a \elpi{pi y} (we picked \elpi{y} to strieve it
+is a different variable). Similarly, the temporary
 variable \elpi{TMP} needs to be abstracted over the variable, so that we can identify
 the original \elpi{x} with the one abstracted by \elpi{pi y}.
 
@@ -1769,25 +1835,29 @@ checker under the binder.
 
 \begin{elpicode}
   code Ty Result :- 
-    % we call of under the binder for x
+    % we call the predicate of under the binder for x
     Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
 
   % desugars to
   code Ty Result :-
     % the spilled expression keeps the implication
-    (pi x\ of x Ty => of (app g x) (TMP x))
+    (pi y\ of y Ty => of (app g y) (TMP y))
     Result = (lam Ty x\ lam (TMP x) y\ ...)
 \end{elpicode}
 
 \noindent
-This is frequent when spilling is combined with quotations, as we
-will better describe in~\cref{sec:quotations}. For example
+When spilling is combined with quotations, as we
+will better describe in~\cref{sec:quotations},
+the \elpi{=>} may be implicitly added by the compiler.
+
+For example
 here we call an predicate \elpi{api} under the object language binder
 for \elpi{x}.
 
 \begin{elpicode}
   code Result :-
     Result = {{ λx : nat => lp:{{ app f {api x}  }}  }}
+  %             object lang
 
   % desugars to
   code Result :-
@@ -1822,8 +1892,7 @@ the programmer's expectations, but it has been undeniably a sorce of debate.
 
 \section{A complete example: Hindley-Milner type inference}\label{sec:milner}
 
-
-The most significant type inference algorithm is the one crafted by Milner
+The most well known type inference algorithm is the one crafted by Milner
 for the ML language~\cite{MILNER1978348}. The version we study here covers
 equality type variables, the \texttt{''a} abstraction in standard ML syntax~\cite{10.7551/mitpress/2319.001.0001}
 for decidable types -- that is, types that can be effectively compared, unlike
