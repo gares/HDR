@@ -275,10 +275,11 @@ Both are tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
 Elpi is a combination of two languages: $\lambda$Prolog~\cite{10.1093/logcom/1.4.497,Miller_Nadathur_2012}
 and Constraint Handling Rules~\cite{FRUHWIRTH199895,chr}. The former is a
 higher-order variant of Prolog~\cite{prolog0,prolog} based on Hereditary
-Harrop Formulas, a generalization of Horn Clauses. The latter is a language
+Harrop Formulas, a generalization of Horn clauses. The latter is a language
 designed to manipulate a store of constraints which, in the case of Elpi,
-consists of suspended $\lambda$Prolog goals -- that is, sequents composed of
-eigenvariables, dynamic rules, and a conjecture.
+consists of suspended $\lambda$Prolog goals -- that is, sequents.
+%  composed of
+% eigenvariables, dynamic rules, and a conjecture.
 
 We briefly introduce all the components that constitute Elpi. Most of Elpi's
 syntax is inherited from $\lambda$Prolog, as is its type discipline
@@ -318,12 +319,13 @@ constructors, or simply constructors.
     [46 [93 [-] [-]] [-]]
   \end{forest}
 \end{wrapfigure}
-Types play no role at run time but greatly contribute to the static analysis
+Elpi follows the tradition of statically-typed languages:
+types play no role at run time but greatly contribute to the static analysis
 of the code, allowing typos and sometimes even true errors to be reported
 early. The term \elpi{(tree 46 (tree 93 leaf leaf) leaf)}
 represents the tree depicted on the right.
 For readers familiar with Prolog, note that Elpi adopts the syntactic
-convention of $\lambda$-calculus for function calls, namely $(f~ x~ y)$,
+convention of $\lambda$-calculus for function application, namely $(f~ x~ y)$,
 rather than the mathematical convention $f(x,y)$ used by Prolog.
 
 \index[concept]{Clause|seealso{ Rule}}
@@ -335,7 +337,8 @@ constitute the smallest code unit\footnote{In this document we prefer the word
 rule to clause, but occasionally we shall use the latter.}.
 A rule consists of two parts: the head and the premises.
 Intuitively, the head drives the selection of a rule, reducing the current
-problem (the goal) to simpler ones. Operationally, the head is unified with
+problem (the goal) to simpler ones. Operationally, the head is unified~\cite{10.1145/321250.321253}
+with
 the goal, possibly assigning values to the rule parameters, which are
 embodied by unification variables. As an example, we provide the code for
 computing the size of a tree, together with its signature:
@@ -345,15 +348,22 @@ type size tree -> int -> prop.
 size leaf 0.
 size (node _ L R) N :- size L N1, size R N2, N is 1 + N1 + N2.
 \end{elpicode}
-
-Again, we favor a type assignment over a simple arity. \elpi{prop} is the type
-of executable code, meaning that \elpi{size}, when applied to two arguments,
+Again, we favor a type assignment over a simple arity.
+Here \elpi{prop} is the type
+of executable code,\footnote{This type is called \texttt{o} in
+standard $\lambda$Prolog, 
+following~\cite{Church1940AFO}, but Elpi uses \texttt{i} and \texttt{o}
+for input and output, rather than \texttt{i}  for individuals and 
+\texttt{o} for propositions.}
+ meaning that \elpi{size}, when applied to two arguments,
 becomes a goal and a program can be run to solve it. In contrast, \elpi{node},
 when applied to any number of arguments, is just a piece of data; it is not a
-goal.
+goal. The following snippet depicts how to run a query, in particular
+how to ask Elpi to compute the size \elpi{N} of a given
+tree \elpi{T}.
 
 \begin{elpicode}
-goal> size T N.
+goal> T = tree 46 (tree 93 leaf leaf) leaf, size T N.
 
 Success
   N = 2
@@ -373,8 +383,7 @@ type symmetric tree -> prop.
 symmetric leaf.
 symmetric (node _ T T).
 \end{elpicode}
-
-The third characteristic is that Elpi internalizes a form of search called
+The third characteristic is that Elpi internalizes a form of search based on
 backtracking: all rules are potentially applied, and there is no commitment to
 the first rule whose head unifies with the goal. Here is an example of code
 that relies on backtracking to test the membership of an element in a tree.
@@ -386,7 +395,7 @@ mem (node _ L _) N :- mem L N.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}
 Backtracking is a very powerful feature, but without control it can lead to
-unnecessarily poor computational complexity. The main construct to control
+unnecessarily poor computational complexity. In Elpi the only construct to control
 backtracking is the cut operator.
 
 \begin{elpicode}
@@ -400,16 +409,21 @@ solution. The first cut indicates that if the number is found in the current
 node, we commit to this rule and discard the following ones: we do not care if
 the number also occurs deeper in the tree. The second cut indicates that if
 the number was found in the left subtree, we should not look in the right
-subtree, so we discard the last rule\footnote{To be precise, the second cut
+subtree, so we discard the last rule. To be precise, the second cut
 also discards any alternative solution (yet to be computed) to the preceding
-premises. Technically speaking, Elpi implements a hard cut.}.
+premises, i.e., once \elpi{N} is found once, we do not try
+to find it anymore.\footnote{Technically speaking, Elpi implements a \emph{hard}
+cut.\index[concept]{Hard cut}}
 
 \subsection{What really matters (to me)}
 
 
 Algebraic data types are an essential tool for writing succinct code to
 describe and process syntax trees. They are available in languages from the
-Prolog family, as well as in most functional languages. Thus, they do not
+Prolog family, as well as in most functional languages and, nowadays,
+in some mainstream ones.\footnote{Sometimes algebraic data types are
+called variant types, with arguments, so to avoid scaring off some public.}
+Thus, they do not
 constitute the feature that tips the balance in favor of a logic programming
 language.
 
@@ -426,9 +440,9 @@ programming languages for the notion of a smaller code unit. A code unit has
 meaning in itself, and the operation of adding or removing it from a program
 is well defined.
 
-An assignment, a while loop, or a function definition does not constitute a
+An assignment, a while loop, or a function definition do not constitute a
 code unit. An assignment is meaningless without a variable declaration;
-similarly, a while loop only acquires meaning, even a formal one, in a larger
+similarly, a while loop only acquires meaning in a larger
 context. Even the definition of a self-contained function fails to be a unit
 in this sense: while adding it to a program makes some sense (although, since
 nobody calls it, it serves little purpose), removing a used function simply
@@ -441,7 +455,8 @@ like a proof system lets you prove more theorems if you add more axioms, or
 becomes more and more incomplete as axioms are removed. From the parallel
 with proof systems, it is clear that adding ``bad'' rules can result in a
 program that gives unexpected answers, but the operation of adding or removing
-them is still meaningful, even if one admits non-logical constructs and
+them is still meaningful, even if one admits non-logical constructs, like
+cut, and
 departs from the ideal world of logic. If we admit non-logical constructs,
 then the order of rules becomes relevant, and the insertion of a rule should
 be accompanied by a grafting directive, such as being added before or after
@@ -454,8 +469,10 @@ integrates so well with interactive provers (see \cref{sec:rocq}).
 \section{Elpi v.s. $\lambda$Prolog}\label{sec:hello}
 
 
-The syntax trees of interest here are those that constitute the foundational
-language of interactive provers like Rocq. A characteristic common to all of
+The trees of interest here are more complex than the one
+depicted in the previous section. In particular we focus on those that
+constitute the foundational language of interactive provers, like Rocq.
+A characteristic common to all of
 them is the presence of binders, such as forall and exists in the world of
 specification, or (lambda) abstraction in the world of terms.
 
@@ -489,12 +506,17 @@ $\lambda$-tree syntax~\cite{Miller2018MechanizedMR}. The term HOAS is often
 used in contexts where the function space of the programming language is not
 well suited to the task, in contrast to $\lambda$Prolog. For the representation
 of syntax with binders to be faithful, the function space must permit only
-abstraction and substitution. In contrast, functional languages typically allow
-additional operations, such as conditional expressions, which can result
-in so-called exotic terms. In this approach, we refer to the language being
+abstraction and substitution. In contrast, languages with first-class
+functions typically allow
+additional operations on variables, such as conditional expressions, which can result
+in so-called exotic terms.
+
+In this approach, we refer to the language being
 encoded as the \emph{object language} (in this case, the simply typed lambda
-calculus), while the language used for the encoding is called the meta language,
-or simply the programming language.
+calculus), while the language used for the encoding is called the \emph{meta language},
+or simply, and ot our preference, the programming language.
+\index[concept]{Object language|seealso {Meta language}}
+\index[concept]{Meta language|seealso {Object language}}
 
 In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
 follows:
@@ -502,11 +524,12 @@ follows:
 \begin{elpicode}
 Fst = (lam x\ lam y\ x)
 \end{elpicode}
-
-Note that \elpi{(x\ lam y\ x)} is a function of \elpi{x} (a variable of the
-Elpi programming language), and that the syntax tree of our object language,
+The syntax \elpi{x\ t} is the programming language abstraction of the
+variables \elpi{x} over an expression \elpi{t}. Hence
+the term \elpi{(x\ lam y\ x)} is an Elpi function of \elpi{x}. Note that
+the syntax tree of our object language,
 $\lambda$-calculus, does not feature a term constructor for variables, since
-one can reuse the variables of Elpi. As sketched above, the body of the first
+we reuse the variables of Elpi for that. As sketched above, the body of the first
 abstraction can be recovered by applying the function to an argument -- for
 example, the constant \elpi{c}: \elpi{((x\ lam y\ x) c)} evaluates to
 \elpi{(lam y\ c)}, thanks to the $\beta$-rule. For the sake of
