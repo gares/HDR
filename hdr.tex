@@ -1906,8 +1906,8 @@ This makes a good use case for Elpi because:
     The key step in the algorithm is to turn (existentially quantified)
     unification variables into universally quantified type variables to form a
     schema;
-  \item unification variables have an attribute—a flag (denoted with an
-    overbar)—that is set if the equality test is used on values of their type.
+  \item unification variables have an attribute, a flag
+    that is set if the equality test is used on values of their type.
 \end{itemize}
 
 The syntax of terms is very similar to that of the simply typed
@@ -1944,7 +1944,7 @@ type eq     term -> term -> term.
 ~\\  
 
 As in~\cref{sec:hello}, we use a HOAS encoding of terms. However, we add a
-\elpi{glo} term constructor to enable the setup of a minimal environment
+\elpi{glo} term constructor to enable the setup of a shared environment
 for our examples.
 
 Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
@@ -1989,11 +1989,14 @@ type mono   tye -> ty.
 \end{minipage}
 \end{center}
 
-
-
 The typing routine works with a context and, as we did for the simply typed
 lambda calculus, we delegate its management to the programming language.
+Context entries are represented by hypothetical rules of the \elpi{of}
+predicate, the same predicate that will implement the Hindley-Milner
+typing algorithm.
 
+\begin{center}
+\begin{minipage}{0.5\textwidth}
 $$
 \begin{array}{llrl}
   \\
@@ -2003,14 +2006,22 @@ $$
   \\
   \end{array}
 $$
+\end{minipage}
+\begin{minipage}{0.4\textwidth}
+%elpi:hm.elpi
+\begin{elpicodelj}
+pred of i:term, o:ty.
+\end{elpicodelj}
+\end{minipage}
+\end{center}
+
 
 Below, we give a few examples of type assignments to global constants. It is
-worth highlighting the fact that the type schema for \elpi{"undup"} is
+worth highlighting the fact that the type schema for \elpi{"undup"}, is
 special: it requires the element of the list to have an equality type.
 
 %elpi:hm.elpi
 \begin{elpicode}
-pred of i:term, o:ty.
 of (glo "1")      (mono int).
 of (glo "true")   (mono bool).
 of (glo "plus")   (mono (int --> int --> int)).
@@ -2035,16 +2046,6 @@ $$
 \displaystyle\frac{\tau' = \left\{\bar\alpha_i \mapsto \tau_i\right\} \tau \quad \beta_i \not\in \textrm{free}(\forall \alpha_1...\forall\alpha_n . \tau) \quad \overline{eq}(\tau_i)}{\forall \alpha_1...\forall\alpha_n . \tau \sqsubseteq \forall \beta_1...\forall\beta_m . \tau'}
 $$
 
-$$
-\begin{array}{ll}
-  \overline{eq}(\mbox{bool}) & \\
-  \overline{eq}(\mbox{int}) & \\
-  \overline{eq}(\mbox{list}~\tau) & ~\mbox{if}~ \overline{eq}(\tau) \\
-  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) ~\mbox{and}~ \overline{eq}(\tau_2)\\
-  \overline{eq}(\bar\alpha) & \\
-\end{array}
-$$
-
 The Elpi code departs from the pen-and-paper presentation by instantiating all
 schema variables at once with fresh unification variables, possibly
 constraining them to be equality types.
@@ -2053,8 +2054,10 @@ constraining them to be equality types.
 \begin{elpicode}
 pred specialize i:ty, o:tye.
 specialize (mono T) T.
-specialize (all ff F) T :- prune Fresh [], specialize (F Fresh) T.
-specialize (all tt F) T :- prune Fresh [], specialize (F Fresh) T, eqbar Fresh.
+specialize (all ff F) T :-
+  prune Fresh [], specialize (F Fresh) T.
+specialize (all tt F) T :-
+  prune Fresh [], specialize (F Fresh) T, eqbar Fresh.
 \end{elpicode}
 
 \noindent
@@ -2065,9 +2068,23 @@ we shall comment at the end of the section. Finally, it is not hurting either
 since the the types we deal with in this example are not dependent -- binders
 are for terms only but \elpi{Fresh} represents a type.
 
-The \elpi{eqbar} predicate traverses concrete type expressions and suspends
-when variables are found.
+The \elpi{eqbar} predicate,~\cref{fig:eqbar}, traverses concrete type expressions and
+flags variables via a constraint, so that we can distinguish
+equality type variables from the others.
 
+\begin{figure}[!h]
+\begin{minipage}{0.5\textwidth}
+$$
+\begin{array}{ll}
+  \overline{eq}(\mbox{bool}) & \\
+  \overline{eq}(\mbox{int}) & \\
+  \overline{eq}(\mbox{list}~\tau) & ~\mbox{if}~ \overline{eq}(\tau) \\
+  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) ~\mbox{and}~ \overline{eq}(\tau_2)\\
+  \overline{eq}(\bar\alpha) & \\
+\end{array}
+$$
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
 %elpi:hm.elpi
 \begin{elpicode}
 pred eqbar i:tye.
@@ -2075,8 +2092,19 @@ eqbar bool.
 eqbar int.
 eqbar (list A) :- eqbar A.
 eqbar (pair A B) :- eqbar A, eqbar B.
-eqbar (uvar as A) :- declare_constraint (eqbar A) [A,_].
+eqbar (uvar as A) :-
+  declare_constraint (eqbar A) [A,_].
+\end{elpicode}
+\end{minipage}
+\caption{Equality types\label{fig:eqbar}}
+\end{figure}
 
+\noindent
+The auxiliary constraint \elpi{theta} is used to gather the (duplicate-free)
+list of unification variables constrained to be equality types.
+
+%elpi:hm.elpi
+\begin{elpicode}
 constraint of ?- gammabar eqbar theta rm-eqbar {
   rule (eqbar V) \ (theta L) | (not(mem L V)) <=> (theta [V | L]).
 }
@@ -2084,10 +2112,6 @@ constraint of ?- gammabar eqbar theta rm-eqbar {
 pred theta i:list tye.
 theta L :- declare_constraint (theta L) [_].
 \end{elpicode}
-
-\noindent
-The auxiliary constraint \elpi{theta} is used to gather the (duplicate-free)
-list of unification variables constrained to be equality types.
 
 The use of constraints here is convenient but not essential. One could thread
 a state -- the list of all type variables used so far, paired with their
@@ -2101,42 +2125,43 @@ we list the designated trigger \elpi{_} in all of them.
 % rules for the \elpi{of} predicate, and that will serve a purpose later
 % when we implement \elpi{gammabar}.
 
-The declarative code for the type inference algorithm is given below. The
+The declarative code for the type inference algorithm is given
+in~\cref{fig:hm} alongside the corresponding Elpi code.
+ The
 rules for lambda abstraction and application are the same as for the simply
 typed lambda calculus~\cref{inf:stlc}. The rule for variables finds a schema
 in $\Gamma$ and assigns to the variable any valid instance. The rule for
 \texttt{let} pushes into the context a type $\overline{\Gamma}(\tau)$ for a
 let-bound expression of type $\tau$ in $\Gamma$. Finally, the rule for
 equality tests whether the type of the expressions admits an equality test.
-
-\begin{center}
-\begin{minipage}{0.45\textwidth}
-$$
-\begin{array}{cl}
-  \displaystyle\frac{\Gamma \vdash e_0:\tau \rightarrow \tau' \quad\quad \Gamma \vdash e_1 : \tau }{\Gamma \vdash e_0\ e_1 : \tau'}\\ \\
-  \displaystyle\frac{\Gamma,\;x:\tau\vdash e:\tau'}{\Gamma \vdash \lambda x.e : \tau \rightarrow \tau'}
-\end{array}
-  $$
-\end{minipage}
-\begin{minipage}{0.45\textwidth}
-$$
-\begin{array}{cl}
-  \displaystyle\frac{x:\sigma \in \Gamma \quad \sigma \sqsubseteq \tau}{\Gamma \vdash x:\tau}\\ \\
-  \displaystyle\frac{\Gamma \vdash e_0:\tau \quad\quad \Gamma,\,x:\bar{\Gamma}(\tau) \vdash e_1:\tau'}{\Gamma \vdash \mathtt{let}\ x = e_0\ \mathtt{in}\ e_1 :  \tau'}
-  \end{array}
-$$
-\end{minipage}
-$$ 
-\displaystyle\frac{\Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau \quad \overline{eq}(\tau)}{\Gamma \vdash e_1 = e_2: \mathtt{bool}}
-$$
-\end{center}
-
-
-Elpi rules are very close to their pen-and-paper counterparts. The only
-difference is that the rule for variables, the last one,
+The only difference between the declarative rules and the Elpi code
+the rule for variables,
 is intentionally extended to any term, so that it can apply to global
 constants as well.\footnote{One could have asserted \elpi{name X}, i.e.,
-forced \elpi{X} to be a \elpi{pi}-introduced name}.
+forced \elpi{X} to be a \elpi{pi}-introduced name}
+
+\begin{figure}[!h]
+\begin{minipage}{0.45\textwidth}
+$$
+\begin{array}{c}
+\displaystyle\frac{\Gamma \vdash e_0:\tau \rightarrow \tau' \quad\quad \Gamma \vdash e_1 : \tau }{\Gamma \vdash e_0\ e_1 : \tau'}
+\vspace{1.8em}
+\\
+\displaystyle\frac{\Gamma,\;x:\tau\vdash e:\tau'}{\Gamma \vdash \lambda x.e : \tau \rightarrow \tau'}
+\vspace{2.2em}
+\\
+\displaystyle\frac{\Gamma \vdash e_0:\tau \quad\quad \Gamma,\,x:\bar{\Gamma}(\tau) \vdash e_1:\tau'}{\Gamma \vdash \mathtt{let}\ x = e_0\ \mathtt{in}\ e_1 :  \tau'}
+\vspace{4.2em}
+\\
+\displaystyle\frac{\Gamma \vdash e_1 : \tau \quad \Gamma \vdash e_2 : \tau \quad \overline{eq}(\tau)}{\Gamma \vdash e_1 = e_2: \mathtt{bool}}
+\vspace{3.2em}
+\\
+\displaystyle\frac{x:\sigma \in \Gamma \quad \sigma \sqsubseteq \tau}{\Gamma \vdash x:\tau}
+\vspace{0.6em}
+\end{array}
+$$
+\end{minipage}
+\begin{minipage}{0.45\textwidth}
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -2145,24 +2170,31 @@ of (app H A) (mono T) :-
   of A (mono S).
 
 of (lam F) (mono (S --> T)) :-
-  pi x\ of x (mono S) => of (F x) (mono T).
+  pi x\ of x (mono S) =>
+    of (F x) (mono T).
 
 of (let E B) (mono TB) :-
   of E (mono T),
   gammabar (mono T) PT,
-  pi x\ of x PT => of (B x) (mono TB).
+  pi x\ of x PT =>
+    of (B x) (mono TB).
 
 of (eq LHS RHS) (mono bool) :-
   of LHS (mono T),
   of RHS (mono T),
   eqbar T.
 
-of X (mono T) :- of X (all E Poly), specialize (all E Poly) T.
+of X (mono T) :-
+  of X (all E Poly),
+  specialize (all E Poly) T.
 \end{elpicode}
+\end{minipage}
+\caption{Typing algorithm\label{fig:hm}}
+\end{figure}
 
-\noindent
 We have already described how \elpi{specialize} relates to $\sqsubseteq$.
-What remains to be described is the $\overline{\Gamma}$ operation.
+What remains to be described is the $\overline{\Gamma}$ operation
+in charge of synthesizing type schemas.
 
 $$
 \overline{\Gamma}(\tau) = \forall\ \hat{\alpha}\ .\ \tau \quad\quad \hat{\alpha} = \textrm{free}(\tau) - \textrm{free}(\Gamma)
@@ -2174,9 +2206,9 @@ in the expressions being bound by the let.
 
 This operation is beyond the capabilities of $\lambda$Prolog alone, even with
 the mode extensions discussed in~\cref{sec:modes}, since $\Gamma$ is not
-first-class -- in other words, it is automatically managed by the runtime. This
-is where the ``meta'' status of constraint handling rules becomes useful:
-suspended goals are sequents made of a formula and its context.
+first-class.
+This is where the ``meta'' status of constraint handling rules becomes useful:
+suspended goals are sequents.
 
 %elpi:hm.elpi
 \begin{elpicode}
