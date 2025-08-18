@@ -337,11 +337,16 @@ constitute the smallest code unit\footnote{In this document we prefer the word
 rule to clause, but occasionally we shall use the latter.}.
 A rule consists of two parts: the head and the premises.
 Intuitively, the head drives the selection of a rule, reducing the current
-problem (the goal) to simpler ones. Operationally, the head is unified~\cite{10.1145/321250.321253}
+problem (the goal) to simpler ones. Operationally, the head is \emph{unified}~\cite{10.1145/321250.321253}
 with
 the goal, possibly assigning values to the rule parameters, which are
-embodied by unification variables. As an example, we provide the code for
+embodied by unification variables. Under such assignment the goal and
+the rule's head are syntatically equal, and the computed assignment
+is the minimal one ensuring that property.
+
+As an example, we provide the code for
 computing the size of a tree, together with its signature:
+\index[concept]{Unification}
 
 \begin{elpicode}
 type size tree -> int -> prop.
@@ -358,7 +363,12 @@ for input and output, rather than \texttt{i}  for individuals and
  meaning that \elpi{size}, when applied to two arguments,
 becomes a goal and a program can be run to solve it. In contrast, \elpi{node},
 when applied to any number of arguments, is just a piece of data; it is not a
-goal. The following snippet depicts how to run a query, in particular
+goal. 
+Operations on built-in data types, such as integers, are provided via the
+built-in \elpi{is} operator, which evaluates its right-hand side and unifies
+the result with the left-hand side.
+
+The following snippet depicts how to run a query, in particular
 how to ask Elpi to compute the size \elpi{N} of a given
 tree \elpi{T}.
 
@@ -368,10 +378,11 @@ goal> T = tree 46 (tree 93 leaf leaf) leaf, size T N.
 Success
   N = 2
 \end{elpicode}
-Operations on built-in data types, such as integers, are provided via the
-built-in \elpi{is} operator, which evaluates its right-hand side and unifies
-the result with the left-hand side.
-~\\
+In this code we used the infix \elpi{=} symbol to declare that
+\elpi{T} is equal to the tree we want to size. Operationally
+\elpi{=} unifies the two arguments, exactly as rules' heads are
+unified with the goal.
+
 It is worth noting that variables do not need to be used linearly in the head
 of a rule: since the head is unified with the goal, it makes sense to write
 any term there, not just terms that happen to be patterns in the sense of
@@ -638,7 +649,7 @@ $$
 Reading the rule for abstraction as a Hereditary Harrop formula makes it clear
 that the scope of $c$ and its companion rule are limited to the subgoal
 $\mathrm{of}~(F~c)~T$, unlike the \texttt{assert/1} and \texttt{retract/1}
-Prolog builtins\footnote{Although some Prolog implementations provide the
+Prolog built-ins\footnote{Although some Prolog implementations provide the
 notion of ``transaction,'' which can be used to simulate scoping.}.
 
 As previously mentioned, we want to use Elpi in the context of an interactive
@@ -1498,7 +1509,8 @@ constraint store and the
 substitution along with the still unexplored alternatives. Rule~\ref{rule:callabort}
 applies when no rule matches the current goal and no alternative is available.
 Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
-popping the first alternative, returning to the most recent choice point.
+popping the first alternative, returning to the most recent choice point.\footnote{A choice point is, intuitively, an anchor to a point in time we could backtrack to. When doing so assignments are undone, discarding the result of the failred computation.}
+\index[concepts]{Choice point}
 Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
 saved by $\bchain$ (see its description below). Rule~\ref{rule:call} backchains
 all applicable rules, generating new alternatives, the first of which becomes
@@ -1517,7 +1529,7 @@ attaches the current alternatives to the resumed goal as cut-to alternatives,
 but these will never be used since constraints are applicative terms (i.e., not
 the cut operator).
 
-\paragraph{Definition of $\bchain$ (backchain)}
+\paragraph{Definition of $\bchain$ (backchain)}\label{backchain}
 
 The role of $\bchain$ of type $K \times \mathcal{P} \times \APP \times \vecL{\g} \times \Sigma \times \vecL{\alt} \to \vecL{\alt}$ is to generate
 an alternative for each rule that applies to the given goal.
@@ -2061,7 +2073,7 @@ specialize (all tt F) T :-
 \end{elpicode}
 
 \noindent
-The only detail worth describing is the use of the \elpi{prune} builtin
+The only detail worth describing is the use of the \elpi{prune} built-in
 to restrict the scope of \elpi{Fresh} to the empty one. While this is not
 necessary for the algorithm to work properly, is simplifies the output
 we shall comment at the end of the section. Finally, it is not hurting either
@@ -2141,7 +2153,7 @@ constants as well.\footnote{One could have asserted \elpi{name X}, i.e.,
 forced \elpi{X} to be a \elpi{pi}-introduced name}
 
 \begin{figure}[!h]
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.5\textwidth}
 $$
 \begin{array}{c}
 \displaystyle\frac{\Gamma \vdash e_0:\tau \rightarrow \tau' \quad\quad \Gamma \vdash e_1 : \tau }{\Gamma \vdash e_0\ e_1 : \tau'}
@@ -2218,7 +2230,7 @@ gammabar (mono T) TS :- declare_constraint (gammabar (mono T) TS) [_].
 constraint of ?- gammabar eqbar theta rm-eqbar {
   rule  \ (theta L)
           (G ?- gammabar T TS)              % matched and removed
-        | (generalize L G T POLYT ToRemove) % guard + syntesis
+        | (generalize L G T POLYT ToRemove) % guard + synthesis
       <=> (TS = POLYT, rm-eqbars ToRemove, theta []). % new goal
   rule \ (eqbar X) (rm-eqbar X).
 }
@@ -2262,7 +2274,8 @@ was present and was updated at every \elpi{eqbar} addition; now all
 combined with them all.
 
 The definition of free type variables, \cref{img:free}, is not surprising,
-but it is worth pointing out two details of the corresponding Elpi code.
+but it is worth reminding two details 
+from~\cref{sec:chrui} of the corresponding Elpi code.
 
 \begin{figure}
 $$
@@ -2282,15 +2295,15 @@ $$
 
 
 The first detail is that the context is a list of propositions. The
-\elpi{prop} type gathers all predicates, not just \elpi{of}. We do not need
-to add a rule to skip any unrelated predicate the program may have loaded with
-implication, because the \elpi{constraint of ?- gammabar eqbar theta
+\elpi{prop} type is a union type of all predicates, not just \elpi{of}.
+We do not need to add a rule to skip any unrelated predicate
+the program may have loaded with implication, because the \elpi{constraint of ?- gammabar eqbar theta
 rm-eqbar} directive tells Elpi to filter the context of suspended goals
 (constraints) and keep only entries for the \elpi{of} predicate.
 
 The second is that, at the meta level of constraint handling rules, the
 \elpi{uvar} keyword becomes a regular syntax tree node and has two arguments.
-The first is the unique identifier of the unification variable; the second is
+The first one is the unique identifier of the unification variable; the second is
 its scope, represented as a list of names.
 
 %elpi:hm.elpi
@@ -2316,7 +2329,7 @@ free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is the
 code to bind (locally used) unification variables to universal
 quantifications. The key is the \elpi{copy} predicate, which implements
-substitution by traversing a type expression. Since this substitution is not
+substitution by traversing an expression. Since this substitution is not
 the built-in one (i.e., not function application), we can alter its behavior
 by loading into the program some ad hoc rules. In particular, for
 each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
@@ -2358,12 +2371,11 @@ filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
 \noindent
-
 We can run the type inference algorithm on the following term, which defines a
-function $f$ that tests whether the input list is empty and then applies it to
+function $f$ that tests whether the input list is empty and then applies $f$ to
 two different expressions:
 $$
-\mathtt{let}\ f = \lambda x. x = []\ \mathrm{in}\ (f [\mathrm{true}], f [1])
+\mathtt{let}\ f = (\lambda x. x = [])\ \mathrm{in}\ (f [\mathrm{true}], f [1])
 $$
 As expected, the inferred type is $\mathrm{bool} \times \mathrm{bool}$.
 \begin{elpicode}
@@ -2392,9 +2404,9 @@ not strictly necessary, but the type discipline is not precise regarding the
 behavior of the equality test.}
 
 It may be instructive to run the example on a term that does not completely
-constrain the type, such as
+constrain the type at which $f$ is used, such as:
 $$
-\mathtt{let}\ f = \lambda x. x = []\ \mathrm{in}\ (f [], f [1])
+\mathtt{let}\ f = (\lambda x. x = [])\ \mathrm{in}\ (f [], f [1])
 $$
 In this case, the first use of \elpi{f} is on an empty list, which leaves the
 type parameter unassigned.
@@ -2454,16 +2466,15 @@ Note how \elpi{TH} is not related to \elpi{TA} before the call to
 
 \section{Pitfalls}
 
-
 Over the years, we have put Elpi in the hands of a good number of users. Here
 are some pitfalls that have tricked everyone (ourselves included).
 
 \subsection{Misleading precedence of implication}
 
 When one writes \elpi{A, B => C, D}, what he really means is \elpi{A, B => (C, D)}.
-This
-becomes clear when one has a program \elpi{A, B => D} and wants to sneak in a
-print to debug before D.
+This becomes clear when one has a program \elpi{A, B => D} and wants to sneak in
+a debug print before D, i.e., \elpi{A, B => print D, D} that reads as
+\elpi{A, (B => print D), D}.
 
 We argue that \elpi{=>} should bind more strongly than ``,'' on the left but
 not on the right -- something that parsing technology does not support out of the
@@ -2509,7 +2520,8 @@ an anonymous rule (a term of function type to \elpi{prop}).
 
 \subsection{Scope error as a (recondite) failure}
 
-While \elpi{pi x\ F = x} logically fails because \elpi{x} is out of scope, its
+While \elpi{pi x\ F = x} logically fails because \elpi{x} is out of \elpi{F}'s
+scope, its
 practical, legitimate use cases are rare. According to our experience, most
 of the time when a unification fails because of a scope problem, it is due to
 a user mistake.
@@ -2527,7 +2539,7 @@ The CHR semantics described in \cref{sec:sem} behaves intuitively most of the
 time: rules are scanned in order and applied when applicable. It becomes a bit
 surprising, according to our experience, when the multiset nature of the
 constraint store plays a role, particularly when permutations contain
-duplicate predicates and when rules have some symmetry in their patterns.
+duplicate constraints and when rules have some symmetry in their patterns.
 
 
 \begin{center}\begin{minipage}{.6\textwidth}
@@ -2604,9 +2616,17 @@ rule removes one (copy) of \elpi{c} from the store -- and thus from the set of
 permutations -- the rule cannot trigger twice.
 
 Symmetry can also be broken by using a guard, e.g., requiring
-\elpi{N < M}. Therefore, it is difficult to imagine a sensible warning for
-this issue.
+\elpi{N < M}, as depicted below:
 
+\begin{elpicodelj}
+constraint c {
+  rule (c N) (c M) | (N < M) <=>
+    (print "rule 1 on" N M).
+}
+\end{elpicodelj}
+Since symmetry can be broken by using an antisymmetric predicate in the
+guard, it seem difficult to implement a sensible warning for
+this issue.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%55
@@ -2623,11 +2643,6 @@ objective of understanding the $\lambda$Prolog language and some of the
 techniques adopted to implement it, such as the suspension
 calculus~\cite{NADATHUR200235}. This was Elpi-POC.
 
-
-Terms were purely functional, to facilitate backtracking. This feature has a
-reputation for making things difficult, so we played it safe.
-
-
 Elpi-POC served as an easy playground to understand which features were needed
 to manipulate terms with holes: a safeguard against instantiating them by
 mistake (modes), and a way to attach metadata to holes (constraints).
@@ -2638,8 +2653,19 @@ theory and plug it into Matita~\cite{DBLP:conf/cade/AspertiRCT11}. It worked,
 but it was extremely slow -- about 20,000 times slower than reasonable.
 
 
-The main reason was the purely functional representation of terms and heap(s),
-with no garbage collection.
+The main reason was that
+terms were purely functional, to facilitate backtracking: unification
+variables were encoded with numbers, and the execution would carry a
+companion purely functional map carrying variable assignments made by unification.
+In this backtracking, a feature with a
+reputation for making things difficult, becomes trivial, since 
+holding a pointer to a previous version of the assignment map is
+enough to time travel. At the same time decorrelating terms from
+the assigment map, a heap really, means one cannot take advantage of
+the programming language automatic memry management: when a unification
+variables disappears from a term, no mechanism removes it from the map,
+and worse, the OCaml garbage collector has to scan this evergrowing
+map.\\
 Introducing instructions to clear memory (in an unsafe way) was enough to see
 one order of magnitude of slowness disappear.
 
@@ -2650,16 +2676,17 @@ my desk, it was not clear it was actually isomorphic to
 $\lambda_\sigma$~\cite{expsubst}. While explicit substitutions are often
 presented as a way to obtain better complexity, in practice they fail to
 deliver better performance. In Rocq, two people tried using explicit
-substitutions in many places with similar conclusions. In elpi-POC, in our
-limited tests, disabling them resulted in a faster runtime. Our analysis is
+substitutions in many places with similar conclusions. In Elpi-POC, in our
+limited tests, disabling them resulted in a slightly faster runtime. Our analysis is
 that, in practice, the extra machinery to delay substitutions and pack them
 together rarely triggers (as an optimization to achieve better complexity), but
 it has a constant memory overhead. Most of the time, all redexes are fired in
-one go, and the result is immediately inspected.
+one go, and the result is immediately inspected, practically defeating
+the advantage of a lazy substitution.
 
 Still, it was clear that the operation of crossing a binder and replacing the
 bound name with a fresh constant (i.e., a fresh name) was very frequent and
-required a faster implementation.
+required a fast implementation.
 
 \newcommand{\theotherfragment}{\ensuremath{L_{\lambda}}\xspace}
 \newcommand{\thefragment}{\ensuremath{L_{\lambda}^{\beta}}\xspace}
@@ -2683,7 +2710,7 @@ cases -- assignments must be undone to implement backtracking.
 Our experience with the first Elpi prototype suggested that purely functional
 terms and an explicit assignment map are not a viable solution, and pushed us
 toward an implementation closer to standard Prolog runtimes~\cite{wam}.
-Although we did not even consider targeting the Warren Abstract Machine (WAM),
+Although we did not even consider targeting the Warren Abstract Machine (WAM)
 as the system Teyjus does~\cite{teyjus}, since we felt it was beyond our
 engineering capabilities, Elpi terms are mutable, and we store a log of
 assignments to undo them, as is done in the WAM.
@@ -2744,7 +2771,7 @@ Each uvar contains a mutable slot for a term, a unique identifier used by the
 FFI, and a boolean flag to signal if the variable acts as a trigger for a
 constraint. Each arg contains the index of a slot in the activation frame (a
 term array) that is allocated each time a rule is used. The decision to
-distinguish between the two comes from the WAM, which is itself inspired by
+distinguish between uvars and args comes from the WAM, which is itself inspired by
 standard programming languages: using a rule corresponds to a function call,
 which is usually implemented via the allocation of an activation frame on the
 stack. In our runtime, everything is allocated in the OCaml heap, but the
@@ -2762,7 +2789,7 @@ uvar present in the initial query, while stack frames are volatile.
 The \emph{vardepth} of a uvar is an integer representing the number of
 \elpi{pi}-generated fresh names existing when the uvar is created. We will
 write $X^n$ for the uvar $X$ with vardepth equal to $n$. This is already an
-optimized representation of unification variables, since one could also use
+optimized representation of unification variables, since one could simply use
 the list of explicit arguments to put these \elpi{pi}-generated names in
 scope. This representation is also used in
 Teyjus~\cite{DBLP:journals/corr/abs-0911-5203}.
@@ -2780,9 +2807,13 @@ type trail = trail_item list
 \end{ocamlcode}
 
 \noindent
-
 The trail also features two other kinds of events that may need to be undone:
-the addition or removal of a constraint to the store. However, we will not
+the addition or removal of a constraint to the store. In particular when
+an uvar is assigned and its \ocaml{uid} is negative some constraint may
+be resumed, hence removed from the store. Conversely the
+\elpi{declare_constraint} built-in predicate adds a constraint to the store.
+
+However, we will not
 provide further details on this. Instead, we focus on the higher-order part of
 the language, the \ocaml{Const} node.
 
@@ -2834,11 +2865,12 @@ though they are coalesced into a single concept: substitution.
 
 
 When evaluating a redex $(\lambda x.M)\ N$, one can substitute an arbitrary
-term, and this powerful operation is very handy for implementing substitution
+term $N$ into $M$, and this powerful operation is very handy for implementing substitution
 for the object language. For example, the following two lines of code
 implement weak head reduction for the $\lambda$-calculus as encoded
 in~\cref{sec:hello}, by simply recognizing a redex and delegating to the
-$\beta$-reduction of $\lambda$Prolog the work of plugging $N$ inside $M$
+$\beta$-reduction of $\lambda$Prolog the work of plugging \elpi{Arg} inside
+\elpi{F}
 wherever needed:
 
 \begin{elpicode}
@@ -2860,7 +2892,6 @@ of (lam (x\ F x)) (arr S T) :- pi (c\ of c S => of (F c) T).
 \end{elpicode}
 
 \noindent
-
 As per~\cite{10.1093/logcom/1.4.497}, this restricted form of $\beta$-reduction
 is called $\beta_0$-reduction, and it is sufficient to execute $\lambda$Prolog
 code in the \theotherfragment fragment (\cref{sec:llam}), and in particular the code of
@@ -2876,7 +2907,6 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-
 Note how the first bound variable in the data, $x$, is represented with the
 same De Bruijn level as the first \elpi{pi}-quantified variable in the rule
 body. Once \elpi{pi} and \elpi{=>} have been executed, obtaining the
@@ -2886,7 +2916,7 @@ $n$). This is simply the identity, i.e., it is for free!
 
 
 This observation convinced us to choose DBL as the notation for variables and
-to identify the \thefragment fragment, a restriction of the \theotherfragment.
+to identify the \thefragment fragment, a further restriction of the \theotherfragment one.
 
 \subsection{The \theotherfragment fragment}\label{sec:llam}
 
@@ -2921,7 +2951,6 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-
 Intuitively, the program postulates more fresh names than there are bound ones
 in the data being traversed, causing $x_n$ to be replaced by $c_{n+1}$ in the
 recursive call. The optimization can only be applied when the bound variables
@@ -2936,7 +2965,7 @@ In~\cite{dunchev15lpar}, we further restrict \theotherfragment as follows:
 
 
 \begin{definition}[\thefragment fragment]
-A term is in the reduction-free fragment \thefragment if and only if every
+A term is in the fragment \thefragment if and only if every
 occurrence of a unification variable $X^j$ is applied to the $k$ arguments
 $\underbrace{c_j \ldots c_{j + k-1}}_{k~\mathrm{items}}$ for $0 \leq k$,
 where $k=0$ means no arguments.
@@ -2996,6 +3025,12 @@ It was only around 2016 that I extended the unification procedure to the full
 
 \subsection{Indexing}
 
+If one looks back at the $\bchain$ function at page~\pageref{backchain},
+one immediately sees room for optimization. The $\unify$ function is
+run on all the rules for the current predicate that compose the program,
+one after the other. It is well known that one can \emph{index} multiple heads
+into tree-like structures and, in a single pass, filter out heads that have
+no chance to unify.
 
 Over time, the runtime was equipped with three indexing algorithms, but before
 presenting them, it is worth pointing out another advantage of the DBL
@@ -3007,7 +3042,6 @@ of (lam (x\ ~$F^n$~ ~$x_n$~)) (arr ~$S^n$~ ~$T^n$~) :-
 \end{elpicode}
 
 \noindent
-
 Once \elpi{pi} is executed, $c_n$ enters the program and becomes invariant by
 shifting, i.e., wherever it occurs it is represented as the number $n$. This
 simplifies indexing, since the hypothetical rule \elpi{(of ~$c_n$~ ~$S^n$~)}
@@ -3017,7 +3051,7 @@ can be indexed on $c_n$ with no further complication.
 
 
 As in standard Prolog, this index only considers one predicate argument at
-depth 1 the user can choose which argument to index (usually the first one).
+depth 1. The user can choose which argument to index (usually the first one).
 
 \begin{elpicode}
 :index(_ 1) % second argument at depth 1 using "Map" (the default)
@@ -3025,7 +3059,6 @@ pred example i:term, i:term, o:term.
 \end{elpicode}
 
 \noindent
-
 Functors are represented as integers, from \ocaml{-1} to \ocaml{min_int}, and
 these integers are indexed using a Patricia tree implementation by
 Jean-Christophe Filliatre\footnote{\url{https://usr.lmf.cnrs.fr/~jcf/software.fr.html}},
@@ -3047,7 +3080,7 @@ This index proved to be fast, but does not work well when the discriminating
 functor is deep, which is quite frequent when the rules talk about object-language
 terms. For example, the Rocq term \rocq{nat} is represented as, roughly,
 \elpi{global (indt "nat")}, while the term \rocq{x + 0} is represented by a
-tree where the ``head'' node, \elpi{"plus"}, is at depth 5!
+tree where the head node, \elpi{"plus"}, is at depth 5!
 
 \begin{elpicode}
 % 1   2 3       4     5
@@ -3117,7 +3150,6 @@ rule & argument & hash\\
 \end{tabular}
 ~\\
 \noindent
-
 Now we consider the following three query arguments, their hashes, and their
 matches.
 ~\\
@@ -3132,7 +3164,6 @@ X & 0000 0000   & 1, 2, 3\\
 ~\\
 
 \noindent
-
 In our testing, unification hashes are on par with the standard indexing
 technique, but they provide greater flexibility. The only downside is that it
 is hard to predict when collisions will happen, since hashes are trimmed to fit
@@ -3145,7 +3176,7 @@ words is surely possible, but we did not explore it.
 
 Fissore integrated into Elpi 3.0 an index based on discrimination trees,
 implemented following Pfenning's notes on automated theorem
-proving\footnote{\url{https://www.cs.cmu.edu/~fp/courses/99-atp/lectures/lecture28.html}}.
+proving.\footnote{\url{https://www.cs.cmu.edu/~fp/courses/99-atp/lectures/lecture28.html}}
 
 \begin{elpicode}
 :index(50 50) "DTree" % both arguments capping depth at 50
@@ -3204,7 +3235,7 @@ hard to imagine a shallow index performing well in this scenario.
 
 
 First of all, it should be noted that the Elpi compiler is not a traditional
-compiler generating (virtual) machine code. Still, before being executed, Elpi
+compiler generating (virtual) machine code. Still, before being interpreted, Elpi
 programs go through several steps typical of compilation pipelines. The Elpi
 compiler does:
 
@@ -3220,7 +3251,6 @@ compiler does:
 \end{enumerate}
 
 \noindent
-
 Task zero is really about recovering structure in the parsed text, such as
 grouping together signature declarations, rule declarations, constraint
 handling rules, etc. Finally, terms go through a scope analysis to separate
@@ -3239,7 +3269,7 @@ $\lambda$Prolog and not the language itself.
 
 
 Task two is inspired by~\cite{10.5555/868728}, even if Elpi performs no
-inference of polymorphic types, and Elpi supports overloading symbols: their
+inference of polymorphic types. Elpi supports overloading symbols: their
 type-driven resolution is inspired by the type inference procedure implemented
 by Harrison in Hol-light~\cite{10.1007/978-3-642-03359-9_4}.
 
@@ -3252,7 +3282,7 @@ A function is made of rules that can be statically deemed mutually exclusive,
 and that only call other functions, or call predicates but discard their choice
 points via a cut. Signatures for higher-order predicates like \elpi{map} are
 interpreted as conditional statements: if the higher-order argument \elpi{F}
-passed to \elpi{map} is a function, then so is \elpi{map F}.
+passed to \elpi{map} is a function, then so is \elpi{(map F)}.
 
 
 The compiler performs very few optimizations in task four. In particular, it
@@ -3271,7 +3301,7 @@ i.e., programs can be made of units that are compiled at different points in
 time. In particular, most Elpi programs for Rocq generate new rules (see, for
 example,~\cref{sec:tb}) that are then compiled and linked to the program the
 next time it is executed. In this sense, the efficiency of the linker directly
-impacts the ``execution'' time of programs; hence, by optimizing it, one speeds
+impacts the startup time of programs; hence, by optimizing it, one speeds
 up the perceived execution time.\\
 Some relevant Elpi applications, like Hierarchy-Builder (see~\cref{sec:hb}),
 accumulate over time more than 40,000 rules. We had to craft a linker that is
@@ -3283,8 +3313,8 @@ base program itself.
 Another aspect of the compiler worth mentioning is that, since version 2.0, it
 carries the source-code location of each term from the parser to the static
 analyzers. In turn, this makes it possible to report precise error messages and
-attach to each subexpression some metadata, like the inferred type of an
-expression or the declared signature of a symbol. This information can be
+attach to each subexpression some metadata, like the inferred type of a
+compound expression or the declared signature of a symbol. This information can be
 exploited by modern editors to improve navigation of the source code.
 
 \section{The API}\label{sec:API}
@@ -3295,6 +3325,7 @@ into a unit, assemble units into an executable, and run it on a query. These
 APIs are not very interesting, so we focus on the other APIs that are
 instrumental for integrating Elpi with the host application, i.e., the ones
 that actually make it an \emph{extension} language.
+\index[concepts]{Host application}
 
 \subsection{Quotations}\label{sec:quotations}
 
@@ -3327,12 +3358,11 @@ The following code is an example mixing the two languages.
 \end{elpicode}
 
 \noindent
-
 Here, ``1 + ...'' and ``0'' are Rocq syntax delimited by the quotation
 markers, and \rocq{lp:{{ ... }}} is Rocq's way to escape back to Elpi.
 
 
-There is only one rule: a variable is bound in one language and only one. That
+There is only one rule governing quotations: a variable is bound in one language and only one. That
 is, variables bound in Rocq are not available in Elpi without entering a
 quotation. The following code results in an error, since \elpi{x} is undeclared
 (in Elpi).
@@ -3356,9 +3386,9 @@ Rocq's space.
 \noindent
 In practice, this rule amounts to completely delegating to each language the
 lexical analysis of its source code, with no interference.
+~\\
 
-
-Syntax alone is not sufficient to provide tight integration with the host
+Although important, syntax alone is not sufficient to provide tight integration with the host
 application. In particular, one wants to be able to call existing code from
 Elpi, either to access the internal state of the application or just to use
 some existing routine, like \elpi{rocq.say} to display a message to the user.
@@ -3410,14 +3440,13 @@ type 'a t = {
 \end{ocamlcode}
 
 \noindent
-
 A conversion consists of an embedding function that converts the data to an
 Elpi term and a readback function that goes the other way around. The type AST
 \ocaml{ty} is used to generate a type declaration in the Elpi syntax, i.e.,
 to document the existence of a data type.
 
 
-The \ocaml{~depth} argument is present mainly because most of the other APIs
+The \ocaml{\~depth} argument is present mainly because most of the other APIs
 work for the general case of terms with binders, and in DBL notation it is of
 paramount importance to know under how many binders we are operating. When the
 data has no binders, it serves no real purpose in the conversion code, but
@@ -3448,7 +3477,8 @@ module OpaqueData : sig
     compare : 'a -> 'a -> int;
     hash : 'a -> int;
     hconsed : bool;               (* do hashcons *)
-    constants : (name * 'a) list; (* global constants of that type, eg "std_in" *)
+    constants : (name * 'a) list; (* global constants of that type,
+                                     eg "std_in" *)
   }
 
   val declare : 'a declaration -> 'a Conversion.t
@@ -3472,8 +3502,9 @@ type std_in in_stream.
 
 \paragraph{Algebraic data}
 
-Even without binders, algebraic data types are a powerful programming
-abstraction, and most OCaml code makes extensive use of them. An algebraic
+Even without binders, that we cover in the next section,
+algebraic data types are a powerful programming
+abstraction, and usual OCaml code makes extensive use of them. An algebraic
 data type consists of a list of constructors (i.e., function symbols that build
 the data type) and works in tandem with pattern matching to destructure it.
 
@@ -3484,7 +3515,7 @@ data type. Below, we present the declaration for the \ocaml{option} type.
 let option (a : 'a Conversion.t) : 'a option Conversion.t =
   let open AlgebraicData in
   declare {
-    ty = TyApp("option", a.Conversion.ty, []);
+    ty = TyApp("option", a.Conversion.ty, []); % type AST
     doc = "The option type (aka Maybe)";
     pp = (fun fmt o ->
       Format.fprintf fmt "%a" (Util.pp_option a.Conversion.pp) o);
@@ -3582,11 +3613,14 @@ context available.
 \subsubsection{Built-in predicates}\label{sec:builtins}
 
 The signature and OCaml code of a built-in predicate are encapsulated by the
-\ocaml{Pred} constructor, as shown in~\cref{fig:ffi}. The former is a GADT that
-specifies the type of the latter. Arguments can be of three types: input,
-output, or both.\\
+\ocaml{Pred} constructor, as shown in~\cref{fig:ffi}. The signature is a GADT that
+specifies the type of the latter. Built-ins' rguments can be of three types: input,
+output, or both.
+\begin{itemize}
+\item
 An input argument of type \elpi{A} requires that the (OCaml) type of the predicate
 \ocaml{P} is of the form \elpi{A -> P'} for some \elpi{P'}.\\
+\item
 An output argument of type \elpi{B} requires that the type of the predicate
 \elpi{P} is of the form \elpi{bool -> P' * option B}. The boolean indicates
 whether the caller is binding the result (i.e., passing \elpi{_} or an actual unification variable). This allows
@@ -3599,16 +3633,18 @@ parameters (an integer) to the types of each constructor (a much larger data
 structure). If only the former is needed, one can simply pass \elpi{_} as the
 second argument and incur no performance penalty compared to a dedicated
 \elpi{rocq.env.indt-num-params} that would compute only the former.}\\
+\item
 An input-output argument of type \elpi{B} requires that the type of the
 predicate \elpi{P} is of the form \elpi{option B -> P' * option B}. In this
 case, the programmer is informed whether the user has provided some data or
 not.
+\end{itemize}
 
-
+\noindent
 The three types of arguments also have their contextual counterparts. The list
 of arguments can terminate with either \ocaml{Easy} or \ocaml{Full}. The
-latter requires a context read-back function, along with a context and
-constraint data type that matches the one used by the contextual arguments.
+latter requires a context read-back function that fixes a context and
+constraint data type used by the contextual arguments.
 
 \begin{sidewaysfigure}
 \begin{ocamlcode}
@@ -3708,7 +3744,8 @@ module State : sig
 
 \noindent
 It is worth noting that the API allows one to update the state just before
-executing a query.
+executing a query, indeed the state is carried by the entire compilation
+phase.
 
 \section{Debugging}\label{sec:trace}
 
@@ -3718,13 +3755,14 @@ it rather cumbersome, especially when Elpi code is shipped as a Rocq library;
 that is, when code is used far from its definition point.
 
 Since its inception, the Elpi runtime has included a debugging facility based
-on conditional compilation: the runtime is compiled twice, once with printing
+on conditional compilation. The runtime is compiled twice: once with
+no instrumentation, for speed, and another time with (slow) printing
 instrumentation. This instrumentation was crucial for debugging the runtime
 itself, such as identifying De Bruijn level-related bugs. As the runtime
 became more robust, we began to add entry points to debug Elpi programs
 themselves, such as printing the current goal and the selected rules.
 
-It then became straightforward to post-process the trace to reconstruct the
+It then became possible to post-process the trace to reconstruct the
 stack (note that the operational semantics in~\cref{sec:sem} is stackless)
 and to generate metadata suitable for interactive trace navigation, such as
 indicating whether a branch is ultimately successful or not.
@@ -4091,7 +4129,7 @@ in Rocq proof mode.
 
 A command is declared with \rocq{Elpi Command} followed by a name. Initially,
 a command only contains the glue code for Rocq, such as the HOAS data type of
-terms and the builtin predicates. Extra code can be added to a command via
+terms and the built-in predicates. Extra code can be added to a command via
 \rocq{Elpi Accumulate}. Accumulated code can be either static (e.g., from a
 file or a string) or dynamic (from a database; see~\cref{sec:homo}).
 
@@ -4108,7 +4146,7 @@ Elpi hello "reader".
 Fail Elpi hello 46.
 \end{rocqcode}
 
-The simple program above calls the \elpi{rocq.say} builtin whenever the
+The simple program above calls the \elpi{rocq.say} built-in whenever the
 command is passed a string. Since the entry point \elpi{main} has no rule for
 arguments of the form \elpi{int X}, the second calls fails.
 
