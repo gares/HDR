@@ -66,6 +66,18 @@
     ,text width=1mm] {\centering C H R} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
+\newtcolorbox{outputbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+  right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
+  colframe=green!0!white,
+  coltext=green!0!black,
+  colback=green!3!red!3!blue!3!white,
+  overlay={\begin{tcbclipinterior}\fill[Gray!40]
+    (frame.south east)
+    rectangle node[text=black,font=\ttfamily\bfseries\tiny
+    ,text width=1mm] {\centering O U T P U T} 
+    ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
+
+
 \makeindex[name=concept,title=Index of concepts ,intoc]
 
 \SetWatermarkText{Draft \today}
@@ -2176,7 +2188,7 @@ $$
 \end{array}
 $$
 \end{minipage}
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.55\textwidth}
 %elpi:hm.elpi
 \begin{elpicode}
 pred eqbar i:tye.
@@ -2253,7 +2265,7 @@ $$
 \end{array}
 $$
 \end{minipage}
-\begin{minipage}{0.45\textwidth}
+\begin{minipage}{0.55\textwidth}
 
 %elpi:hm.elpi
 \begin{elpicode}
@@ -2624,7 +2636,7 @@ duplicate constraints and when rules have some symmetry in their patterns.
 
 \begin{center}\begin{minipage}{.6\textwidth}
 %elpi:chr.elpi
-\begin{elpicodelj}
+\begin{elpicode}
 pred c i:int.
 
 main :-
@@ -2632,7 +2644,7 @@ main :-
   declare_constraint (c 1) [_],
   print "declare c 2",
   declare_constraint (c 2) [_].
-\end{elpicodelj}
+\end{elpicode}
 \end{minipage}
 ~\\
 \vspace{1em}
@@ -2642,29 +2654,30 @@ main :-
 \begin{tabular}{c c}
 \begin{minipage}{.44\textwidth}
 %elpi:chr1.elpi
-\begin{elpicodelj}
-constraint c {
-  rule (c N) (c M) <=>
-    (print "rule 1 on" N M).
-  rule (c N) <=>
-    (print "rule 2 on" N).
-}
-\end{elpicodelj}
+\begin{chrbox}
+\begin{xelpicode}
+rule (c N) (c M) <=>
+  (print "rule 1 on" N M).
+rule (c N) <=>
+  (print "rule 2 on" N).
+\end{xelpicode}
+\end{chrbox}
 \end{minipage} &
 \begin{minipage}{.44\textwidth}
 %elpi:chr2.elpi
-\begin{elpicodelj}
-constraint c {
-  rule (c N) \ (c M) <=>
-    (print "rule 1 on" N M).
-  rule (c N) <=>
-    (print "rule 2 on" N).
-}
-\end{elpicodelj}
+\begin{chrbox}
+\begin{xelpicode}
+rule (c N) \ (c M) <=>
+  (print "rule 1 on" N M).
+rule (c N) <=>
+  (print "rule 2 on" N).
+\end{xelpicode}
+\end{chrbox}
 \end{minipage} \\
 \\
 \vspace{1em}
 \begin{minipage}{.44\textwidth}
+\begin{outputbox}
 \begin{verbatim}
 declare c 1
 rule 2 on 1
@@ -2673,8 +2686,10 @@ rule 1 on 2 1
 rule 1 on 1 2
 rule 2 on 2
 \end{verbatim}
+\end{outputbox}
 \end{minipage} &
 \begin{minipage}{.44\textwidth}
+\begin{outputbox}
 \begin{verbatim}
 declare c 1
 rule 2 on 1
@@ -2683,6 +2698,7 @@ rule 1 on 2 1
 
 rule 2 on 2
 \end{verbatim}
+\end{outputbox}
 \end{minipage}
 \end{tabular}
 \egroup
@@ -2698,12 +2714,12 @@ permutations -- the rule cannot trigger twice.
 Symmetry can also be broken by using a guard, e.g., requiring
 \elpi{N < M}, as depicted below:
 
-\begin{elpicodelj}
-constraint c {
-  rule (c N) (c M) | (N < M) <=>
-    (print "rule 1 on" N M).
-}
-\end{elpicodelj}
+\begin{chrbox}
+\begin{xelpicode}
+rule (c N) (c M) | (N < M) <=>
+  (print "rule 1 on" N M).
+\end{xelpicode}
+\end{chrbox}
 Since symmetry can be broken by using an antisymmetric predicate in the
 guard, it seem difficult to implement a sensible warning for
 this issue.
