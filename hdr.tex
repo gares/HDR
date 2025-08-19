@@ -134,6 +134,13 @@
 \newenvironment{elpicode}
   {\VerbatimEnvironment\begin{elpibox}\begin{xelpicode}}{\end{xelpicode}
 \end{elpibox}}
+\newenvironment{elpioutput}
+  {\VerbatimEnvironment\begin{outputbox}\begin{xelpicode}}{\end{xelpicode}
+\end{outputbox}}
+\newenvironment{chrcode}
+  {\VerbatimEnvironment\begin{chrbox}\begin{xelpicode}}{\end{xelpicode}
+  \end{chrbox}}
+
 
 \newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
 \newmintinline[elpi]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
@@ -460,12 +467,12 @@ The following snippet depicts how to run a query, in particular
 how to ask Elpi to compute the size \elpi{N} of a given
 tree \elpi{T}.
 
-\begin{elpicode}
+\begin{elpioutput}
 goal> T = tree 46 (tree 93 leaf leaf) leaf, size T N.
 
 Success
   N = 2
-\end{elpicode}
+\end{elpioutput}
 In this code we used the infix \elpi{=} symbol to declare that
 \elpi{T} is equal to the tree we want to size. Operationally
 \elpi{=} unifies the two arguments, exactly as rules' heads are
@@ -664,12 +671,12 @@ Fresh symbols like \elpi{c} are also called eigenvariables or fresh names.
 \index[concept]{Eigenvariable|seealso {Fresh constant}}
 
 We can now run the type checker on the $fst$ function:
-\begin{elpicode}
+\begin{elpioutput}
 goal> Fst = (lam x\ lam y\ x), of Fst Ty.
 
 Success
   Ty = arr S1 (arr S2 S1)
-\end{elpicode}
+\end{elpioutput}
 
 The two rules above closely match the ``inference rules'' commonly used by the
 logic and programming language communities:
@@ -749,9 +756,9 @@ lack of a mechanism to avoid divergence by suspending search on certain goals
 and the absence of a sublanguage to manipulate suspended goals.
 For example, the following query results in the rule for application to
 be applied indefinitely:
-\begin{elpicode}
+\begin{elpioutput}
 goal> of X T. % never returns 
-\end{elpicode}
+\end{elpioutput}
 Indeed by applying the rule:
 \begin{elpicode}
 of (app H A) T :- of H (arr S T), of A S.
@@ -875,14 +882,14 @@ of E T :- var E, declare_constraint (of E T) [E].
 With this mechanism in place, the type checker can handle terms containing
 holes in a meaningful way:
 
-\begin{elpicode}
+\begin{elpioutput}
 goal> of (app H A) T.
 Success:
 
 Constraints:
   of A S  /* suspended on A */
   of H (arr S T)  /* suspended on H */
-\end{elpicode}
+\end{elpioutput}
 
 As expected, the incomplete term is well-typed under the constraint that
 \elpi{A} has a type compatible with that expected by \elpi{H}, which in turn
@@ -893,15 +900,14 @@ When \elpi{H} is instantiated, its corresponding constraint is resumed.
 Below, we set \elpi{H} to the identity function, thereby forcing its input
 and output types to be the same.
 
-\begin{elpicode}
+\begin{elpioutput}
 goal> of (app H A) T, H = (lam x\ x).
 
 Success:
 
 Constraints:
   of A T  /* suspended on A */
-\end{elpicode}
-
+\end{elpioutput}
 
 Notice how the remaining constraint now differs from before: the type of
 \elpi{A} is now the same \elpi{T} as that of the whole term.
@@ -997,13 +1003,10 @@ since the same hole can occur under different contexts. The more elaborate
 version below accepts different contexts and different sets of fresh constants.
 
 
-\begin{elpicode}
-constraint of {
-  rule (E1 :> G1 ?- of (uvar X S1) T1)
-     \ (E2 :> G2 ?- of (uvar X S2) T2)
-   <=> (E1 :> G1 ?- T1 = T2)
-}
-\end{elpicode}
+\begin{chrcode}
+rule (E1 :> G1 ?- of (uvar X S1) T1)
+    \ (E2 :> G2 ?- of (uvar X S2) T2)
+\end{chrcode}
 
 \noindent
 In the rule above, we use the keyword \elpi{uvar} to inspect the unification
@@ -2470,7 +2473,7 @@ $$
 \mathtt{let}\ f = (\lambda x. x = [])\ \mathrm{in}\ (f [\mathrm{true}], f [1])
 $$
 As expected, the inferred type is $\mathrm{bool} \times \mathrm{bool}$.
-\begin{elpicode}
+\begin{elpioutput}
 goal> theta [],
   of (let (lam x\ eq (glo "nil") x) f\
        app (app (glo "pr")
@@ -2483,7 +2486,7 @@ Success
  
 Constraints:
   theta [int, bool]  /* suspended on X0 */
-\end{elpicode}
+\end{elpioutput}
 It is important to note that \elpi{f} is used at two different types and that
 \elpi{theta} contains two types, both of which used to be a variable representing an
 equality type. Both were assigned to the types at which \elpi{f} is used.\footnote{
@@ -2502,7 +2505,7 @@ $$
 $$
 In this case, the first use of \elpi{f} is on an empty list, which leaves the
 type parameter unassigned.
-\begin{elpicode}
+\begin{elpioutput}
 goal> theta [],
   of (let (lam x\ eq (glo "nil") x) f\
         app (app (glo "pr")
@@ -2518,7 +2521,7 @@ Constraints:
    /* suspended on X1 */
  {c0} : of c0 (all tt c1 \ mono (list c1 --> bool)) ?- eqbar X0 
    /* suspended on X0, X1 */
-\end{elpicode}
+\end{elpioutput}
 This time, \elpi{theta} contains an unassigned variable \elpi{X0}. On this same
 variable, we also have an \elpi{eqbar} constraint. Since constraints store their
 context, and the variable is generated under the binder for \elpi{f}, we see
@@ -2654,25 +2657,21 @@ main :-
 \begin{tabular}{c c}
 \begin{minipage}{.44\textwidth}
 %elpi:chr1.elpi
-\begin{chrbox}
-\begin{xelpicode}
+\begin{chrcode}
 rule (c N) (c M) <=>
   (print "rule 1 on" N M).
 rule (c N) <=>
   (print "rule 2 on" N).
-\end{xelpicode}
-\end{chrbox}
+\end{chrcode}
 \end{minipage} &
 \begin{minipage}{.44\textwidth}
 %elpi:chr2.elpi
-\begin{chrbox}
-\begin{xelpicode}
+\begin{chrcode}
 rule (c N) \ (c M) <=>
   (print "rule 1 on" N M).
 rule (c N) <=>
   (print "rule 2 on" N).
-\end{xelpicode}
-\end{chrbox}
+\end{chrcode}
 \end{minipage} \\
 \\
 \vspace{1em}
@@ -2714,12 +2713,10 @@ permutations -- the rule cannot trigger twice.
 Symmetry can also be broken by using a guard, e.g., requiring
 \elpi{N < M}, as depicted below:
 
-\begin{chrbox}
-\begin{xelpicode}
+\begin{chrcode}
 rule (c N) (c M) | (N < M) <=>
   (print "rule 1 on" N M).
-\end{xelpicode}
-\end{chrbox}
+\end{chrcode}
 Since symmetry can be broken by using an antisymmetric predicate in the
 guard, it seem difficult to implement a sensible warning for
 this issue.
