@@ -17,6 +17,44 @@
 \usepackage{cleveref}
 \usepackage{rotating}
 \usepackage{imakeidx}
+\usepackage[svgnames]{xcolor}
+\usepackage{tcolorbox}
+\usepackage{varwidth}
+\tcbuselibrary{skins}
+
+\newtcolorbox{elpibox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+  right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
+  colframe=green!0!white,
+  coltext=green!0!black,
+  colback=green!3!red!3!blue!3!white,
+  overlay={\begin{tcbclipinterior}\fill[LightSlateBlue!60]
+    (frame.south east)
+    rectangle node[text=black,font=\ttfamily\bfseries\tiny
+    ,text width=1mm] {\centering E L P I} 
+    ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
+    
+\newtcolorbox{ocamlbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+  right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
+  colframe=green!0!white,
+  coltext=green!0!black,
+  colback=green!3!red!3!blue!3!white,
+  overlay={\begin{tcbclipinterior}\fill[LightSalmon!60]
+    (frame.south east)
+    rectangle node[text=black,font=\ttfamily\bfseries\tiny
+    ,text width=1mm] {\centering O C A M L} 
+    ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
+
+\newtcolorbox{rocqbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+  right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
+  colframe=green!0!white,
+  coltext=green!0!black,
+  colback=green!3!red!3!blue!3!white,
+  overlay={\begin{tcbclipinterior}\fill[LightSeaGreen!40]
+    (frame.south east)
+    rectangle node[text=black,font=\ttfamily\bfseries\tiny
+    ,text width=1mm] {\centering R O C Q} 
+    ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
+
 \makeindex[name=concept,title=Index of concepts ,intoc]
 
 \SetWatermarkText{Draft \today}
@@ -69,13 +107,23 @@
   }
 }
 %'theorem.py:CoqLexer -x'
-\newminted[elpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[xelpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newenvironment{elpicode}
+  {\VerbatimEnvironment~\\\begin{elpibox}\begin{xelpicode}}{\end{xelpicode}
+\end{elpibox}\\}
+
 \newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
 \newmintinline[elpi]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-\newminted[rocqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[xrocqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newenvironment{rocqcode}
+  {\VerbatimEnvironment~\\\begin{rocqbox}\begin{xrocqcode}}{\end{xrocqcode}
+\end{rocqbox}\\}
 \newmintinline[rocq]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
-\newminted[ocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newminted[xocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
+\newenvironment{ocamlcode}
+  {\VerbatimEnvironment~\\\begin{ocamlbox}\begin{xocamlcode}}{\end{xocamlcode}
+\end{ocamlbox}\\}
 \newmintinline[ocaml]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 
 \newenvironment{dedication}
@@ -302,12 +350,13 @@ rules, and search.
 The first feature worth noting is the support for algebraic data types, such
 as lists and trees. Below is the declaration of binary trees in Elpi syntax:
 
+% \begin{elpibox}
 \begin{elpicode}
 kind tree type.
 type leaf tree.
 type node int -> tree -> tree -> tree. 
 \end{elpicode}
-
+% \end{elpibox}
 
 The \elpi{leaf} and \elpi{node} symbols can be used to build terms and have
 arities 0 and 3, respectively. Elpi follows the tradition of typed functional
@@ -1779,7 +1828,7 @@ contributor to the proliferation of temporary variables -- a phenomenon that
 functional programming languages reduce by placing function calls and data in
 the same syntactic category.
 
-For example, the OCaml code \texttt{List.rev (List.append l1 l2)} or its
+For example, the OCaml~\cite{leroy3ocaml} code \texttt{List.rev (List.append l1 l2)} or its
 equivalent \texttt{List.append l1 l2 |> List.rev} allows the programmer to
 avoid naming the result of \texttt{append}, while in logic programming one
 often reads:
@@ -2071,7 +2120,6 @@ specialize (all ff F) T :-
 specialize (all tt F) T :-
   prune Fresh [], specialize (F Fresh) T, eqbar Fresh.
 \end{elpicode}
-
 \noindent
 The only detail worth describing is the use of the \elpi{prune} built-in
 to restrict the scope of \elpi{Fresh} to the empty one. While this is not
@@ -2638,10 +2686,11 @@ this issue.
 \section{The first prototype}\label{sec:poc}
 
 
-The first version of Elpi was written by me in about three months, with the
+The first version of Elpi was written by me, with the
 objective of understanding the $\lambda$Prolog language and some of the
 techniques adopted to implement it, such as the suspension
-calculus~\cite{NADATHUR200235}. This was Elpi-POC.
+calculus~\cite{NADATHUR200235}. This proof of concept, that we call Elpi-POC,
+was written in OCaml~\cite{leroy3ocaml}  in about three months.
 
 Elpi-POC served as an easy playground to understand which features were needed
 to manipulate terms with holes: a safeguard against instantiating them by
@@ -3781,15 +3830,17 @@ to all subgoals and backward to the ancestor (via the stack). The trace is
 also searchable.
 
 The main limitation is that the implementation currently handles only
-``small'' traces (below 20 megabytes), as it loads the trace upfront. Removing
+``small'' traces (below 20 megabytes), as it loads the trace upfront
+and web apps are run in a momery constrained sandbox by VSCode.
+Removing
 this limitation is possible and planned.
 
 \chapter{Rocq-Elpi}\label{sec:rocq}
 
 
 While Elpi is a standalone language and software project, it was designed to
-serve as an \emph{extension language} for Rocq. The glue between Elpi and Rocq
-is called Rocq-Elpi.
+serve as an \emph{extension language} for Rocq~\cite{Coq-refman}.
+The glue between Elpi and Rocq is called Rocq-Elpi.
 
 My definition of this role, \emph{extension language}, is largely influenced by
 the Lua programming language~\cite{10.5555/1200583}. Lua is an extension
@@ -3803,7 +3854,8 @@ automatic memory management and provides dictionaries as a built-in data
 structure. Finally, it is easy for a user to get started with Lua because no
 special development environment is needed -- the host application is sufficient,
 since Lua is an interpreter.
-Elpi aims to do the same for OCaml, with Rocq as the host application of
+Elpi aims to do the same for OCaml~\cite{leroy3ocaml}, with Rocq as the
+host application of
 interest.
 
 In academia, the same role is often called a meta-programming framework. Rocq's
@@ -3815,12 +3867,15 @@ programs. In this sense, Elpi programs operate at the meta level.
 
 Fortunately, OCaml features automatic memory management, types, and algebraic
 data. It is much, much higher level than C. So why is it hard to extend Rocq?
+Why do we need another language?
 
-The first difficulty is that the complexity of Rocq's main data type, terms,
-is not completely hidden by the algebraic data types provided by the
+\index[concepts]{Gallina}
+The first difficulty is that the complexity of Rocq's core language,
+\emph{Gallina}, is not completely hidden by the algebraic data types
+provided by the OCaml
 programming language. The missing features are encoded, and it is hard to
 completely hide them from the programmer via curated APIs. In particular,
-Rocq terms feature binders and holes.
+Gallina terms feature binders and holes.
 
 Binders pose two problems of their own and interact poorly with holes. The
 first problem is that they are typically encoded with numbers (De Bruijn
@@ -3862,14 +3917,14 @@ right compiler and tools, an embedded interpreter still offers some
 advantages -- especially if the language is rule-based. One can iterate faster,
 without even restarting the host application, and sometimes even modify the
 code at a distance: if the code is defined far away, in a library being used,
-one can replace bits of its code here by replacing a rule defined there with a
+one can replace bits of its code by replacing a rule defined there with a
 new one defined here, where the problem shows up, and in the end conduct a
 much faster investigation.
 
 \section{Encoding Rocq terms and contexts}\label{GALLINA}
 
 
-The main data type that Rocq-Elpi programs work with is the one of terms. The
+The main data type that Rocq-Elpi programs work with is the one of Rocq terms. The
 first aspect of terms worth describing is the pointers to global objects.
 While \elpi{constant}, \elpi{inductive}, and \elpi{constructor} are opaque
 data (as in \cref{sec:opaquedata}), their nature is exposed as an algebraic
@@ -3882,9 +3937,14 @@ type indt  inductive -> gref.           % nat, list, ...
 type indc  constructor -> gref.         % O, S, nil, cons, ...
 \end{elpicode}
 
+\noindent
+In the examples part of this document we shall use the string notation for
+these three opaque data types, althought in real code one needs to resolve
+a \elpi{string} to a \elpi{gref} via the \elpi{rocq.locate} API.
+
 Global objects are injected into the term data type via the \elpi{global} term
-constructor and its variant \elpi{pglobal}, which is dedicated to universe-
-polymorphic global objects.
+constructor and its variant \elpi{pglobal}, which is dedicated to
+universe-polymorphic global objects.
 
 \begin{elpicode}
 kind term type.
@@ -3893,11 +3953,15 @@ type pglobal gref -> univ-instance -> term.
 type sort    sort -> term.                 % Prop, Type@{i}, SProp
 \end{elpicode}
 
-We omit the algebraic data type for sorts and instead focus on the three
+\noindent
+We omit the code for the \elpi{sort} data type and just remind it
+represents Rocq sorts such as \rocq{Prop} and \rocq{Type}.
+
+Instead we focus on the three
 binders: \elpi{fun} and \elpi{prod} for abstraction, and \elpi{let} for
 abbreviation. In addition to the higher-order argument, the detail common to
 all of them is the \elpi{name} argument. It stands for pretty-printing
-information, e.g., the bound variable as written by the user. It is important
+information, e.g., the bound variable name as written by the user. It is important
 to note that \elpi{name} is an opaque data type with a trivial equality test.
 That is, the names ``x'' and ``y'' are equal in Elpi, although they hold
 different values in OCaml. This is key to aligning the equational theory of
@@ -3910,23 +3974,39 @@ type prod name -> term -> (term -> term) -> term.            % ∀
 type let  name -> term -> term -> (term -> term) -> term.    % let
 \end{elpicode}
 
-
+\noindent
 Application is n-ary, with the head and arguments held in a list. This choice,
 over binary application as in~\cref{sec:hello}, eases access to the head:
 according to our experience, the vast majority of rules are discriminated by
 the head constant of the terms they operate on.
 
+\begin{elpicode}
+type app       list term -> term.                     
+\end{elpicode}
+
+\noindent
 The Rocq pattern matching constructor packs together the scrutinee, a term
-used to uniformly assign a type to branches, and a list of branches. The
+used to uniformly assign a type to branches, and a list of branches.
+
+\begin{elpicode}
+type match     term -> term -> list term -> term.   
+\end{elpicode}
+
+\noindent
+The
 fixpoint operator is a binder for the recursive call and carries the index of
-the decreasing argument. Finally, a single constructor holds all primitive
+the decreasing argument. 
+
+\begin{elpicode}
+type fix       name -> int -> term -> (term -> term) -> term.
+\end{elpicode}
+
+\noindent
+Finally, a single constructor holds all primitive
 values, e.g., 63-bit integers, floating point numbers, and primitive record
 projections.
 
 \begin{elpicode}
-type app       list term -> term.                     
-type match     term -> term -> list term -> term.   
-type fix       name -> int -> term -> (term -> term) -> term.
 type primitive primitive-value -> term.
 \end{elpicode}
 
@@ -3948,10 +4028,18 @@ light of this, code that crosses a binder is expected to declare either a
 follows:
 
 \begin{elpicode}
-cross (fun N T F) :- pi x\ decl x N T => cross (F x).
+some-pred (fun N T F) :- pi x\ decl x N T => some-pred (F x).
 \end{elpicode}
 
+\noindent
+And convenience macros help the programmer obey the discipline. Note how
+the macro arguments are the same of the term constructor it crosses:
 
+\begin{elpicode}
+some-pred (fun N T F) :- @pi-decl N T x\ some-pred (F x).
+\end{elpicode}
+
+\noindent
 As a result of this convention, one can call \elpi{rocq.typecheck} deep inside
 a term. As described in~\cref{sec:API}, a built-in predicate can be equipped with a
 \ocaml{ctx_readback} function, such as \ocaml{proof_context} in the code
@@ -3979,6 +4067,7 @@ to unify the inferred type with the expected one \ocaml{ety}, when provided.
 The \ocaml{B.diagnostic} datum is either the Elpi value \elpi{ok} or
 \elpi{error "message"}; thus, a call \elpi{rocq.typecheck T Ty ok} is the
 idiom to assert that \elpi{T} is well-typed of type \elpi{Ty}.
+~\\
 
 The only missing piece is \ocaml{sigma}, the environment assigning type
 judgements to holes, i.e., the call to the \ocaml{get_sigma} and
@@ -3987,32 +4076,46 @@ judgements to holes, i.e., the call to the \ocaml{get_sigma} and
 \section{Encoding holes (missing terms)}\label{sec:hoasholes}
 
 
-Each Rocq hole has an entry in \ocaml{sigma} that resembles a typing sequent.
-Below, we show simplified code from the sources of Rocq:
+Each Rocq hole has an entry in \ocaml{sigma} that resembles a sequent.
+We show in~\cref{fig:sigma} simplified code from the sources of Rocq 9.0:
 
+\begin{figure}[h]
 \begin{ocamlcode}
-type evar_body =
-  | Evar_empty : evar_body
-  | Evar_defined : constr -> evar_body
-type evar_info = {
-  evar_concl : constr;
-  evar_hyps : named_context_val;
-  evar_body : evar_body;
+module Evar : sig
+
+  type t = int                             (* hole handle    *)
+  module Map : Map.s with type key = t     (* map on holes   *)
   ...
-}
-type evar_map = {
-  (* Existential variables *)
-  defn_evars : evar_info Map.t;
-  undf_evars : evar_info Map.t;
-  (** Universes *)
-  universes  : UState.t;
-  ...
-}
+
+module Evd : sig
+
+  type evar_body =
+    | Evar_empty                      (* no inhabitant yet   *)
+    | Evar_defined of constr          (* proof term          *)
+
+  type evar_info = {
+    evar_concl : constr;              (* sequent conclusion  *)
+    evar_hyps  : named_context_val;   (* sequent context     *)
+    evar_body  : evar_body;           (* optional proof term *)
+    ...
+  }
+
+  type evar_map = {
+    (* Evars, split in two for performance reasons *)
+    defn_evars : evar_info Evar.Map.t;
+    undf_evars : evar_info Evar.Map.t;
+
+    (* Universe constraints *)
+    universes  : UState.t;
+    ...
+  }
 \end{ocamlcode}
+\caption{Rocq's evar map\label{fig:sigma}}
+\end{figure}
 
 In Elpi, we represent this data -- referred to as \ocaml{sigma} -- as a set of
-\elpi{evar} constraints. Such a constraint links a ``raw'' Elpi unification
-variable \elpi{RawEv}, a type, and the ``elaborated'' Elpi unification variable
+\elpi{evar} constraints. Such a constraint links a \emph{raw} Elpi unification
+variable \elpi{RawEv}, a type, and the \emph{elaborated} Elpi unification variable
 \elpi{Ev} (their meaning is clarified below).
 The constraint should live in a context of hypothetical rules \elpi{Ctx}
 assigning types to bound variables. In other words, each evar is represented
@@ -4026,15 +4129,19 @@ by the result of suspending a query as follows:
 
 \begin{elpicode}
 pred evar i:term, i:term, o:term. % RawEv Ty Ev
-evar X Ty R :- var X, var R,      !, declare_constraint (evar X Ty R) [X, R].
-evar X Ty R :- var X, not(var R), !, rocq.typecheck R Ty ok, X = R.
-evar X Ty R :- not(var X), var R, !, rocq.elaborate-skeleton X Ty R ok.
+evar X Ty R :- var X, var R,      !,
+  declare_constraint (evar X Ty R) [X, R].
+evar X Ty R :- var X, not(var R), !,
+  rocq.typecheck R Ty ok, X = R.
+evar X Ty R :- not(var X), var R, !,
+  rocq.elaborate-skeleton X Ty R ok.
 \end{elpicode}
 
 \noindent
-The code above enforces the following constraints:
+The code above enforces the following invariants:
 
 \begin{itemize}
+  \item each unassigned Rocq evar has a cooresponding Elpi constraint
   \item \elpi{Ev} can be assigned to a term \elpi{R} only if
         \elpi{R} has type \elpi{Ty} in context \elpi{Ctx}
   \item \elpi{RawEv} can only be assigned to a term \elpi{X} if
@@ -4044,7 +4151,7 @@ The code above enforces the following constraints:
 
 \noindent
 In the code above, \elpi{rocq.elaborate-skeleton} is an API very similar to
-\elpi{rocq.typecheck}, but it does not modify its input in place. Instead, it
+\elpi{rocq.typecheck}, but that does not modify its input in place. Instead, it
 uses its input as a skeleton term that is copied. This allows for changes to
 the structure of the term, such as inserting explicit coercions to implement
 type casts. The API corresponds to the code that Rocq runs on any input term
@@ -4071,7 +4178,7 @@ Note how \elpi{declare-evar} uses a CHR rule to craft a new goal with a
 precise context \elpi{Ctx}, regardless of the context under which
 \elpi{declare-evar} is run. Indeed, a Rocq API that is called deep
 inside a term and encounters a new hole will add an entry for it to Rocq's
-sigma, but also generate a \elpi{declare-evar}, and hence an \elpi{evar}
+evar map, but also generate a \elpi{declare-evar}, and hence an \elpi{evar}
 constraint in Elpi. This is possible thanks to the type of contextual
 conversions (\cref{sec:hodata}), which includes a list of extra goals to be generated in response
 to the conversion.
@@ -4101,7 +4208,7 @@ module FlexibleData : sig
 
 \noindent
 The extensible state contains two instances of the bidirectional map
-described above: one for ``raw'' holes and one for ``elaborated'' holes. A Rocq
+described above: one for raw holes and one for elaborated holes. A Rocq
 \ocaml{Evar.t} is linked to one of each.
 To propagate changes to \ocaml{sigma} performed by Rocq, we fold
 over the set of linked evars to check if they have been assigned. If so, we
@@ -4142,8 +4249,8 @@ Elpi Command hello.
 Elpi Accumulate hello lp:{{
   main [str X] :- rocq.say "Hello" X.
 }}.
-Elpi hello "reader".
-Fail Elpi hello 46.
+Elpi hello "reader".    (* prints "Hello reader" *)
+Fail Elpi hello 46.     (* fails *)
 \end{rocqcode}
 
 The simple program above calls the \elpi{rocq.say} built-in whenever the
@@ -4178,15 +4285,18 @@ elpi intro "Hp".
 
 In the example above, the tactic expects to receive a string \elpi{ID}; it
 checks that no Rocq proof variable is already using the same name, and finally
-refines the goal with a lambda abstraction, which is the proof term for the
+refines\footnote{The \elpi{refine} API is akin to Rocq's \rocq{refine}
+ractic: it makes progress on one goal by
+providing a term containing holes, holes for which new goals are generated}
+the goal with a lambda abstraction, which is the proof term for the
 logical rule of introduction of universal quantification or implication.
 Note that the check for the name being free is just for convenience: a
 collision would not result in name capture in Elpi, and when translated back
 to Rocq, the deepest variable would be forcibly renamed to avoid capture in Rocq too.
 
 Interested readers can consult a longer tutorial on Elpi tactics
-~\cite{tuto:tactics}, as well as eltac~\cite{app:eltac}, a collection of Rocq
-tactics rewritten in Elpi for didactic purposes.
+~\cite{tuto:tactics}, as well as look into eltac~\cite{app:eltac},
+a collection of basic Rocq tactics rewritten in Elpi for didactic purposes.
 
 \subsection{Databases}\label{sec:homo}
 
@@ -4213,7 +4323,7 @@ Elpi Db age.db lp:{{
 \end{rocqcode}
 
 
-Elpi rules can be assigned a name via the \elpi{:name} attribute. Named rules
+Elpi rules can be assigned a name via the \texttt{:name} attribute. Named rules
 serve as anchor points for new rules when they are added to the database.
 
 
@@ -4276,7 +4386,7 @@ Elpi age "mallory". (* mallory is 24 years old *)
 
 
 The same databases can be accumulated by commands and tactics in order to
-share a ``state'' -- a common knowledge base that typically grows as the commands
+share a state -- a common knowledge base that typically grows as the commands
 or tactics are used in a Rocq library.
 
 \subsubsection{Homoiconicity and rules}
@@ -4298,7 +4408,11 @@ This is the simplest evidence of it: \elpi{TheNewRule} contains a piece of
 Elpi code built from the \elpi{age} predicate and the two arguments passed to
 \elpi{main}. Since construction and inspection are conflated into unification
 in logic programming, the same line can be used to analyze the syntax of a
-piece of code in order to extract the name and age.
+piece of code in order to extract the name and age. Moreover, since expressions
+and commands are not confused in logic programming, there is no confusion
+in the user's intention: she wants to build a piece of code, not to run
+it.\footnote{In other words the key \texttt{'} operator of the Lisp family
+of languages is not needed.}
 
 
 The second helpful characteristic of Elpi is that code is organized into rules,
@@ -4348,15 +4462,15 @@ following section makes good use of this possibility.
 
 As a simple example, we present a tactic and a command that communicate via a
 database. The tactic \rocq{to_bool} transfers a goal from the realm of
-propositions to that of computable (boolean) tests (i.e., decidable
+propositions to that of computable (boolean) tests (i.e., effectively decidable
 propositions). The command \rocq{register_decision} takes a proof of
-equivalence between a proposition and a boolean test and ``compiles'' it into an
+equivalence between a proposition and a boolean test and compiles it into an
 Elpi rule. The database contains all known rules for translating propositions
 into tests: it is queried by \rocq{to_bool} and populated by
 \rocq{register_decision}.
 
 
-It is customary to organize Rocq-Elpi code in this way. The key feature is that
+It is customary to organize Rocq-Elpi code in this way. The key advantage is that
 \rocq{to_bool} is extensible: when a new Rocq predicate is declared and a new
 corresponding test is defined, it is sufficient to call
 \rocq{register_decision} to extend \rocq{to_bool}.
@@ -4364,7 +4478,7 @@ corresponding test is defined, it is sufficient to call
 
 
 We assume a Rocq environment with the following lemmas. The \rocq{reflect}
-predicate links a proposition with a boolean test: \rocq{reflect P b} means
+predicate~\cite{assia_mahboubi_2022_7118596} links a proposition with a boolean test: \rocq{reflect P b} means
 \rocq{P} holds if and only if \rocq{b = true}.
 
 \begin{rocqcode}
@@ -4416,8 +4530,8 @@ solve (goal Ctx _ Ty _ _ as G) [G1] :-
 
 
 The tactic simply queries the database for a proof \elpi{P} that the goal is
-related to a boolean test, then refines the goal (as in the standard Rocq
-\rocq{refine} tactic) with \rocq{elimT lp:P _}. The hole stands for the proof
+related to a boolean test \rocq{b}, then refines the goal.
+with \rocq{elimT lp:P _}. The hole stands for the proof
 of \rocq{b = true}, i.e., the subgoal \elpi{G1}.
 
 
@@ -4464,7 +4578,7 @@ andP : ∀P Q p q,
   reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
 \end{rocqcode}
 
-
+We are not set to write our little rule compiler.
 The \elpi{compile} predicate has three inputs and one output. The first input
 is the type of a lemma, and the second is the proof of that lemma; the
 relation between the first two arguments is a key invariant. The third
@@ -4491,16 +4605,17 @@ premises of the rule are the \elpi{Hyps} recursive calls, prefixed with a cut.
 
 
 The second rule handles premises that are turned into recursive calls. In this
-case, the output rule features an extra \elpi{pi} quantification, and the
-\elpi{Hyps} list grows longer. The \elpi{h} variable stands for the proof
-obtained by the recursive call -- a proof of \rocq{reflect lp:S _} -- hence an
-argument we can pass to the second argument as in \rocq{lp:P lp:h}, so as to
-maintain the invariant that it is a proof of \elpi{T}, the type in which we
+case, the rule being synthesized features an extra \elpi{pi} quantification,
+and the \elpi{Hyps} list grows longer.
+The \elpi{h} variable stands for the proof
+obtained by the recursive call -- a proof of \rocq{reflect lp:S _} -- hence
+a value we can pass to \elpi{P} obtaining the Rocq term
+\rocq{lp:P lp:h} that is a proof of \elpi{T}, the type in which we
 recurse.
 
 
 The last rule is a simpler version of the second; in this case, the
-quantification is not a premise, so we do not extend \elpi{Hyps}.
+quantification is not a premise. In this case we do not extend \elpi{Hyps}.
 
 
 The code of the \rocq{register_decision} command locates the given lemma,
@@ -4548,6 +4663,10 @@ predicate is not (yet) registered, resulting in an explanatory error message.
 Then, it registers a test for the missing predicate and successfully solves
 the goal.
 
+We believe this simple example shows how natural it is to build
+commands and tactics around the concept of data bases and how a
+rule based language like Elpi is a good fit for that.
+
 
 \chapter{Applications written in Elpi}
 
@@ -4558,7 +4677,7 @@ personally contributed.
 Subsequently, we briefly survey additional tools developed by our colleagues,
 some of which do not rely on Rocq.
 At the end of each section, we discuss which features of Elpi and Rocq-Elpi are
-essential to the tool under consideration.
+beneficial to the tool under consideration.
 
 \section{Derive}\label{sec:derive}
 
@@ -4612,11 +4731,13 @@ is has the expected type, i.e. \rocq{0} with \rocq{is_zero};
 
 The translation becomes interesting when the type has parameters such as
 \rocq{A} in \rocq{list A}. In that case the translation builds
-a predicate parametric in \rocq{A} and in its translation. For example
-the translation of \rocq{list A} is a predicate
+a predicate parametric in \rocq{A} and in its translation.
+
+The translation of \rocq{list A} is a predicate
 \rocq{is_list : ∀A, (A → U) → (list A → U)},
 and the translation of the constructors \rocq{nil} and \rocq{cons}
 are:
+
 \begin{rocqcode}
 is_nil: ∀A (isA : A → U), is_list A isA nil
 is_cons: ∀A (isA : A → U), ∀a, isA a → 
@@ -4681,9 +4802,10 @@ elements of \rocq{l}.
 
 This additional assumption comes at a price: the induction principle does not
 apply to just any tree, but to a tree \elpi{t} such that
-\rocq{is_rtree A is_A t} holds. This extra argument is synthesized
-automatically.
+\rocq{is_rtree A is_A t} holds.
 
+This extra argument is synthesized
+automatically.
 For non-containers like \rocq{nat}, we prove \rocq{∀n, is_nat n} by induction
 on \rocq{n} (no different from how we proved \rocq{is_nat 3} previously). For
 containers, we prove the statement under the assumption that the predicate for
@@ -4703,24 +4825,20 @@ relevant classes of predicates:
 \end{itemize}
 
 To prove the deep induction principle, we require some scaffolding, again
-synthesized automatically via Elpi programs. The first of these allows us to
-operate under a unary parametricity translation.
+synthesized automatically via Elpi programs. In particular we need
+a tool to operate under a unary parametricity translation.
 
 \begin{rocqcode}
 Definition is_list_functor A P Q :
-  (∀a, P a → Q a) → ∀l, is_list A P l → is_list A Q l
-:=
-  λ(f : ∀a, P a -> Q a) =>
-    fix IH l (pl : is_list A P l) {struct pl} : is_list A Q l :=
-      match pl in (is_list _ _ s1) return (is_list A Q s1) with
-      | is_Nil _ _ => is_Nil l pl
-      | is_Cons _ _ a Pa xs Pxs =>
-          is_Cons A Q a (f a Pa) xs (IH xs Pxs)
-      end
+  (∀a, P a → Q a) → ∀l, is_list A P l → is_list A Q l.
 \end{rocqcode}
 
+\noindent
+The proof of this brick is not particularly interesting, it just
+amounts at recursing over \rocq{is_list} and using the hypothesis
+on each element of the list.
 
-The proof proceeds by straightforward induction on the list \rocq{l}. We can
+We can
 now present the proof of the deep induction principle for rose trees:
 
 \begin{rocqcode}
@@ -4750,12 +4868,14 @@ is_list_functor (rtree A) (is_rtree A PA) P IH l Pl :
 
 The last term satisfies the premise of \rocq{His_Node}, which in turn gives
 the user of the induction principle access to the property \rocq{P} on all
-elements of \rocq{l}.
+elements of \rocq{l}. The \rocq{is_list_functor} property is
+key to apply the induction hypothesis \rocq{IH} deep, on all the elements
+of \rocq{Pl}. 
 
 \subsection{Natural equality tests}
 
 
-Now that we have a string induction principle, we can establish the following
+Now that we have a strong induction principle, we can establish the following
 properties for the recursive program of interest.
 
 \begin{rocqcode}
