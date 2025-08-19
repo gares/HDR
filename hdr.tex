@@ -22,7 +22,7 @@
 \usepackage{varwidth}
 \tcbuselibrary{skins}
 
-\newtcolorbox{elpibox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{elpibox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
@@ -33,7 +33,7 @@
     ,text width=1mm] {\centering E L P I} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
     
-\newtcolorbox{ocamlbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{ocamlbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
@@ -44,7 +44,7 @@
     ,text width=1mm] {\centering O C A M L} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
-\newtcolorbox{rocqbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{rocqbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
@@ -55,7 +55,7 @@
     ,text width=1mm] {\centering R O C Q} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
-\newtcolorbox{chrbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{chrbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
@@ -63,7 +63,7 @@
   overlay={\begin{tcbclipinterior}\fill[Gold!40]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
-    ,text width=1mm] {\centering CHR} 
+    ,text width=1mm] {\centering C H R} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
 \makeindex[name=concept,title=Index of concepts ,intoc]
@@ -120,21 +120,21 @@
 %'theorem.py:CoqLexer -x'
 \newminted[xelpicode]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newenvironment{elpicode}
-  {\VerbatimEnvironment~\\\begin{elpibox}\begin{xelpicode}}{\end{xelpicode}
-\end{elpibox}\\}
+  {\VerbatimEnvironment\begin{elpibox}\begin{xelpicode}}{\end{xelpicode}
+\end{elpibox}}
 
 \newminted[elpicodelj]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=0em}
 \newmintinline[elpi]{elpi.py:ElpiLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newminted[xrocqcode]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newenvironment{rocqcode}
-  {\VerbatimEnvironment~\\\begin{rocqbox}\begin{xrocqcode}}{\end{xrocqcode}
-\end{rocqbox}\\}
+  {\VerbatimEnvironment\begin{rocqbox}\begin{xrocqcode}}{\end{xrocqcode}
+\end{rocqbox}}
 \newmintinline[rocq]{theorem.py:XCoqLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
  
 \newminted[xocamlcode]{ml.py:OcamlLexer}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newenvironment{ocamlcode}
-  {\VerbatimEnvironment~\\\begin{ocamlbox}\begin{xocamlcode}}{\end{xocamlcode}
-\end{ocamlbox}\\}
+  {\VerbatimEnvironment\begin{ocamlbox}\begin{xocamlcode}}{\end{xocamlcode}
+\end{ocamlbox}}
 \newmintinline[ocaml]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
 \newenvironment{dedication}
   {%\clearpage           % we want a new page          %% I commented this
@@ -962,7 +962,10 @@ Indeed, CHR rules do have a logical reading. The general syntax for rules is
 as follows, where \texttt{T} is the guard (a regular goal):
 
 \begin{chrbox}\begin{verbatim}
-rule G1 \ G2 | T <=> G3
+rule G1 % match
+   \ G2 % remove
+   | T  % guard
+ <=> G3 % new
 \end{verbatim}
 \end{chrbox}
 
