@@ -326,6 +326,23 @@ algorithm and a proof transfer tool. The former demonstrates how Elpi
 can deal with terms containing holes, while the latter takes advantage of
 the rule-based nature of Elpi to implement a smooth integration with Rocq.
 Both are tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
+We follow these typesetting conventions for code blocks:
+
+\begin{elpicode}
+%
+% Elpi code possibly intertwined with   {{ Rocq code }}
+%
+\end{elpicode}
+\begin{rocqcode}
+(*
+  Rocq code possibly intertwined with   lp:{{ Elpi code }}
+*)
+\end{rocqcode}
+\begin{ocamlcode}
+(* 
+   OCaml code
+*)
+\end{ocamlcode}
 
 \chapter{Elpi the language: \emph{de A \`a Z}}
 
