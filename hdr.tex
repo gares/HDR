@@ -4886,14 +4886,16 @@ Definition correct_at (T : Type) (eqb : T -> T -> bool) (x : T) :=
   ∀y : T, reflect (x = y) (eqb x y).
 \end{rocqcode}
 
+\noindent
 This is the form of the correctness lemmas we will prove.
 
 \begin{rocqcode}
-Lemma seq_eq_correct : ∀A eqA (l : list A),
+Lemma list_eq_correct : ∀A eqA (l : list A),
   is_list A (correct_at A eqA) l ->
     correct_at (list A) (list_eq A eqA) l
 \end{rocqcode}
 
+\noindent
 This lemma states: if \rocq{eqA} is a correct test for all elements of
 \rocq{l}, then \rocq{list_eq A eqA} is a correct test for \rocq{l}.
 
@@ -4911,7 +4913,7 @@ Definition rtree_eq A (A_eq : A → A → bool) :=
     end.
 \end{rocqcode}
 
-
+\noindent
 What is remarkable is that the correctness proof for \rocq{rtree_eq}
 reuses the correctness proof for \rocq{list_eq}.
 
@@ -4931,6 +4933,7 @@ Definition rtree_eq_correct (A : Type) (eqA : A -> A -> bool) :
          (list_eq_correct (rtree A) (rtree_eq A eqA) sib Psib)).
 \end{rocqcode}
 
+\noindent
 The proof also relies on two auxiliary lemmas that are not particularly
 interesting; we refer the reader to~\cite{tassi:hal-01897468} for further
 details.
@@ -4987,7 +4990,7 @@ Definition fields_t : positive -> Type.
 Definition fields A :  ∀r : rtree A, fields_t (tag t).
 \end{rocqcode}
 
-The main code mattern matches over the first \rocq{rtree} and 
+The main code pattern matches over the first \rocq{rtree} and 
 pre-computes its tag and fields. The it calls a common piece of
 code \rocq{eqb_body} that will test if the tags agree and proceed
 if it is the case.
@@ -5055,7 +5058,7 @@ We believe that the automatic handling of names and holes was essential. Only a
 few Rocq APIs were truly necessary: reading from and writing to the logical
 environment, and invoking type inference. Although these APIs require glue code
 that is far from trivial -- since they read and write inductive types in HOAS
-form -- performance was not critical. All bottlenecks were due to inefficiencies
+form -- performance was not critical according to the benchmarks in~\cite{gregoire:hal-03800154}. All bottlenecks were due to inefficiencies
 in Rocq, particularly in the APIs for managing universe constraints.
 
 
@@ -5107,22 +5110,20 @@ The ease of defining new interfaces provided by HB unlocked the growth of the
 Mathematical Components library, particularly its order theory component. The
 graph in \cref{fig:mc} shows in green the number of interfaces defined using
 HB.
-
 \begin{figure}[!ht]
 \includegraphics[width=\textwidth,trim={2cm 4cm 2cm 4cm},clip]{hb\_intf.pdf}
 \caption{Evolution of the Mathematical Components library\label{fig:mc}}
 \end{figure}
-
 One can see that since HB was introduced, the number of interfaces has grown
 steadily. In the last three years, about a hundred were added, almost doubling
 their total, while in the previous seven years only a handful were added. One
-can also see that the size of the library visibly shrank as a result of the
+can also see that the size of the library shrank as a result of the
 port, since the HB language hides boilerplate code that, when handwritten, is
 quadratic in the number of related interfaces.
 
 We want to emphasize the link between the growth of the hierarchy of
 interfaces and the growth of the actual contents (definitions and theorems) of
-a formal library. \cref{fig:mca} shows the steady progress made by the
+a formal library. Figure \ref{fig:mca} shows the steady progress made by the
 Mathematical Components Analysis library (MCA).
 
 \begin{figure}[!hb]
@@ -5227,8 +5228,8 @@ within the goal to identify terms up to Rocq's unification. In other words, it
 leverages the sophisticated machinery of contextual conversions described in
 ~\cref{sec:hodata}.
 
-The algebra tactics project includes a few benchmarks, such as a five-hundred-
-line polynomial equation in six variables. The \rocq{ring} tactic takes about
+The algebra tactics project includes a few benchmarks, such as a
+five-hundred-line polynomial equation in six variables. The \rocq{ring} tactic takes about
 five seconds to solve it.
 
 While the standard, simpler reification written in OCaml is an order of
@@ -5246,7 +5247,7 @@ library is: how do we make it compute?
 Almost all definitions in the library are computable, but they are not
 immediately executable by Rocq for one of two reasons. Either they are
 executable but inefficient, being optimized for proofs rather than
-computation, or they are ``locked behind an opaque module signature to enforce
+computation, or they are locked behind an opaque module signature to enforce
 an abstraction barrier, preventing the Rocq type checker from potentially
 taking an unreasonable amount of time.
 
@@ -5271,12 +5272,12 @@ translation for non-bare-bone relations.
 
 \subsubsection{The role of Rocq-Elpi in Trocq}
 
-In his Ph.D. dissertation~\cite[Page 115]{enzo}, Crance highlights how naturally
+In his Ph.D. dissertation~\cite[Page 115]{enzo}, Enzo Crance highlights how naturally
 pen-and-paper Trocq rules can be transposed into Elpi. It is worth mentioning
 that Crance uses Constraints Handling Rules to store axiom requirements when
 translating an expression, and only when all requirements are known does he
-compute the minimum set of Rocq axioms needed to represent the parametricity-
-based translation.
+compute the minimum set of Rocq axioms needed to represent the
+parametricity-based translation.
 
 % \subsection{EIris: ???}
 
@@ -5308,8 +5309,8 @@ It is well known that Rocq modules can, to some extent, emulate namespaces.
 Rocq modules are inspired by OCaml modules and are closed entities: once a
 module is closed, no new items can be added to it. One can define a new module
 and include the old one together with some additions, but the resulting module
-is a new one, with a different name. In contrast, namespaces provide an open-
-ended notion: new items can always be added to an existing namespace.
+is a new one, with a different name. In contrast, namespaces provide an
+open-ended notion: new items can always be added to an existing namespace.
 
 The key ingredient for emulating namespaces with modules is the presence in
 Rocq of a so-called ``nametab'': an environment of non-ambiguous names that can
@@ -5359,7 +5360,7 @@ Eval lazy in more_stuff. (* = 1 *)
 \subsubsection{The role of Rocq-Elpi in BRiKs}
 
 Although BlueRock has made some of its code public, much of it remains
-private, so we cannot speculate in detail about which features of the Elpi
+private, so we cannot speculate too much about which features of the Elpi
 language play which roles. Certainly, the large set of APIs provided by
 Rocq-Elpi is important here.
 
@@ -5419,7 +5420,7 @@ works.
 
 \subsection{MLTS}
 
-As part of his Ph.D., G\'{e}rard designed and implemented a
+As part of his Ph.D., Ulysse G\'{e}rard designed and implemented a
 functional programming language with support for binder mobility, called MLTS~\cite{mlts}.
 His implementation relies on Elpi for animating the rules defining its
 semantics, and he made a prototype available in the browser by transpiling
@@ -5447,10 +5448,10 @@ work.
 
 Nathan Guermond developed a tiny proof assistant based on a flavor of set
 theory~\cite{https://doi.org/10.1112/blms/22.1.101} using
-Elpi.~\footnote{\url{https://github.com/nguermond/local-set-theory}}
+Elpi.\footnote{\url{https://github.com/nguermond/local-set-theory}}
 
 
-\subsubsection{The role of N. Guermond in Elpi}
+\subsubsection{The role of Nathan Guermond in Elpi}
 
 During the development of his proof assistant, N. Guermond discovered and
 helped me fix quite a number of bugs involving $\eta$-equivalence in Elpi's
@@ -5492,8 +5493,8 @@ We also wish to highlight the importance of the clarity provided by
 $\lambda$Prolog (and CHR) in the design of Elpi. Building on sound foundations
 draws a clear distinction between syntactic sugar and ``hacks.'' In particular,
 the parallel between the execution of $\lambda$Prolog code and proof search in
-intuitionistic proof theory made it evident that we should avoid introducing ad
-hoc introspection primitives, such as those described in~\cite[Section 8 and
+intuitionistic proof theory made it evident that we should avoid 
+some ad-hoc introspection primitives, such as those described in~\cite[Section 8 and
 later]{10.1145/3236788}, to implement the type inference algorithm for a form
 of Standard ML (see \cref{sec:milner}) or the type checker for the
 simply typed $\lambda$-calculus (see \cref{sec:chrui}). The former
@@ -5508,29 +5509,68 @@ formally -- as the meta-theory of the proof system.
 \subsection{Elpi the software}
 
 
-What we enjoy most about our work is designing and building tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
-To us, Elpi is a tool for building tools more efficiently. Implementing Elpi was great fun; in fact, it is our first fully-fledged programming language. The time required to produce a working implementation would have been prohibitive without an Inria position free from compulsory teaching duties and with engineering support from the institute. % (see~\cref{sec:trace}).
+What we enjoy most about our work is designing and building
+tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
+To us, Elpi is a tool for building tools more efficiently. Implementing Elpi
+was great fun; in fact, it is our first fully-fledged programming language. The
+time required to produce a working implementation would have been prohibitive
+without an Inria position: free from compulsory teaching duties and with
+engineering support from the institute. % (see~\cref{sec:trace}).
 
-It is also important to acknowledge that we stood on the shoulders of a third giant: Elpi is written in OCaml, which enables both reasonable performance and ease of integration with Rocq. The ability to use mutable data structures to represent unification variables allows Elpi to avoid ``reifying'' the heap (the assignment), thereby aligning the notion of garbage in Elpi data with that in OCaml data. This makes it possible to rely on the powerful OCaml garbage collector for Elpi. At the same time, OCaml's rich type system simplified the development of the Foreign Function Interface in a generic way, somewhat analogous to how the signature of ``printf'' depends on the format string. GADTs proved to be essential for this purpose.
+It is also important to acknowledge that we stood on the shoulders of a third
+giant: Elpi is written in OCaml, which enables both reasonable performance and
+ease of integration with Rocq. The ability to use mutable data structures to
+represent unification variables allows Elpi to avoid reifying the heap (the
+assignment), thereby aligning the notion of garbage in Elpi data with that in
+OCaml data. This makes it possible to rely on the powerful OCaml garbage
+collector for Elpi. At the same time, OCaml's rich type system simplified the
+development of the Foreign Function Interface in a generic way, somewhat
+analogous to how the signature of printf depends on the format string.
+GADTs proved to be essential for this purpose.
 
-The main contribution to the implementation of $\lambda$Prolog is the observation that De Bruijn levels enable an efficient implementation of a fragment of the language~\cite{dunchev15lpar}. The fragment $\mathcal{L}_\lambda^{\beta_0}$ occurs frequently in real code and supports constant-time operations and constant-size data representation as the context of bound variables grows in length.
+Our main contribution to the implementation of $\lambda$Prolog is the
+observation that De Bruijn levels enable an efficient implementation of a
+fragment of the language~\cite{dunchev15lpar}. The fragment
+$\mathcal{L}_\lambda^{\beta}$ occurs frequently in real code and supports
+constant-time operations and constant-size data representation as the context
+of bound variables grows in length.
 
 \subsection{Rocq-Elpi}
 
 
-At the time of writing, Elpi comprises about 20,000 lines of code: approximately 10,000 for the runtime and 10,000 for the parser, static checker, and ``compiler.'' Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order abstract syntax (HOAS) of Rocq terms that amounts, 5,000 for the bindings of about 300 Rocq APIs, and 3,000 for the vernacular language used to declare programs. The most complex part is the HOAS, but it is also what makes the language stand out, enabling each Rocq API to require, on average, only 16 lines to be exposed to Elpi (including documentation).
+At the time of writing, Elpi comprises about 20,000 lines of code:
+approximately 10,000 for the runtime and 10,000 for the parser, static checker,
+and compiler. Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order
+Abstract Syntax of Rocq terms; 5,000 for the bindings of
+about 300 Rocq APIs; and 3,000 for the vernacular language used to declare
+programs. The most complex part is the HOAS, but it is also what makes the
+language stand out, enabling each Rocq API to require, on average, only 16
+lines to be exposed to Elpi (including documentation).
 
-Unsurprisingly, its development was driven by the applications written in it, particularly Hierarchy Builder (\cref{sec:hb}) and Derive (\cref{sec:derive}).
+Unsurprisingly, its development was driven by the applications written in it,
+particularly Hierarchy Builder (\cref{sec:hb}) and Derive (\cref{sec:derive}).
 
-Rocq-Elpi was developed as an open source project from the very beginning, keeping the Rocq development team informed of the effort. Their commitment to providing patches to Rocq-Elpi whenever a Rocq API evolved made its development sustainable over more than seven years. Contributions from the Rocq community were also very important, especially from power users such as BlueRock Systems, who contributed a substantial amount of code.
+Rocq-Elpi was developed as an open source project from the very beginning,
+keeping the Rocq development team informed of the effort. Their commitment to
+providing patches to Rocq-Elpi whenever a Rocq API evolved made its development
+sustainable over more than seven years. Contributions from the Rocq community
+were also very important, especially from power users such as BlueRock Systems,
+who contributed a substantial amount of code.
 
 \subsection{Applications written in Elpi}
 
-A significant number of tools for Rocq have been written in Elpi, either by myself or by Rocq power users.
+A significant number of tools for Rocq have been written in Elpi, either by
+myself or by Rocq power users.
 
-Among these, the most impactful for the Rocq community is Hierarchy Builder, as it ``unblocked'' the development of the Mathematical Components library -- a widely used piece of Rocq code. Its ``ssreflect'' component is the most widely depended-upon Rocq package, which in turn makes Hierarchy Builder (and Rocq-Elpi) very important parts of the Rocq ecosystem.
+Among these, the most impactful for the Rocq community is Hierarchy Builder, as
+it unblocked the development of the Mathematical Components library -- a
+widely used piece of Rocq code. Its \texttt{ssreflect} component is the most widely
+depended-upon Rocq package, which in turn makes Hierarchy Builder (and
+Rocq-Elpi) very important parts of the Rocq ecosystem.
 
-It is also worth mentioning the existence of a substantial amount of closed-source Elpi code used internally by BlueRock Systems. We wish them success in their industrial applications.
+It is also worth mentioning the existence of a substantial amount of
+closed-source Elpi code used internally by BlueRock Systems. We wish them
+success in their industrial applications.
 
 \section{Current and future work}
 
@@ -5541,7 +5581,7 @@ Elpi as a language in its own right, and Rocq-Elpi as a framework for extending
 Rocq. On the Elpi side, the most valuable improvement would be to increase its
 appeal to programmers already experienced in functional languages. Most
 newcomers to Elpi are already familiar with functional programming, and are
-encountering logic programming for the first time. Some improvements relate to
+encountering logic programming for the first time. Some improvements related to
 syntax -- a delicate, though not deeply intellectual, aspect of any language.
 Another important area is static analysis, which is so prevalent in modern
 functional languages that programmers often take it for granted (for example,
@@ -5584,7 +5624,7 @@ input arguments first, it paves the way for a syntax for functional predicate
 bodies that is closer to functional languages, where expressions and statements
 are intermingled.
 
-Spilling~\cref{sec:spilling} already moves in this direction, but one must
+Spilling, section \ref{sec:spilling}, already moves in this direction, but one must
 explicitly invoke it by using curly braces instead of parentheses (which can be
 omitted when not needed by the parser). One wonders if this default could be
 reversed for functional predicates, enabling the previous program to be
@@ -5639,7 +5679,9 @@ mechanization of the runtime.
 This is the area where even a hundred years would not suffice for me, but there
 are smarter people who could tackle it. Abella~\cite{abella} is a good starting
 point, as it comes with a program logic for plain $\lambda$Prolog. This program
-logic does not consider the cut operator. The big-step semantics
+logic does not consider the cut operator. 
+
+The big-step semantics
 in~\cref{sec:sem} does consider cut, and we believe it could be made fully
 formal, but it is not clear that it would provide a good foundation for a
 program logic. In the ongoing mechanization of~\cite{elpidet}, we were forced
@@ -5652,17 +5694,17 @@ than the list of alternatives used in~\cref{sec:sem}.
 \subsection{Elpi as a foundational language}
 
 We have always seen, and still see, Elpi as a programming language
-that puts ``practical'' before ``foundational''.
+that puts \emph{practical} before \emph{foundational}.
 
 One of the reasons is surely
-that we felt in the ``marmitte'' of the calculus of
-Inductive contructions very early in our career, possibly because
+that we felt in the ``marmitte'' of the Calculus of
+Inductive Contructions very early in our career, possibly because
 the French and Italian schools are quite close in that respect.
 So, maybe uncousciously, the foundationa language has always
 been Rocq to me, leaving to Elpi the role of being practical.
 
 At the same our voyage in the neighborhood of computation logic
-gave us the opportunity to see other ways look at programming
+gave us the opportunity to see other ways to look at programming
 languages with support for binders, i.e. as frameworks to formally
 describe the object of interest and possibly reason about it.
 
@@ -5682,7 +5724,7 @@ Isabelle.
 
 \subsection{Deeper integration in Rocq}
 
-There are plenty of ``prolog implementations'' in the Rocq codebase, most of
+There are plenty of Prolog implementations in the Rocq codebase, most of
 which are disguised as other features. Some tactics to automatically prove
 tautologies essentially explore the search space by backtracking. Type class
 resolution essentially amounts to executing a logic program~\cite{fctc}.
@@ -5714,7 +5756,7 @@ generation of more informative error messages when these elaboration mechanisms
 fail.
 
 Finally, based on our experience implementing the first Elpi proof of
-concept~\cref{sec:poc}, the Rocq proof engine could benefit from the trail
+concept (\cref{sec:poc}), the Rocq proof engine could benefit from the trail
 mechanism as implemented in Elpi. It turns out that, for a typical Elpi
 workload, mutable terms and a trail (a log of mutable cells to unset upon
 backtracking) provide much better performance than immutable terms paired with
