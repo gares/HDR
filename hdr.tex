@@ -55,6 +55,17 @@
     ,text width=1mm] {\centering R O C Q} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
+\newtcolorbox{chrbox}{enhanced,nobeforeafter,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+  right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
+  colframe=green!0!white,
+  coltext=green!0!black,
+  colback=green!3!red!3!blue!3!white,
+  overlay={\begin{tcbclipinterior}\fill[Gold!40]
+    (frame.south east)
+    rectangle node[text=black,font=\ttfamily\bfseries\tiny
+    ,text width=1mm] {\centering CHR} 
+    ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
+
 \makeindex[name=concept,title=Index of concepts ,intoc]
 
 \SetWatermarkText{Draft \today}
@@ -125,7 +136,6 @@
   {\VerbatimEnvironment~\\\begin{ocamlbox}\begin{xocamlcode}}{\end{xocamlcode}
 \end{ocamlbox}\\}
 \newmintinline[ocaml]{ocaml}{fontsize=\small,autogobble,escapeinside=~~,mathescape=true,frame=leftline,framerule=0pt,framesep=1em}
-
 \newenvironment{dedication}
   {%\clearpage           % we want a new page          %% I commented this
    \thispagestyle{empty}% no header and footer
@@ -805,6 +815,7 @@ The \elpi{uvar as E} syntax, reminiscent of ML,
 binds the unification variable \elpi{E} to a hole in the
 goal and is semantically equivalent to the following, where \elpi{var/1} is
 the standard Prolog predicate for testing if a variable is unbound.
+
 \begin{elpicode}
 of E T :- var E, declare_constraint (of E T) [E].
 \end{elpicode}
@@ -918,7 +929,7 @@ to avoid creating a cyclic term.
 
 One detail to note is that constraints are matched against the constraint
 handling rules; that is, the non-linear occurrence of \elpi{X} does not risk
-``merging'' two unrelated typing constraints: the rule above only applies if two
+merging two unrelated typing constraints: the rule above only applies if two
 constraints about the same variable are in the store.
 
 Another important aspect is that constraint handling rules can match multiple
@@ -933,9 +944,10 @@ identify two identical subgoals and share or connect their (missing) proofs.
 Indeed, CHR rules do have a logical reading. The general syntax for rules is
 as follows, where \texttt{T} is the guard (a regular goal):
 
-\begin{verbatim}
+\begin{chrbox}\begin{verbatim}
 rule G1 \ G2 | T <=> G3
 \end{verbatim}
+\end{chrbox}
 
 \noindent
 The meaning of the rule can be phrased as $T \land G_1 \Rightarrow (G_2
