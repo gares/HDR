@@ -22,59 +22,59 @@
 \usepackage{varwidth}
 \tcbuselibrary{skins}
 
-\newtcolorbox{elpibox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{elpibox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
-  colback=green!3!red!3!blue!3!white,
+  colback=AliceBlue!15,
   overlay={\begin{tcbclipinterior}\fill[LightSlateBlue!60]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
     ,text width=1mm] {\centering E L P I} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
     
-\newtcolorbox{ocamlbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{ocamlbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
-  colback=green!3!red!3!blue!3!white,
+  colback=AliceBlue!15,
   overlay={\begin{tcbclipinterior}\fill[LightSalmon!60]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
     ,text width=1mm] {\centering O C A M L} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
-\newtcolorbox{rocqbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{rocqbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
-  colback=green!3!red!3!blue!3!white,
+  colback=AliceBlue!15,
   overlay={\begin{tcbclipinterior}\fill[LightSeaGreen!40]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
     ,text width=1mm] {\centering R O C Q} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
-\newtcolorbox{chrbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{chrbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
-  colback=green!3!red!3!blue!3!white,
+  colback=AliceBlue!15,
   overlay={\begin{tcbclipinterior}\fill[Gold!40]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
     ,text width=1mm] {\centering C H R} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
-\newtcolorbox{outputbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=0mm,bottom=0mm,
+\newtcolorbox{outputbox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
   coltext=green!0!black,
-  colback=green!3!red!3!blue!3!white,
+  colback=AliceBlue!15,
   overlay={\begin{tcbclipinterior}\fill[Gray!40]
     (frame.south east)
     rectangle node[text=black,font=\ttfamily\bfseries\tiny
-    ,text width=1mm] {\centering O U T P U T} 
+    ,text width=1mm] {\centering Q U E R Y} 
     ([xshift=-4mm]frame.north east);\end{tcbclipinterior}}}
 
 
@@ -567,6 +567,7 @@ departs from the ideal world of logic. If we admit non-logical constructs,
 then the order of rules becomes relevant, and the insertion of a rule should
 be accompanied by a grafting directive, such as being added before or after
 another rule.
+~\\
 
 It is thanks to this rule-based nature that logic programming scales so
 naturally to the domain of syntax trees with binders (next section) and
@@ -628,7 +629,9 @@ In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
 follows:
 
 \begin{elpicode}
+
 Fst = (lam x\ lam y\ x)
+
 \end{elpicode}
 The syntax \elpi{x\ t} is the programming language abstraction of the
 variables \elpi{x} over an expression \elpi{t}. Hence
@@ -757,16 +760,21 @@ and the absence of a sublanguage to manipulate suspended goals.
 For example, the following query results in the rule for application to
 be applied indefinitely:
 \begin{elpioutput}
-goal> of X T. % never returns 
+% never returns 
+goal> of X T.
+^C
 \end{elpioutput}
+\noindent
 Indeed by applying the rule:
 \begin{elpicode}
 of (app H A) T :- of H (arr S T), of A S.
 \end{elpicode}
-one assigns \elpi{app H1 A1} to \elpi{X} and the runs the subgoal
+\noindent
+one assigns \elpi{app H1 A1} to \elpi{X} and the runs the subgoal:
 \begin{elpicode}
 of H1 (arr S1 T1). 
 \end{elpicode}
+\noindent
 to which the same rule applied, and that in turns assigns to \elpi{H}
 a term \elpi{app H2 A2} and generates as a subgoal \elpi{of H2 (arr S2 T2)},
 and this process never ends.
@@ -851,13 +859,12 @@ The \elpi{uvar as E} syntax, reminiscent of ML,
 binds the unification variable \elpi{E} to a hole in the
 goal and is semantically equivalent to the following, where \elpi{var/1} is
 the standard Prolog predicate for testing if a variable is unbound.
-
 \begin{elpicode}
-of E T :- var E, declare_constraint (of E T) [E].
+of E T :- var E,
+  declare_constraint (of E T) [E].
 \end{elpicode}
 \index[concept]{\elpi{uvar as E} (syntax)}
 \index[concept]{\elpi{var} (built-in predicate)}
-
 Many Prolog implementations feature a ``delay directive,'' that is, a
 sublanguage to prescribe when goals should be suspended or resumed. In Elpi,
 we opted for a lower-level but more flexible approach, where the programmer
@@ -968,29 +975,14 @@ merging two unrelated typing constraints: the rule above only applies if two
 constraints about the same variable are in the store.
 
 Another important aspect is that constraint handling rules can match multiple
-goals at once (whereas logic programming rules only applies to one). While
+goals at once whereas logic programming rules only apply to one. While
 the execution of an Elpi program can be seen as a depth-first construction of
 a proof tree, with the possibility of suspending the exploration of a branch,
 the application of a constraint handling rule operates on all suspended
-branches. In a sense, it is a ``meta'' proof search step. For example, it can
-identify two identical subgoals and share or connect their (missing) proofs.
+branches. In a sense, it is a ``meta'' proof search step.
+% For example, it can
+%identify two identical subgoals and share or connect their (missing) proofs.
 
-
-Indeed, CHR rules do have a logical reading. The general syntax for rules is
-as follows, where \texttt{T} is the guard (a regular goal):
-
-\begin{chrbox}\begin{verbatim}
-rule G1 % match
-   \ G2 % remove
-   | T  % guard
- <=> G3 % new
-\end{verbatim}
-\end{chrbox}
-
-\noindent
-The meaning of the rule can be phrased as $T \land G_1 \Rightarrow (G_2
-\Leftrightarrow G_3)$: when the guard $T$ holds, we can replace $G_2$ by $G_3$
-provided that $G_1$ still needs to be solved.
 
 As mentioned before, Elpi automatically manages the context -- that is, the set
 of fresh constants generated by \elpi{pi} and hypothetical rules introduced by
@@ -1015,7 +1007,7 @@ variables are \emph{frozen}: a unification variable \elpi{F} applied to
 \elpi{x} and \elpi{y} is presented to constraint handling rules as
 \elpi{uvar f [x,y]} for a fresh constant \elpi{f}. This lightweight form of
 reification ensures that CHR rules are used to match, rather than unify,
-constraints, and that the user has access to the scope of unification
+constraints, and that the programmer has access to the scope of unification
 variables. Moreover, each constraint is frozen to a distinct space of names;
 that is, \elpi{E1} and \elpi{E2} are made disjoint.
 
@@ -1102,7 +1094,7 @@ incompatible goals such as \elpi{even X} and \elpi{odd X}, and the replacement
 of one by \elpi{false}. In this case, a theorem linking the two predicates is
 used to justify immediate backtracking, rather than allowing the proof search to
 eventually discover the unsatisfiability of the two suspended goals once
-\elpi{X} is instantiated, concluding by producing an incomplete tree (which the
+\elpi{X} is instantiated, or concluding by producing an incomplete tree (which the
 theorem deems impossible to complete).
 
 \begin{figure}[p]
@@ -1679,11 +1671,15 @@ $$
 
 \paragraph{Definition of $\mathcal{CHR}$ (simpagation)}
  
+CHR rules do have a logical reading. 
+In particular a rule $G_1\ \backslash\ G_2\ |\ T \Leftrightarrow G_3$
+is to be understood as $T \land G_1 \Rightarrow (G_2
+\Leftrightarrow G_3)$: when the guard $T$ holds, we can replace $G_2$ by $G_3$
+provided that $G_1$ still needs to be solved.
 
-Constraint rule application follows the refined operational
+Constraint rule application in Elpi follows the refined operational
 semantics~\cite{10.1007/978-3-540-27775-0_7}, which amounts to a precise
 nesting of iterations.
-
 The starting point is the so-called \emph{active constraint}, which, in the context
 of Elpi, is the constraint just declared as $\cst\ c\ t$ by rule~\ref{rule:delay}.
 \index[concept]{Active constraint}
@@ -1780,13 +1776,10 @@ particularly in cases involving failure. For example the following code
 does not take a linear time to fail (when the element is not in the list):
 
 \begin{elpicode}
-pred mem i:list A, i:A.
-
-mem [X|_] X.
-mem [_|XS] X :- mem XS X.
-% from another file
-mem [Y|_] Y.
-mem [_|YS] Y :- mem YS Y.
+pred mem i:list A, i:A.    % from one file
+mem [X|_] X.               % from one file
+mem [_|XS] X :- mem XS X.  % from one file
+mem [_|YS] Y :- mem YS Y.  % from another file
 \end{elpicode}
 
 A straightforward solution is to include the file name as part of the predicate
@@ -1887,11 +1880,10 @@ Elpi provides a syntactic facility that allows one to use partially applied
 predicates as function calls. By partially applied, we mean ``applied to all
 the arguments flagged as input.'' For example, the code above can be written as
 follows:
-
 \begin{elpicode}
 code L1 L2 Result :- Result = {rev {append L1 L2}}.
 \end{elpicode}
-
+\noindent
 The curly braces identify a term to be \emph{spilled} to the closest
 \emph{execution point}, determined by walking the terms inside out
 and identifying the first expression of type \elpi{prop}.
@@ -1916,8 +1908,8 @@ code Result :- (pi y\ mk-app f [y] (TMP y)), Result = (lam x\ TMP x).
 
 \noindent
 To run the spilled code in a context with the bound variable \elpi{x}, the
-expression must be placed under a \elpi{pi y} (we picked \elpi{y} to strieve it
-is a different variable). Similarly, the temporary
+expression must be placed under a \elpi{pi y}. % (we picked \elpi{y} to strieve it is a different variable). 
+Similarly, the temporary
 variable \elpi{TMP} needs to be abstracted over the variable, so that we can identify
 the original \elpi{x} with the one abstracted by \elpi{pi y}.
 
@@ -1957,9 +1949,8 @@ checker under the binder.
 When spilling is combined with quotations, as we
 will better describe in~\cref{sec:quotations},
 the \elpi{=>} may be implicitly added by the compiler.
-
 For example
-here we call an predicate \elpi{api} under the object language binder
+we call an predicate \elpi{api} under the object language binder
 for \elpi{x}.
 
 \begin{elpicode}
@@ -1990,7 +1981,7 @@ correspond to the programmer's intention.
     TodoForLater = [ this, that {rev D} ].
 \end{elpicode}
 
-If \elpi{this} and \elpi{that {rev D}} are predicates, the latter expands to
+If \elpi{this} and \elpi{(that {rev D})} are both predicates, then the latter expands to
 \elpi{(rev D TMP, that TMP)}, indicating that \elpi{D} is reversed when
 the items constituting \elpi{TodoForLater} are executed, rather than when
 the todo list is generated, which may have been the intended behavior.
@@ -2048,8 +2039,6 @@ type eq     term -> term -> term.
 \end{elpicodelj}
 \end{minipage}
 \end{center}
-~\\  
-~\\  
 
 As in~\cref{sec:hello}, we use a HOAS encoding of terms. However, we add a
 \elpi{glo} term constructor to enable the setup of a shared environment
@@ -2317,6 +2306,7 @@ first-class.
 This is where the ``meta'' status of constraint handling rules becomes useful:
 suspended goals are sequents.
 
+\begin{figure}[h]
 %elpi:hm.elpi
 \begin{elpicode}
 pred gammabar i:ty, o:ty.
@@ -2344,9 +2334,12 @@ generalize Theta Gamma (mono T) PolyT ToQuantify :-
   filter VT (x\ not(mem VGamma x)) ToQuantify,
   bind ToQuantify Theta T PolyT.
 \end{elpicode}
+\caption{Core for $\overline{\Gamma}(\tau)$\label{fig:gbar}}
+\end{figure}
 
 \noindent
-The code to implement $\overline{\Gamma}(\tau)$ performs two tasks:
+The code to implement $\overline{\Gamma}(\tau)$ given in~\cref{fig:gbar}
+performs two tasks:
 
 \begin{itemize}
   \item It abstracts \elpi{T} into a schema \elpi{POLYT} and returns it by
@@ -2385,22 +2378,6 @@ $$
   \text{free}(\ \Gamma\ ) &=\ \bigcup\limits_{x:\sigma \in \Gamma}\text{free}(\ \sigma\ )\\
 \end{array}
 $$
-\caption{Free type variable\label{img:free}}
-\end{figure}
-
-
-The first detail is that the context is a list of propositions. The
-\elpi{prop} type is a union type of all predicates, not just \elpi{of}.
-We do not need to add a rule to skip any unrelated predicate
-the program may have loaded with implication, because the \elpi{constraint of ?- gammabar eqbar theta
-rm-eqbar} directive tells Elpi to filter the context of suspended goals
-(constraints) and keep only entries for the \elpi{of} predicate.
-
-The second is that, at the meta level of constraint handling rules, the
-\elpi{uvar} keyword becomes a regular syntax tree node and has two arguments.
-The first one is the unique identifier of the unification variable; the second is
-its scope, represented as a list of names.
-
 %elpi:hm.elpi
 \begin{elpicode}
 pred free-ty i:ty, i:list tye, o:list tye.
@@ -2419,17 +2396,26 @@ free (pair A B) L L1 :- free B {free A L} L1.
 free (A --> B) L L1 :- free B {free A L} L1.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
+\caption{Free type variable\label{img:free}}
+\end{figure}
 
-\noindent
+
+The first detail is that the context is a list of propositions. The
+\elpi{prop} type is a union type of all predicates, not just \elpi{of}.
+We do not need to add a rule to skip any unrelated predicate
+the program may have loaded with implication, because the \elpi{constraint of ?- gammabar eqbar theta
+rm-eqbar} directive tells Elpi to filter the context of suspended goals
+(constraints) and keep only entries for the \elpi{of} predicate.
+
+The second is that, at the meta level of constraint handling rules, the
+\elpi{uvar} keyword becomes a regular syntax tree node and has two arguments.
+The first one is the unique identifier of the unification variable; the second is
+its scope, represented as a list of names.
+
+
 The last bit of code necessary to implement $\overline{\Gamma}(\tau)$ is the
 code to bind (locally used) unification variables to universal
-quantifications. The key is the \elpi{copy} predicate, which implements
-substitution by traversing an expression. Since this substitution is not
-the built-in one (i.e., not function application), we can alter its behavior
-by loading into the program some ad hoc rules. In particular, for
-each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
-\elpi{c} and load a rule to copy \elpi{uvar X _} to \elpi{c}.
-
+quantifications.
 %elpi:hm.elpi
 \begin{elpicode}
 pred bind i:list tye, i:list tye, i:tye, o:ty.
@@ -2437,6 +2423,15 @@ bind [uvar X _|XS] Theta T (all E x\ T1 x) :- % load the substitution
   if (mem Theta (uvar X _)) (E = tt) (E = ff),
   pi c\ (copy (uvar X _) c :- !) => bind XS Theta T (T1 c).
 bind [] _ T (mono T1) :- copy T T1. % fire the substitution
+\end{elpicode}
+The key is the \elpi{copy} predicate, which implements
+substitution by traversing an expression. Since this substitution is not
+the built-in one (i.e., not function application), we can alter its behavior
+by loading into the program some ad hoc rules. In particular, for
+each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
+\elpi{c} and load a rule to copy \elpi{uvar X _} to \elpi{c}.
+%elpi:hm.elpi
+\begin{elpicode}
 
 pred copy i:tye, o:tye.
 copy int int.
@@ -2447,7 +2442,7 @@ copy (A --> B) (C --> D) :- copy A C, copy B D.
 copy (uvar _ _ as V) V.
 \end{elpicode}
 
-\noindent
+
 For completeness, the remaining code follows. It may be worth explaining the
 signature of the polymorphic, higher-order \elpi{filter} predicate. In
 particular, \texttt{i:(pred i:A)} stands for an input predicate over
@@ -2469,10 +2464,9 @@ filter [_|XS] F YS :- filter XS F YS.
 We can run the type inference algorithm on the following term, which defines a
 function $f$ that tests whether the input list is empty and then applies $f$ to
 two different expressions:
-$$
+$
 \mathtt{let}\ f = (\lambda x. x = [])\ \mathrm{in}\ (f [\mathrm{true}], f [1])
-$$
-As expected, the inferred type is $\mathrm{bool} \times \mathrm{bool}$.
+$.
 \begin{elpioutput}
 goal> theta [],
   of (let (lam x\ eq (glo "nil") x) f\
@@ -2480,7 +2474,10 @@ goal> theta [],
         (app f (app (app (glo "cons") (glo "true")) (glo "nil"))))
         (app f (app (app (glo "cons") (glo "1"))    (glo "nil")))
      ) Ty.
-
+\end{elpioutput}
+\noindent
+As expected, the inferred type is $\mathrm{bool} \times \mathrm{bool}$.
+\begin{elpioutput}
 Success
   Ty = mono (pair bool bool)
  
@@ -2499,12 +2496,10 @@ not strictly necessary, but the type discipline is not precise regarding the
 behavior of the equality test.}
 
 It may be instructive to run the example on a term that does not completely
-constrain the type at which $f$ is used, such as:
-$$
+constrain the type at which $f$ is used, i.e., by applying \elpi{f} on an empty list:
+$
 \mathtt{let}\ f = (\lambda x. x = [])\ \mathrm{in}\ (f [], f [1])
-$$
-In this case, the first use of \elpi{f} is on an empty list, which leaves the
-type parameter unassigned.
+$.
 \begin{elpioutput}
 goal> theta [],
   of (let (lam x\ eq (glo "nil") x) f\
@@ -2528,6 +2523,7 @@ context, and the variable is generated under the binder for \elpi{f}, we see
 the type of \elpi{f} as synthesized by the algorithm: \ocaml{''a list -> bool},
 i.e., a polymorphic function from lists to bool, requiring the type parameter to
 be an equality type.
+~\\
 
 The code amounts to about 100 lines of Elpi. It is a toy example, in the sense
 that it lacks code for error reporting, but its size is quite remarkable: it
@@ -2568,7 +2564,7 @@ are some pitfalls that have tricked everyone (ourselves included).
 
 When one writes \elpi{A, B => C, D}, what he really means is \elpi{A, B => (C, D)}.
 This becomes clear when one has a program \elpi{A, B => D} and wants to sneak in
-a debug print before D, i.e., \elpi{A, B => print D, D} that reads as
+a debug print before \elpi{D}, i.e., \elpi{A, B => print D, D} that reads as
 \elpi{A, (B => print D), D}.
 
 We argue that \elpi{=>} should bind more strongly than ``,'' on the left but
@@ -2594,6 +2590,7 @@ The correct way to write the code above is
 \begin{elpicode}
 code L L' :- map L (x\r\sigma A\p x A, q A r) L'.
 \end{elpicode}
+\noindent
 where each call to the anonymous rule has a different \elpi{A}.
 The \elpi{sigma} operator binds \elpi{A} and declares it as
 a unification variable when it is executed. It is standard in
@@ -2617,7 +2614,7 @@ an anonymous rule (a term of function type to \elpi{prop}).
 
 While \elpi{pi x\ F = x} logically fails because \elpi{x} is out of \elpi{F}'s
 scope, its
-practical, legitimate use cases are rare. According to our experience, most
+practical, legitimate, use cases are rare. According to our experience, most
 of the time when a unification fails because of a scope problem, it is due to
 a user mistake.
 
@@ -2906,6 +2903,7 @@ the addition or removal of a constraint to the store. In particular when
 an uvar is assigned and its \ocaml{uid} is negative some constraint may
 be resumed, hence removed from the store. Conversely the
 \elpi{declare_constraint} built-in predicate adds a constraint to the store.
+~\\
 
 However, we will not
 provide further details on this. Instead, we focus on the higher-order part of
@@ -3007,7 +3005,7 @@ body. Once \elpi{pi} and \elpi{=>} have been executed, obtaining the
 $\beta_0$-normal form of \elpi{F ~$c_n$~} amounts to replacing (in the term
 bound to \elpi{F}) all occurrences of $x_n$ with $c_n$ (note the \emph{same}
 $n$). This is simply the identity, i.e., it is for free!
-
+~\\
 
 This observation convinced us to choose DBL as the notation for variables and
 to identify the \thefragment fragment, a further restriction of the \theotherfragment one.
@@ -3471,12 +3469,9 @@ quotation. The following code results in an error, since \elpi{x} is undeclared
 \noindent
 Conversely, the following code is valid, since \elpi{x} is bound and used in
 Rocq's space.
-
 \begin{elpicode}
-  rocq.say {{ forall x : nat, lp:{{... {{ x }} ...}} }}
+rocq.say {{ forall x : nat, lp:{{... {{ x }} ...}} }}
 \end{elpicode}
-
-
 \noindent
 In practice, this rule amounts to completely delegating to each language the
 lexical analysis of its source code, with no interference.
@@ -4024,37 +4019,29 @@ Application is n-ary, with the head and arguments held in a list. This choice,
 over binary application as in~\cref{sec:hello}, eases access to the head:
 according to our experience, the vast majority of rules are discriminated by
 the head constant of the terms they operate on.
-
 \begin{elpicode}
 type app       list term -> term.                     
 \end{elpicode}
-
 \noindent
 The Rocq pattern matching constructor packs together the scrutinee, a term
 used to uniformly assign a type to branches, and a list of branches.
-
 \begin{elpicode}
 type match     term -> term -> list term -> term.   
 \end{elpicode}
-
 \noindent
 The
 fixpoint operator is a binder for the recursive call and carries the index of
 the decreasing argument. 
-
 \begin{elpicode}
 type fix       name -> int -> term -> (term -> term) -> term.
 \end{elpicode}
-
 \noindent
 Finally, a single constructor holds all primitive
 values, e.g., 63-bit integers, floating point numbers, and primitive record
 projections.
-
 \begin{elpicode}
 type primitive primitive-value -> term.
 \end{elpicode}
-
 What is worth focusing on is the representation of contexts -- a convention used
 when crossing binders to enable APIs to be called deep inside terms. Two
 context entries need to be available: one for abstraction and one for
@@ -4071,19 +4058,17 @@ printing information, the type, and, in the case of abbreviation, the body. In
 light of this, code that crosses a binder is expected to declare either a
 \elpi{decl} or a \elpi{def} hypothetical rule for the bound variable as
 follows:
-
 \begin{elpicode}
-some-pred (fun N T F) :- pi x\ decl x N T => some-pred (F x).
+some-pred (fun N T F) :-
+  pi x\ decl x N T => some-pred (F x).
 \end{elpicode}
-
 \noindent
 And convenience macros help the programmer obey the discipline. Note how
 the macro arguments are the same of the term constructor it crosses:
-
 \begin{elpicode}
-some-pred (fun N T F) :- @pi-decl N T x\ some-pred (F x).
+some-pred (fun N T F) :-
+  @pi-decl N T x\ some-pred (F x).
 \end{elpicode}
-
 \noindent
 As a result of this convention, one can call \elpi{rocq.typecheck} deep inside
 a term. As described in~\cref{sec:API}, a built-in predicate can be equipped with a
@@ -4167,7 +4152,8 @@ assigning types to bound variables. In other words, each evar is represented
 by the result of suspending a query as follows:
 
 \begin{elpicode}
-  pi x1\ .. pi xn\ Ctx => evar RawEv Ty Ev
+  pi x1\ .. pi xn\ Ctx =>
+    evar RawEv Ty Ev
 \end{elpicode}
 
 \noindent in a program with the following suspension rules:
@@ -4443,12 +4429,10 @@ convenient to use.
 
 The first is that Elpi is a homoiconic language: it can manipulate its own
 syntax. The following line illustrates this property:
-
 \begin{elpicode}
+% build code
 TheNewRule = age Name Age,
 \end{elpicode}
-
-
 This is the simplest evidence of it: \elpi{TheNewRule} contains a piece of
 Elpi code built from the \elpi{age} predicate and the two arguments passed to
 \elpi{main}. Since construction and inspection are conflated into unification
@@ -4497,7 +4481,7 @@ let age = function
   | s => failwith ("I don't know who " ^ s ^ " is!")
 \end{ocamlcode}
   
-
+~\\
 The syntactic price one pays when writing Elpi code is thus partially
 compensated by the ease of extending existing code. The example in the
 following section makes good use of this possibility.
@@ -4655,8 +4639,7 @@ and the \elpi{Hyps} list grows longer.
 The \elpi{h} variable stands for the proof
 obtained by the recursive call -- a proof of \rocq{reflect lp:S _} -- hence
 a value we can pass to \elpi{P} obtaining the Rocq term
-\rocq{lp:P lp:h} that is a proof of \elpi{T}, the type in which we
-recurse.
+\rocq{lp:P lp:h} that is a proof of \elpi{T}.
 
 
 The last rule is a simpler version of the second; in this case, the
@@ -4743,6 +4726,8 @@ in this area. Nevertheless, the solution implemented by Luc, although correct,
 lacked modularity. Further improvements led to~\cite{tassi:hal-01897468},
 which describes a schema for generating so-called deep induction principles
 and demonstrates their use in proving the correctness of equality tests.
+~\\
+
 Before discussing this work, we need to introduce the ``Swiss army knife''
 of boilerplate code generation: parametricity.
 
@@ -5344,6 +5329,7 @@ class instances for the \rocq{EqDecision}, \rocq{Countable}, \rocq{Finite},
 and \rocq{Inhabited} std++ classes, as well as a serialization class called
 \rocq{ToBit}. Finally, they also synthesize Lenses, which are support code for
 record updates.
+~\\
 
 We focus here on another use they make of Rocq-Elpi, namely its NES
 application.
