@@ -73,7 +73,7 @@
 
 - [ ] TODOs
 - [ ] citare commissione
-- [ ] clause -> rule
+- [x] clause -> rule
 - [ ] URL elpi
 
 ## Inscription

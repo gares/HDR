@@ -23,7 +23,7 @@ for l in f:lines() do
         elseif l:match('\\begin{elpicode') then
             cur:write('#line ',n,' "hdr.tex"\n')
         else
-            cur:write(l,'\n')
+            cur:write(l:gsub('~ ~',''),'\n')
         end
     end
 end

@@ -2013,7 +2013,7 @@ The syntax of terms is very similar to that of the simply typed
 $\lambda$-calculus, with the addition of \texttt{let} and the equality test.
 We omit conditionals, loops, and recursion, since they do not play an
 important role here.
-
+\begin{figure}
 \begin{center}
 \begin{minipage}{0.35\textwidth}
 $$
@@ -2023,37 +2023,6 @@ $$
   & \vert & \lambda\ x\ .\ e                    \\
   & \vert & \mathtt{let}\ x = e_1\ \mathtt{in}\ e_2 \\
   & \vert & e_1 = e_2 \\
-\end{array}
-$$
-\end{minipage}~~
-\begin{minipage}{0.60\textwidth}
-\vspace{0.5em}
-%elpi:hm.elpi
-\begin{elpicodelj}
-kind term   type.
-type glo    string -> term.
-type app    term -> term -> term.
-type lam    (term -> term) -> term.
-type let    term -> (term -> term) -> term.
-type eq     term -> term -> term.
-\end{elpicodelj}
-\end{minipage}
-\end{center}
-
-As in~\cref{sec:hello}, we use a HOAS encoding of terms. However, we add a
-\elpi{glo} term constructor to enable the setup of a shared environment
-for our examples.
-
-Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
-below. As in the original paper, we fix a few built-in type constructors
-instead of supporting a generic n-ary type former, but unlike the ML
-tradition, we place type constructors to the left of an application. We use
-the infix symbol \elpi{-->} for the function space of ML.
-
-\begin{center}
-\begin{minipage}{0.4\textwidth}
-$$
-\begin{array}{lrl}
   \\
     \tau   &=     & \alpha                    \\
                               &\vert &  \tau \to \tau         \\
@@ -2065,13 +2034,20 @@ $$
      \sigma &=    & \tau                                           \\
                              &\vert& \forall\ \alpha\ .\ \sigma \\
                             &\vert& \forall\ \bar\alpha\ .\ \sigma \\
-  \\
 \end{array}
 $$
-\end{minipage}
-\begin{minipage}{0.5\textwidth}
+\end{minipage}~~
+\begin{minipage}{0.64\textwidth}
+\vspace{0.6em}
 %elpi:hm.elpi
-\begin{elpicodelj}
+\begin{elpicode}
+kind term   type.
+type glo    string -> term.
+type app    term -> term -> term.
+type lam    (term -> term) -> term.
+type let    term -> (term -> term) -> term.
+type eq     term -> term -> term.
+
 kind tye   type.
 type (-->) tye -> tye -> tye.  
 type int   tye.
@@ -2082,37 +2058,45 @@ type pair  tye -> tye -> tye.
 kind ty     type.
 type all    bool -> (tye -> ty) -> ty.
 type mono   tye -> ty.
-\end{elpicodelj}
+\end{elpicode}
 \end{minipage}
 \end{center}
+\caption{Syntax of terms\label{fig:st} and types\label{fig:tt}}
+\end{figure}
+As in~\cref{sec:hello}, we use a HOAS encoding of terms (\cref{fig:st}). However, we add a
+\elpi{glo} term constructor to enable the setup of a shared environment
+for our examples.
+
+Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
+at the bottom of~\cref{fig:tt}. As in the original paper, we fix a few built-in type constructors
+instead of supporting a generic n-ary type former, but unlike the ML
+tradition, we place type constructors to the left of an application. We use
+the infix symbol \elpi{-->} for the function space of ML.
 
 The typing routine works with a context and, as we did for the simply typed
 lambda calculus, we delegate its management to the programming language.
 Context entries are represented by hypothetical rules of the \elpi{of}
 predicate, the same predicate that will implement the Hindley-Milner
 typing algorithm.
-
 \begin{center}
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.52\textwidth}
 $$
 \begin{array}{llrl}
-  \\
     \text{Context}     & \Gamma & = & \epsilon\ \mathtt{(empty)}\\
                        &        & \vert& \Gamma,\ x : \sigma\\
-    \text{Typing}      &        & = & \Gamma \vdash e : \sigma\\
-  \\
+    \text{Typing}      &        & = & \Gamma \vdash e : \sigma
   \end{array}
 $$
 \end{minipage}
-\begin{minipage}{0.4\textwidth}
+\begin{minipage}{0.52\textwidth}
 %elpi:hm.elpi
-\begin{elpicodelj}
+\begin{elpicode}
+% means |- Term : Type
 pred of i:term, o:ty.
-\end{elpicodelj}
+~ ~
+\end{elpicode}
 \end{minipage}
 \end{center}
-
-
 Below, we give a few examples of type assignments to global constants. It is
 worth highlighting the fact that the type schema for \elpi{"undup"}, is
 special: it requires the element of the list to have an equality type.
@@ -2169,18 +2153,18 @@ flags variables via a constraint, so that we can distinguish
 equality type variables from the others.
 
 \begin{figure}[!h]
-\begin{minipage}{0.5\textwidth}
+\begin{minipage}{0.46\textwidth}
 $$
 \begin{array}{ll}
   \overline{eq}(\mbox{bool}) & \\
   \overline{eq}(\mbox{int}) & \\
   \overline{eq}(\mbox{list}~\tau) & ~\mbox{if}~ \overline{eq}(\tau) \\
-  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) ~\mbox{and}~ \overline{eq}(\tau_2)\\
+  \overline{eq}(\mbox{pair}~\tau_1~\tau_2) & ~\mbox{if}~ \overline{eq}(\tau_1) \land \overline{eq}(\tau_2)\\
   \overline{eq}(\bar\alpha) & \\
 \end{array}
 $$
 \end{minipage}
-\begin{minipage}{0.55\textwidth}
+\begin{minipage}{0.58\textwidth}
 %elpi:hm.elpi
 \begin{elpicode}
 pred eqbar i:tye.
@@ -2209,9 +2193,10 @@ pred theta i:list tye.
 theta L :- declare_constraint (theta L) [_].
 \end{elpicode}
 
-The use of constraints here is convenient but not essential. One could thread
-a state -- the list of all type variables used so far, paired with their
-equality type status. The constraint store offers a global state carried
+The use of constraints here is not essential, but is really convenient.
+The alternative is to thread a state -- the list of all type variables used
+so far paired with their equality type status -- \emph{everywhere}.
+The constraint store offers a global state carried
 alongside the goals, and constraint handling rules provide the possibility to
 organize the state, such as grouping all entries into a list. Since
 constraints are only combined via a CHR rule when they share a trigger,
@@ -2392,8 +2377,8 @@ pred free i:tye, i:list tye, o:list tye.
 free int L L.
 free bool L L.
 free (list A) L L1 :- free A L L1.
-free (pair A B) L L1 :- free B {free A L} L1.
-free (A --> B) L L1 :- free B {free A L} L1.
+free (pair A B) L L1 :- L1 = {free B {free A L}}.
+free (A --> B) L L1 :- L1 = {free B {free A L}}.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
 \caption{Free type variable\label{img:free}}
@@ -2834,7 +2819,7 @@ type term =
   | AppArg of int * term list (* arguments *)
 
 and uvar = {
-  vardepth : int; (* depth at creation time)
+  vardepth : int; (* depth at creation time *)
   mutable contents : term;
   mutable uid : int; (* negative if it blocks a constraint *)
 }
@@ -3535,7 +3520,7 @@ Elpi term and a readback function that goes the other way around. The type AST
 to document the existence of a data type.
 
 
-The \ocaml{\~depth} argument is present mainly because most of the other APIs
+The \ocaml{depth} argument is present mainly because most of the other APIs
 work for the general case of terms with binders, and in DBL notation it is of
 paramount importance to know under how many binders we are operating. When the
 data has no binders, it serves no real purpose in the conversion code, but
@@ -3566,13 +3551,10 @@ module OpaqueData : sig
     compare : 'a -> 'a -> int;
     hash : 'a -> int;
     hconsed : bool;               (* do hashcons *)
-    constants : (name * 'a) list; (* global constants of that type,
-                                     eg "std_in" *)
+    constants : (name * 'a) list; (* global constants of that type *)
   }
 
   val declare : 'a declaration -> 'a Conversion.t
-
-end
 \end{ocamlcode}
 
 \noindent
@@ -3581,13 +3563,14 @@ used by Elpi's unifier when a \ocaml{CData} node is encountered, as well as a
 hash function for indexing. For convenience, the declaration API also allows
 the datum to be hash-consed and enables the declaration of a list of constants
 for it. From this declaration, the API can generate Elpi code describing the
-data type and its known constants. For example, the opaque data for the OCaml
-input stream yields:
+data type and its known constants.
+% For example, the opaque data for the OCaml
+% input stream yields:
 
-\begin{elpicode}
-kind in_stream type.
-type std_in in_stream.
-\end{elpicode}
+% \begin{elpicode}
+% kind in_stream type.
+% type std_in in_stream.
+% \end{elpicode}
 
 \paragraph{Algebraic data}
 
@@ -3781,8 +3764,8 @@ contextual data is postponed to~\cref{GALLINA}.
       Out(option string, "Value",
       Easy ("Like Sys.getenv"))),
        (fun s _ ~depth ->
-          try !:(Some (Sys.getenv s))   % !:x  is a notation for  (), Some x
-          with Not_found -> !: None))   % the GADT recursion adds a final  ()
+          try !:(Some (Sys.getenv s)) (* !:x  stands for  (), Some x *)
+          with Not_found -> !: None))     
 \end{ocamlcode}
 
 \noindent
@@ -3821,7 +3804,7 @@ module State : sig
     name:string ->
     pp:(Format.formatter -> 'a -> unit) ->
     init:(unit -> 'a) ->
-    (* run just before the query is compiled (but after the program is) *)
+    (* run just before the query *)
     start:('a -> 'a) ->
     unit ->
       'a component
@@ -4199,8 +4182,7 @@ declare-evar Ctx RawEv Ty Ev :-
   declare_constraint (declare-evar Ctx RawEv Ty Ev) [_].
 
 constraint declare-evar evar def decl {
-  rule \ (declare-evar Ctx RawEv Ty Ev)
-     <=> (Ctx => evar RawEv Ty Ev).
+  rule \ (declare-evar Ctx RawEv Ty Ev) <=> (Ctx => evar RawEv Ty Ev).
 }
 \end{elpicode}
 
@@ -4229,12 +4211,11 @@ module FlexibleData : sig
   module Map : functor(Host : Host) -> sig
     type t
     val empty : t
-    val add : Elpi.t -> Host.t -> t -> t
-    val elpi   : Host.t -> t -> Elpi.t
-    val host : Elpi.t -> t -> Host.t
-    val fold :
+    val add   : Elpi.t -> Host.t -> t -> t
+    val elpi  : Host.t -> t -> Elpi.t
+    val host  : Elpi.t -> t -> Host.t
+    val fold  :
       (Host.t -> Elpi.t -> term option -> 'a -> 'a) -> t -> 'a -> 'a
-    ...
 \end{ocamlcode}
 
 \noindent
