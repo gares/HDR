@@ -75,6 +75,9 @@
 \usepackage{varwidth}
 \tcbuselibrary{skins}
 
+\usepackage{enumitem}
+\setlist[itemize,1]{label=$\bullet$}
+
 \newtcolorbox{elpibox}{enhanced,tcbox raise base,boxrule=0mm,toprule=2mm,bottomrule=2mm,top=1mm,bottom=1mm,
   right=0mm,width=1.1\linewidth,left=0mm,arc=0pt,boxsep=0pt,
   colframe=green!0!white,
@@ -857,8 +860,8 @@ $$
 Reading the rule for abstraction as a Hereditary Harrop formula makes it clear
 that the scope of $c$ and its companion rule are limited to the subgoal
 $\mathrm{of}~(F~c)~T$, unlike the \texttt{assert/1} and \texttt{retract/1}
-Prolog built-ins\footnote{Although some Prolog implementations provide the
-notion of ``transaction,'' which can be used to simulate scoping.}.
+Prolog built-ins.\footnote{Although some Prolog implementations provide the
+notion of ``transaction,'' which can be used to simulate scoping.}
 
 As previously mentioned, we want to use Elpi in the context of an interactive
 prover like Rocq, where syntax trees are often incomplete (i.e., they contain
@@ -1775,7 +1778,7 @@ $\vecL{tu_o}$) are unified.
 The list processing combinator \fold is defined by the following equations:
 $$
 \begin{array}{lll}
-\fold\ \_\ \_\ \bot = \bot & \fold\ f\ (x :: xs)\ a = \fold\ f\ xs\ (f\ x\ a) & \fold\ \_\ \EmptyList\ a = a
+\fold\ \_\ \_\ \bot = \bot & \quad\fold\ f\ (x :: xs)\ a = \fold\ f\ xs\ (f\ x\ a) & \quad\fold\ \_\ \EmptyList\ a = a
 \end{array}
 $$
 
@@ -2862,7 +2865,13 @@ my desk, it was not clear it was actually isomorphic to
 $\lambda_\sigma$~\cite{expsubst}. While explicit substitutions are often
 presented as a way to obtain better complexity, in practice they fail to
 deliver better performance. In Rocq, two people tried using explicit
-substitutions in many places with similar conclusions. In Elpi-POC, in our
+substitutions in many places with similar conclusions.\footnote{To my knowledge
+there is
+no written trace of these two independent experiments, that were reported to me by
+Thomas Braibant and Matthias Puech. To be honest, the so called lazy
+reduction machine by Bruno Barras currently employed in Rocq's kernel
+uses explicit shifts, i.e., one part of the job substitution performs
+is explicit, but not all of it.} In Elpi-POC, in our
 limited tests, disabling them resulted in a slightly faster runtime. Our analysis is
 that, in practice, the extra machinery to delay substitutions and pack them
 together rarely triggers (as an optimization to achieve better complexity), but
@@ -3118,7 +3127,7 @@ Elpi.
 A term is in the \theotherfragment fragment if and only if every occurrence of
 a unification variable $X^j$ is applied to $c_{a_1} \ldots c_{a_n}$, where
 $c_{a_i} \neq c_{a_j}$ and $j \leq a_i$, with $i$ and $j$
-distinct and ranging between $1$ and $n$.
+distinct and $i$ ranging between $1$ and $n$.
 \end{definition}
 
 \noindent
@@ -3281,7 +3290,7 @@ If more than one argument needs indexing, or if an argument needs to be
 indexed deeper, Elpi provides an index based on the idea of unification
 hashes. Such an index was implemented by Dunchev in 2015 and is based on a
 2013 blog post by
-Hendricks\footnote{\url{http://blog.ndrix.com/2013/03/prolog-unification-hashes.html}}.
+Hendricks.\footnote{\url{http://blog.ndrix.com/2013/03/prolog-unification-hashes.html}}
 
 
 The hash value, a list of bits, is generated hierarchically up to the specified
@@ -4198,7 +4207,7 @@ The only missing piece is \ocaml{sigma}, the environment assigning type
 judgements to holes, i.e., the call to the \ocaml{get_sigma} and
 \ocaml{set_sigma} APIs, which we focus on in the next section.
 
-\section{Encoding holes (missing terms)}\label{sec:hoasholes}
+\section{Encoding holes}\label{sec:hoasholes}
 
 
 Each Rocq hole has an entry in \ocaml{sigma} that resembles a sequent.
@@ -4532,7 +4541,7 @@ Elpi code built from the \elpi{age} predicate and the two arguments passed to
 in logic programming, the same line can be used to analyze the syntax of a
 piece of code in order to extract the name and age. Moreover, since expressions
 and commands are not confused in logic programming, there is no confusion
-in the user's intention: she wants to build a piece of code, not to run
+in the user's intention: she wants to build/inspect a piece of code, not to run
 it.\footnote{In other words the key \texttt{'} operator of the Lisp family
 of languages is not needed.}
 
@@ -4700,7 +4709,7 @@ andP : ∀P Q p q,
   reflect P p -> reflect Q q -> reflect (P /\ Q) (p && q).
 \end{rocqcode}
 
-We are not set to write our little rule compiler.
+We are now set to write our little rule compiler.
 The \elpi{compile} predicate has three inputs and one output. The first input
 is the type of a lemma, and the second is the proof of that lemma; the
 relation between the first two arguments is a key invariant. The third
@@ -5603,11 +5612,11 @@ burdening the language with numerous non-logical introspection features.
 
 Throughout this document, we have emphasized that the \emph{key} feature of Elpi
 is its rule-based nature. We have identified three main advantages:
-\begin{itemize}
+\begin{enumerate}
 \item Dynamic rules allow the language to scale effectively to syntax with binders (see \cref{sec:hello}).
 \item Static rules make it easy to write code that is easily extensible (see \cref{sec:homo}).
 \item Treating rules as code units greatly facilitates self-manipulation (see \cref{sec:tb}).
-\end{itemize}
+\end{enumerate}
 
 We invite the reader to attempt writing the \rocq{to_bool} tool shown in
 \cref{sec:tb} in any other extension language, and to match it in both

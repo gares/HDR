@@ -850,12 +850,12 @@
 			\lhead[\thepage]{\thesection~--~\rightmark}
 			\if@withParts
 			\if&\partTitle&
-			\rhead[\textsc{Chapitre}\hskip1ex\thechapter~---~\chapterTitle]{\thepage}
+			\rhead[\textsc{Chapter}\hskip1ex\thechapter~---~\chapterTitle]{\thepage}
 			\else
 			\rhead[\textsc{Partie}\hskip1ex\thepart~---~\partTitle\relax]{\thepage}
 			\fi
 			\else
-			\rhead[\textsc{Chapitre}\hskip1ex\thechapter~---~\chapterTitle]{\thepage}
+			\rhead[\textsc{Chapter}\hskip1ex\thechapter~---~\chapterTitle]{\thepage}
 			\fi
 			\fi\fi\fi
 			\global\@topnum\z@
@@ -994,7 +994,7 @@
 				\renewcommand\p@enumii{\theenumi}
 				\renewcommand\p@enumiii{\theenumi(\theenumii)}
 				\renewcommand\p@enumiv{\p@enumiii\theenumiii}
-				%\renewcommand\labelitemi{\textbullet}
+				% \renewcommand\labelitemi{\textbullet}
 				%\renewcommand\labelitemii{\normalfont\bfseries \textendash}
 				%\renewcommand\labelitemiii{\textasteriskcentered}
 				%\renewcommand\labelitemiv{\textperiodcentered}
@@ -1649,16 +1649,16 @@
 				\if#1+\else \creerPresident #1+\fi%
 				\global\@juryPresenttrue%
 				\def\rapporteur##1##2##3{\stepcounter{nbRapporteurs}
-					##1, ##2, ##3 \\
-					\g@addto@macro\@rapporteurs{##1, ##2, ##3 \\}
+					##1, ##2, ##3 \\\vspace{.2cm}
+					\g@addto@macro\@rapporteurs{##1, ##2, ##3 \vspace{.2cm}\\}
 				}
 				\def\examinateur##1##2##3{\stepcounter{nbExaminateurs}
-					##1, ##2, ##3 \\
-					\g@addto@macro\@examinateurs{##1, ##2, ##3 \\}
+					##1, ##2, ##3 \\\vspace{.2cm}
+					\g@addto@macro\@examinateurs{##1, ##2, ##3 \vspace{.2cm}\\}
 				}
 				\def\invite##1##2##3{\stepcounter{nbInvites}
-					##1, ##2, ##3 \\
-					\g@addto@macro\@invites{##1, ##2, ##3 \\}
+					##1, ##2, ##3 \\\vspace{.2cm}
+					\g@addto@macro\@invites{##1, ##2, ##3 \vspace{.2cm}\\}
 				}
 				\begin{lrbox}{\@juryBoxA}
 					\begin{tabular}{p{0.45\linewidth}}
