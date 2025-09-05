@@ -2588,8 +2588,9 @@ equality type. Both were assigned to the types at which \elpi{f} is used.\footno
 For simplicity, we did not write code to remove assigned items from
 \elpi{theta}, since \elpi{bind} simply ignores items that are not variables.}
 Note that \elpi{f} uses the comparison operator on the input list, so it is
-expected to require this list to be an equality type.\footnote{In this specific
-case, one of the lists used in the comparison is empty, so the requirement is
+expected to require this list to be an equality type.
+\footnote{In this specific
+case, \elpi{f} compares the input list with the empy one, so the requirement is
 not strictly necessary, but the type discipline is not precise regarding the
 behavior of the equality test.}
 
@@ -2667,9 +2668,9 @@ a debug print before \elpi{D}, i.e., \elpi{A, B => print D, D} that reads as
 
 We argue that \elpi{=>} should bind more strongly than ``,'' on the left but
 not on the right -- something that parsing technology does not support out of the
-box. 
+box but that can be implemented with a bit of elbow grease. 
 
-To imrove on this we introduced a new syntax for implication, namely \elpi{==>},
+To improve on this we introduced a new syntax for implication, namely \elpi{==>},
 that parses with these precedences and added a
 warning whenever \elpi{A, B => C, D} is used. This warning can be silenced by
 writing \elpi{A, (B => C), D}.
@@ -5216,7 +5217,7 @@ level, declarative language to describe the hierarchy and a ``compiler'' that
 translates this language into the foundational language of Rocq, taking care of
 programming the elaborator to make the hierarchy work.
 
-The design of the language was brought to our attention in Spring 2019 by Cyril
+The design of the language was brought to our attention in spring 2019 by Cyril
 Cohen, as a result of fruitful discussions with other researchers in this
 domain at a Dagstuhl seminar. The implementation took six months
 ~\cite{cohen_et_al:LIPIcs.FSCD.2020.34} and pushed Rocq-Elpi to bind a large
