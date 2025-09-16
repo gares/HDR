@@ -244,8 +244,8 @@
 \begin{jury}%[xxx \Nom{YYY}, Grand chef cuisinier/L'Auberge du Pont de Collonges]%% Mettre ici le nom du président à commenter tant que le président du jury n'est pas connu
 %% Autant de lignes \rapporteur que nécessaire
 %% Autant de lignes \examinateur que nécessaire
-  \rapporteur{Dale \Nom{Miller}}{Directeur de Recherche}{Inria - Saclay}
-  \rapporteur{Catherine \Nom{Dubois}}{Professeur}{Ecole Nationale Supérieure d'Informatique pour l'Industrie et l'Entreprise}
+\rapporteur{Catherine \Nom{Dubois}}{Professeur}{Ecole Nationale Supérieure d'Informatique pour l'Industrie et l'Entreprise}
+\rapporteur{Dale \Nom{Miller}}{Directeur de Recherche}{Inria - Saclay}
   \rapporteur{Alberto \Nom{Momigliano}}{Associate Professor}{University of Milan}
   \rapporteur{Brigitte \Nom{Pientka}}{Full Professor}{McGill University, Monreal}
   \examinateur{Christine \Nom{Paulin-Morhing}}{Professeur}{Université Paris-Saclay}
@@ -265,15 +265,12 @@ To Cinzia and Anna
 
   %% Résumé en anglais : pas plus de 2000 caractères
 \begin{abstract}
-Macarons are so good.
+  TODO
 \end{abstract}
 
 %% Résumé en français : pas plus de 2000 caractères 
-\begin{resume} Les macarons c'est bon par nature, c'est
-le propre même du macaron que d'être bon. Au vue de l'affluence constante aux
-divers magasins Ladurée on peut supposer que les macarons qu'on y trouve sont
-meilleurs qu'ailleurs. Cette thèse vise à donner des idées et pistes sur le
-pourquoi du comment que les macarons de Ladurée sont si bons. 
+\begin{resume}
+  TODO
 \end{resume}
 
 
@@ -331,7 +328,7 @@ irrelevance available when constructivism allows and using
 computation as a reliable form of automation; and (3) the innovative way of
 programming of the Rocq elaborator.
 
-Our focus was on the third point. The elaborator is the component that bridges
+My focus was on the third point. The elaborator is the component that bridges
 the gap between the text input by the user and the formal terms understood by
 Rocq. By extending the elaboration process with small programs, we enabled Rocq
 to behave like an informed reader -- one who knows some basic facts and can
@@ -353,7 +350,7 @@ and immediately raised similar programming issues.
 
 To me, these programming languages were strikingly similar to Prolog. Our code was organized
 as rules and driven by unification. At that time, I had barely heard of Prolog;
-I even have passed over that course in my uversity curricula.
+I even have passed over that course in my university curricula.
 Coincidentally, the Parsifal team at Inria Saclay was working on a language of
 that family, and thanks to Assia Mahboubi and Stephane Legrand, I was invited
 to give a talk at a workshop they were hosting.
@@ -388,7 +385,7 @@ elaborator or, more generally, the outer layers of a tool like Rocq. The answer
 to my question was not readily available, so this was likely the beginning of
 this line of research.
 
-$\lambda$Prolog was not just an idealized language; it had a full
+$\lambda$Prolog was not just an idealized language; it had a reference
 implementation in the Teyjus~\cite{teyjus} system. During a visit to Bologna,
 Claudio Sacerdoti and I managed to write a toy elaborator for a dependent type
 theory in one day, but we could not find a good solution for evars. Our
@@ -432,8 +429,8 @@ From the very beginning, Elpi was conceived to be embedded into a host
 application such as Rocq. It was never intended as a general-purpose
 programming language, nor to scale to large applications. It always had a niche
 domain of application compared to mainstream programming languages.
-In retrospect this clear focus was instrumental in making good use of the resources
-we had.
+In retrospect this clear focus was instrumental in building a working
+piece of software with the limited resources we had.
 
 \section{Elpi}
 
@@ -446,7 +443,7 @@ the Visual Studio Code extensions \texttt{elpi-lang} and \texttt{roc-elpi-lang}.
 This document describes the research we have conducted over the past decade
 around and with this language.\\
 
-The first two chapters cover Elpi from A to Z, both as a language and as an
+The first two chapters cover Elpi ``de A \`a Z'', both as a language and as an
 implementation. We credit Olivier Ridoux~\cite{ridoux1998lambda} for the titles of
 these chapters and thank him for writing an HDR manuscript we enjoyed reading.
 The third chapter describes the integration of Elpi in Rocq, and the fourth
@@ -454,9 +451,10 @@ surveys applications developed using Elpi, most of which are Rocq extensions.
 
 Sections \ref{sec:milner} and \ref{sec:tb} contain full examples of Elpi and
 Rocq-Elpi programs, in particular the Hindley-Milner type inference
-algorithm and a proof transfer tool. The former demonstrates how Elpi
-can deal with terms containing holes, while the latter takes advantage of
-the rule-based nature of Elpi to implement a smooth integration with Rocq.
+algorithm and a proof transfer tool. The former algorithm is closely related
+to elaboration and demonstrates how Elpi can deal with terms containing holes.
+The latter takes advantage of the rule-based nature of Elpi to implement a
+smooth integration with Rocq.
 Both are tested with Elpi version 3.1 and Rocq-Elpi version 3.0.
 We follow these typesetting conventions for code blocks:
 
@@ -500,14 +498,17 @@ they arise.
 \section{Elpi v.s. Prolog}
 
 
-For an introduction to Prolog, the reader is spoiled for choice. Here, we
+For an introduction to Prolog, the reader is spoiled for
+choice~\cite{10.5555/175753,Clocksin}.
+Here, we
 limit ourselves to establishing terminology and highlighting the key
 characteristics of Elpi, as well as its differences from standard Prolog, from
 the programmer's perspective. We identify three main aspects: data types,
 rules, and search.
 
 The first feature worth noting is the support for algebraic data types, such
-as lists and trees. Below is the declaration of binary trees in Elpi syntax:
+as lists and trees. Below is the declaration of binary trees of integeres
+in Elpi syntax:
 
 % \begin{elpibox}
 \begin{elpicode}
@@ -517,16 +518,18 @@ type node int -> tree -> tree -> tree.
 \end{elpicode}
 % \end{elpibox}
 
+\begin{wrapfigure}[10]{r}{.25\textwidth}
+  \begin{center}
+  \begin{forest}
+    [46 [93 [-] [-]] [-]]
+  \end{forest}
+  \end{center}
+\end{wrapfigure}
 The \elpi{leaf} and \elpi{node} symbols can be used to build terms and have
 arities 0 and 3, respectively. Elpi follows the tradition of typed functional
 languages by prescribing not only an arity but also a more precise type for
 \elpi{leaf} and \elpi{node}. In this document, we refer to them as term
 constructors, or simply constructors.
-\begin{wrapfigure}{r}{.2\textwidth}
-  \begin{forest}
-    [46 [93 [-] [-]] [-]]
-  \end{forest}
-\end{wrapfigure}
 Elpi follows the tradition of statically-typed languages:
 types play no role at run time but greatly contribute to the static analysis
 of the code, allowing typos and sometimes even true errors to be reported
@@ -536,21 +539,24 @@ For readers familiar with Prolog, note that Elpi adopts the syntactic
 convention of $\lambda$-calculus for function application, namely $(f~ x~ y)$,
 rather than the mathematical convention $f(x,y)$ used by Prolog.
 
+
+
 \index[concept]{Clause|seealso{ Rule}}
 \index[concept]{Rule}
 \index[concept]{Rule!Head}
 \index[concept]{Rule!Premise}
-The second feature we discuss is that code is organized into rules, which
-constitute the smallest code unit\footnote{In this document we prefer the word
+\index[concept]{Variable!Unification}
+The second feature we discuss is that code is organized into rules, and a rule
+constitutes the smallest code unit\footnote{In this document we prefer the word
 rule to clause, but occasionally we shall use the latter.}.
 A rule consists of two parts: the head and the premises.
 Intuitively, the head drives the selection of a rule, reducing the current
 problem (the goal) to simpler ones. Operationally, the head is \emph{unified}~\cite{10.1145/321250.321253}
 with
 the goal, possibly assigning values to the rule parameters, which are
-embodied by unification variables. Under such assignment the goal and
-the rule's head are syntatically equal, and the computed assignment
-is the minimal one ensuring that property.
+embodied by \emph{unification variables}. When such assignment exists, it makes the goal and
+the rule's head syntatically equal. Moreover the unification algorithm guarantees that
+the computed assignment is the minimal one ensuring this property.
 
 As an example, we provide the code for
 computing the size of a tree, together with its signature:
@@ -573,8 +579,8 @@ becomes a goal and a program can be run to solve it. In contrast, \elpi{node},
 when applied to any number of arguments, is just a piece of data; it is not a
 goal. 
 Operations on built-in data types, such as integers, are provided via the
-built-in \elpi{is} operator, which evaluates its right-hand side and unifies
-the result with the left-hand side.
+built-in \elpi{is} operator, which expects its right-hand to be a ground
+term and evaluates it before unifying it with the left-hand side.
 
 The following snippet depicts how to run a query, in particular
 how to ask Elpi to compute the size \elpi{N} of a given
@@ -602,7 +608,8 @@ type symmetric tree -> prop.
 symmetric leaf.
 symmetric (node _ T T).
 \end{elpicode}
-The third characteristic is that Elpi internalizes a form of search based on
+
+The third and last feature we discuss is that Elpi internalizes a form of search based on
 backtracking: all rules are potentially applied, and there is no commitment to
 the first rule whose head unifies with the goal. Here is an example of code
 that relies on backtracking to test the membership of an element in a tree.
@@ -613,6 +620,7 @@ mem (node N _ _) N.
 mem (node _ L _) N :- mem L N.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}
+\noindent
 Backtracking is a very powerful feature, but without control it can lead to
 unnecessarily poor computational complexity. In Elpi the only construct to control
 backtracking is the cut operator.
@@ -622,6 +630,7 @@ mem (node N _ _) N :- !.
 mem (node _ L _) N :- mem L N, !.
 mem (node _ _ R) N :- mem R N.
 \end{elpicode}
+\noindent
 Operationally, the cut is not a premise to be solved, but rather a directive
 to the runtime, indicating the intention to commit to the current rule and
 solution. The first cut indicates that if the number is found in the current
@@ -702,20 +711,17 @@ The syntax of terms and types is declared as follows:
 
 \begin{elpicode}
 kind term type.
-type lam (term -> term) -> term.
 type app term -> term -> term.
-
-kind ty.
-type arr ty -> ty -> ty.
+type lam (term -> term) -> term.
 \end{elpicode}
 
 The type declaration for terms introduces a pairing constructor \elpi{app},
 which combines a function and its argument, and a function former \elpi{lam}
 that abstracts a term over a (bound) variable representing the formal
-argument. The declaration uses the function space of the programming language
+argument. The declaration uses the function space of the Elpi programming language
 to represent abstraction: the function carried by \elpi{lam} can be applied to
 an actual argument to recover the body of the expression, where the formal
-argument is replaced by the actual argument.
+argument is replaced by the actual argument. 
 
 \index[concept]{H.O.A.S.|seealso{ $\lambda$-tree syntax}}
 \index[concept]{$\lambda$-tree syntax}
@@ -734,24 +740,29 @@ in so-called exotic terms.
 In this approach, we refer to the language being
 encoded as the \emph{object language} (in this case, the simply typed lambda
 calculus), while the language used for the encoding is called the \emph{meta language},
-or simply, and ot our preference, the programming language.
+or simply, and to our preference, the programming language.
 \index[concept]{Object language|seealso {Meta language}}
 \index[concept]{Meta language|seealso {Object language}}
-
-In this syntax, the function $fst = \lambda x.\lambda y.x$ is written as
+\index[concept]{Variable!Bound}
+In this syntax, the function $\mathrm{fst} = \lambda x.\lambda y.x$ is written as
 follows:
 
 \begin{elpicode}
-
 Fst = (lam x\ lam y\ x)
-
+%           ^^^^^^^^^^^ scope of x
+%                  ^^^^ scope of y
 \end{elpicode}
 The syntax \elpi{x\ t} is the programming language abstraction of the
 variables \elpi{x} over an expression \elpi{t}. Hence
-the term \elpi{(x\ lam y\ x)} is an Elpi function of \elpi{x}. Note that
+the term \elpi{(x\ lam y\ x)} is an Elpi function of \elpi{x}.
+We call variables such as \elpi{x} \emph{bound variables}, not to be
+confused with unification variables: bound variables cannot be assigned by
+the unification algorithm, while unification variables can.
+
+Note that
 the syntax tree of our object language,
 $\lambda$-calculus, does not feature a term constructor for variables, since
-we reuse the variables of Elpi for that. As sketched above, the body of the first
+we reuse the bound variables of Elpi for that. As sketched above, the body of the first
 abstraction can be recovered by applying the function to an argument -- for
 example, the constant \elpi{c}: \elpi{((x\ lam y\ x) c)} evaluates to
 \elpi{(lam y\ c)}, thanks to the $\beta$-rule. For the sake of
@@ -765,6 +776,15 @@ also includes the $\eta$-rule, e.g., \elpi{f = x\ f x}.
 % copy (app A B) (app C D) :- copy A C, copy B D.
 % \end{elpicode}
 
+Before implementing a type checker we need to give a syntax to types.
+The only type former we consider is the arrow, the function space.
+Even this time we do not provide a constructor for variables and we
+are going to use Elpi's unification variables for that.
+
+\begin{elpicode}
+kind ty.
+type arr ty -> ty -> ty.
+\end{elpicode}
 
 The type checker for the simply typed $\lambda$-calculus can be implemented
 using the following two rules:
@@ -814,7 +834,7 @@ $$
 
 
 The main difference is that $\Gamma$ is managed by Elpi: the \elpi{pi}
-operator guarantees the freshness of $c$, while \elpi{=>} augments the
+operator guarantees the freshness of $c$, while \elpi{=>} locally augments the
 current program with an instance of the usual rule for variables:
 $$
 \begin{bprooftree}
@@ -875,23 +895,24 @@ be applied indefinitely:
 \begin{elpioutput}
 % never returns 
 goal> of X T.
-^C
+^C % we interrupt the execution
 \end{elpioutput}
 \noindent
-Indeed by applying the rule:
+Indeed by applying the rule for application (that we recall with fresh parameter names):
 \begin{elpicode}
-of (app H A) T :- of H (arr S T), of A S.
+  of (app H1 A1) T1 :- of H1 (arr S1 T1), of A1 S1.
+% of X           T  % the goal
 \end{elpicode}
 \noindent
-one assigns \elpi{app H1 A1} to \elpi{X} and the runs the subgoal:
+one assigns \elpi{app H1 A1} to \elpi{X} and the runs the subgoals:
 \begin{elpicode}
-of H1 (arr S1 T1). 
+of H1 (arr S1 T1)
+of A1 S1
 \end{elpicode}
 \noindent
-to which the same rule applied, and that in turns assigns to \elpi{H}
+The same rule applies to the first subgoal, and that in turns assigns to \elpi{H1}
 a term \elpi{app H2 A2} and generates as a subgoal \elpi{of H2 (arr S2 T2)},
 and this process never ends.
-
 
 \subsection{Incomplete terms}
 
@@ -1078,14 +1099,16 @@ together with \elpi{of X T2}, then remove the latter and generate a new goal
 \elpi{of (app D D) T}, since the goal \elpi{S = arr S T} fails.
 The variable \elpi{S} occurring on the left also
 occurs under a rigid term constructor \elpi{arr} on the right:
-The equation fails the so called \emph{occurs check} and is rejected
+The equation fails the so-called \emph{occurs check} and is rejected
 to avoid creating a cyclic term.
 \index[concept]{Occurs Check}
 
-One detail to note is that constraints are matched against the constraint
+One detail to note is that constraints are \emph{matched} against the constraint
 handling rules; that is, the non-linear occurrence of \elpi{X} does not risk
 merging two unrelated typing constraints: the rule above only applies if two
-constraints about the same variable are in the store.
+constraints about the same variable are in the store. More precisely, the
+unification variables occurring in the constraints are \emph{frozen}, i.e.,
+replaced by fresh constants (that cannot be assigned by the unification algorith).
 
 Another important aspect is that constraint handling rules can match multiple
 goals at once whereas logic programming rules only apply to one. While
@@ -1115,10 +1138,10 @@ rule (E1 :> G1 ?- of (uvar X S1) T1)
 
 \noindent
 In the rule above, we use the keyword \elpi{uvar} to inspect the unification
-variables present in the constraint. More precisely, these unification
-variables are \emph{frozen}: a unification variable \elpi{F} applied to
-\elpi{x} and \elpi{y} is presented to constraint handling rules as
-\elpi{uvar f [x,y]} for a fresh constant \elpi{f}. This lightweight form of
+variables present in the constraint. More precisely, a frozen unification variable
+\elpi{F} with the bound variables \elpi{x} and \elpi{y} in scope is presented
+to constraint handling rules as \elpi{uvar f [x,y]} for a fresh constant
+\elpi{f}. This lightweight form of
 reification ensures that CHR rules are used to match, rather than unify,
 constraints, and that the programmer has access to the scope of unification
 variables. Moreover, each constraint is frozen to a distinct space of names;
@@ -1332,6 +1355,10 @@ The \cut operator corresponds to \elpi{!} in the concrete syntax.
 The \cst one corresponds to \elpi{declare_constraint} in the concrete syntax
 and it carries the applicative term to suspend and the list of variables triggering
 its resumption.
+In the syntax for constraint rules \CHR we find first a list of
+terms representing patterns to match, then a list of terms to match and remove,
+then a guard\footnote{The guard defaults to the always true one in the concrete syntax}
+and finally a list of new goals.
 
 %The non-terminal $\TERM$, for terms, includes predicate calls, functor applications and $\lambda$-abstraction.
 % For simplicity we glue together the
@@ -1605,7 +1632,7 @@ its resumption.
 
 A substitution $\subst$ of type $\Sigma$
 %is a pair $(s,m)$ where $s$ 
-is a mapping from unification variables
+is a partial mapping from unification variables
 \VAR to terms \TERM{}. % and $m$ is a constraint store.
 We write
 % $s\ t$ the application of the substitution $s$ to a term $t$, and 
@@ -1616,7 +1643,7 @@ $\subst\ t$ the  application of the substitution to $t$.
 We write $\dom\ \subst$ for the set of variables occurring
 in the domain %or in the codomain 
 of \subst, i.e.
-$\dom\ \subst = \{ X\ |\ \subst X \mathrm{\ is\ defined\ }\}$. % \lor X \in \vars\ (\subst Y) \mathrm{\ for\ some\ Y} \}$.
+$\dom\ \subst = \{\ X\ |\ \subst X \mathrm{\ is\ defined\ }\}$. % \lor X \in \vars\ (\subst Y) \mathrm{\ for\ some\ Y} \}$.
 The empty substitution is written $\EmptySubst$. % is so that $\dom\ \EmptySubst = \EmptyList$.
 
 We assume a function $\unify$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
@@ -1626,7 +1653,7 @@ such that $\subst['] t_1 = \subst['] t_2$~\cite{miller92jsc}.
 We assume a function $\match$ of type $\TERM \times \TERM \times \Sigma \to \Sigma + \bot$
 such that if $\matchCmd{t}{p}{\subst}{\subst[']} \not= \bot$
 then \subst[']  is the most general extension of  $\subst$
-such that $\subst t = \subst['] p$ and $\subst[']t = \subst t$,
+such that $\subst['] p = \subst t$ and $\subst[']t = \subst t$,
 i.e. \match{} does not assign variables in $t$ but only in $p$ that acts as the pattern.
 
 A program $\prog$ of type $\PROG$ is a pair $(\mathbb{N}, \mathcal{I})$
@@ -1701,7 +1728,7 @@ and runs out of alternatives.
 
 The rules in~\cref{fig:basic-interp-l} are syntax directed, while the ones
 in~\cref{fig:basic-interp-c} are given top priority and are applied in order. 
-Even if rules for CHR have precence we start by explaining the ones
+Even if rules for CHR have precedence we start by explaining the ones
 in~\cref{fig:basic-interp-l} because they give a meaning to the cut-to
 alternatives.
 
@@ -1710,14 +1737,18 @@ constraint store and the
 substitution along with the still unexplored alternatives. Rule~\ref{rule:callabort}
 applies when no rule matches the current goal and no alternative is available.
 Rule~\ref{rule:callbacktrack} implements (chronological) backtracking by simply
-popping the first alternative, returning to the most recent choice point.\footnote{A choice point is, intuitively, an anchor to a point in time we could backtrack to. When doing so assignments are undone, discarding the result of the failred computation.}
+popping the first alternative, returning to the most recent choice point.\footnote{A
+choice point is, intuitively, an anchor to a point in time we could backtrack to.
+When doing so assignments are undone, discarding the result of the failed computation.}
 \index[concepts]{Choice point}
 Rule~\ref{rule:cut} implements a hard cut by restoring the cut-to alternatives
 saved by $\bchain$ (see its description below). Rule~\ref{rule:call} backchains
 all applicable rules, generating new alternatives, the first of which becomes
 the new goal. Rule~\ref{rule:beta} accounts for the higher-order programming
 aspect of $\lambda$Prolog: unification variables can be used to pass predicates
-around. Rule~\ref{rule:pi} introduces a fresh name into the program, while
+around. For example \elpi{P = true, P} is a query that requires Rule~\ref{rule:beta}
+to succeed.
+Rule~\ref{rule:pi} introduces a fresh name into the program, while
 Rule~\ref{rule:impl} introduces a new rule into the program.
 
 Rules~\ref{rule:delay} and~\ref{rule:resume}
@@ -1725,10 +1756,11 @@ address the constraint aspect of the language: the former updates the constraint
 store when a new constraint is declared, while the latter resumes a constraint
 as soon as the substitution $\subst$ acts on its trigger. The second rule
 follows~\cite{Michaylov1993HigherOrderLP}, which also investigates how to
-combine higher-order logic programming with constraint programming. The rule
-attaches the current alternatives to the resumed goal as cut-to alternatives,
-but these will never be used since constraints are applicative terms (i.e., not
-the cut operator).
+combine higher-order logic programming with constraint programming. It may look
+wrong that the rule
+uses the current alternatives as the cut-to alternatives for the resumed goal,
+but these cut-to alternatives will never be used since constraints are
+applicative terms, i.e., not the cut operator.
 
 \paragraph{Definition of $\bchain$ (backchain)}\label{backchain}
 
@@ -1806,8 +1838,8 @@ $$
 \item for each position $0 < j \leq n$
 \item for each permutation of $C_1 \ldots C_n$ constraints in $k'$ having $C_j = (\prog,\ c,\ t)$ ($C_j$ is
 the active constraint)
-\item match all $C_i$ with $P_i$ and if $\runCmd{[\pi_0,Q,\EmptyList]}{\EmptyList}{\EmptySubst}{\EmptyList}{\_}{\subst}{\EmptyList}$
-  where $\pi_0$ is the initial program:
+\item match all $C_i$ with $P_i$ and run the guard $Q$ in the initial program $\pi_0$.
+  If the guard succeeds, i.e., $\runCmd{[\pi_0,Q,\EmptyList]}{\EmptyList}{\EmptySubst}{\EmptyList}{\_}{\subst}{\EmptyList}$, then:
   \begin{itemize}
     \item remove $C_{x+1} \ldots C_n$ from $k'$
     \item remove all permutations involving $C_{x+1} \ldots C_n$
@@ -1832,10 +1864,10 @@ common to all constraints.
 For simplicity, the context $\mathcal{I}$ is presented as a list: if the user
 wants to compare these contexts as sets, they must implement the quotienting
 in the rule's guard $Q$. To simplify context management, the user can specify a
-filter to discard sypothetical rules for predicates not relevant to the constraint
+filter to discard hypothetical rules for predicates not relevant to the constraint
 (typically, rules for predicates unrelated to $c$). For reference, the concrete
 syntax for a block of rules about constraints \elpi{p} and \elpi{q} under a
-context made of \elpi{r} and \elpi{s} is:
+context restricted to \elpi{r} and \elpi{s} is:
 
 \begin{elpicode}
 constraint r s ?- p q {
@@ -1852,6 +1884,7 @@ to consider. In order to opt out the user can add a designated, inert,
 trigger to all constraints as follows:
 \begin{elpicode}
 code :- declare_constraint (p X) [X, _].
+%                                    ^ special trigger
 \end{elpicode}
 The special trigger \elpi{_} is a designated, unnamed variable. It cannot be
 assigned, so it plays no role as a trigger. In the example above, the trigger
@@ -1956,7 +1989,7 @@ as follows:
 of (lam F) (arr S T) :- @pi-of S c\ of (F c) T.
 
 % desugnars to
-of (lam F) (arr S T) :- pi c\ of c S => of (F c) T.
+of (lam F) (arr S T) :- pi x\ of x S => of (F x) T.
 \end{elpicode}
 
 \noindent
@@ -1972,8 +2005,8 @@ important form of documentation, and poorly chosen names are the primary cause
 of unreadable code.
 
 The time a careless programmer saves by using \elpi{TMP}, \elpi{AUX}, or
-\elpi{X'} instead of thinking of an appropriate name is payd back, with
-interest, by any reader of the code -- including the programmer themselves.
+\elpi{X'} instead of thinking of an appropriate name is payed back, with
+interest, by any reader of the code -- including the programmer herself.
 
 Logic programming, even in its higher-order flavor, distinguishes commands
 from expressions (predicates from data). This characteristic is the main
@@ -2000,8 +2033,8 @@ code L1 L2 Result :- Result = {rev {append L1 L2}}.
 The curly braces identify a term to be \emph{spilled} to the closest
 \emph{execution point}, determined by walking the terms inside out
 and identifying the first expression of type \elpi{prop}.
-
-Spilling can be nested and its elaboration is akin to the generation of the
+When spilling is nested as in the example above its elaboration is akin to
+the generation of the
 administrative normal form, which is commonly used in 
 the compilation of functional programming
 languages.
@@ -2040,28 +2073,37 @@ the original \elpi{x} with the one abstracted by \elpi{pi y}.
 
 When working under binders of the object language it is often
 necessary to augment the context via
-the implication operator. For example if the \elpi{lam}
-term constructor carries the type of the bound variable, then when
-crossing it one probably wants to keep that type at hand via
+the implication operator. For example consider a variation of
+the $\lambda$-calculus where the \elpi{tlam}
+term constructor carries the type of the bound variable:
+
+\begin{elpicode}
+type app        term -> term -> term.
+type tlam ty -> (term -> term) -> term.
+\end{elpicode}
+
+When crossing \elpi{tlam} one probably wants to keep that type at hand via
 a dedicated rule, for example to be able to call the type
 checker under the binder.
 
 \begin{elpicode}
   code Ty Result :- 
     % we call the predicate of under the binder for x
-    Result = (lam Ty x\ lam {of x Ty => of (app g x)} y\ ...)
+    Result = (tlam Ty x\ tlam {of x Ty => of (app g x)} y\ ...)
+    %                          ^^^^^^^^^^ hypothetical context for spilling
 
   % desugars to
   code Ty Result :-
     % the spilled expression keeps the implication
     (pi y\ of y Ty => of (app g y) (TMP y))
-    Result = (lam Ty x\ lam (TMP x) y\ ...)
+    Result = (tlam Ty x\ tlam (TMP x) y\ ...)
 \end{elpicode}
 
 \noindent
 When spilling is combined with quotations, as we
 will better describe in~\cref{sec:quotations},
-the \elpi{=>} may be implicitly added by the compiler.
+the hypothetical context for spilling may be implicitly added by the
+compiler when desugaring the quotation.
 For example
 we call an predicate \elpi{api} under the object language binder
 for \elpi{x}.
@@ -2100,7 +2142,7 @@ the items constituting \elpi{TodoForLater} are executed, rather than when
 the todo list is generated, which may have been the intended behavior.
 
 Based on our experience, the closest execution point generally aligns with
-the programmer's expectations, but it has been undeniably a sorce of debate.
+the programmer's expectations, but it has been undeniably a source of debate.
 
 \section{A complete example: Hindley-Milner type inference}\label{sec:milner}
 
@@ -2183,7 +2225,8 @@ for our examples.
 Monomorphic type expressions $\tau$ and type schemas $\sigma$ are depicted
 at the bottom of~\cref{fig:tt}. As in the original paper, we fix a few built-in type constructors
 instead of supporting a generic n-ary type former, but unlike the ML
-tradition, we place type constructors to the left of an application. We use
+tradition, we place type constructors to the left of an application (i.e.
+we write \elpi{list int} rather than \elpi{int list}). We use
 the infix symbol \elpi{-->} for the function space of ML.
 
 The typing routine works with a context and, as we did for the simply typed
@@ -2256,9 +2299,9 @@ specialize (all tt F) T :-
 \noindent
 The only detail worth describing is the use of the \elpi{prune} built-in
 to restrict the scope of \elpi{Fresh} to the empty one. While this is not
-necessary for the algorithm to work properly, is simplifies the output
-we shall comment at the end of the section. Finally, it is not hurting either
-since the the types we deal with in this example are not dependent -- binders
+necessary for the algorithm to work properly, it simplifies the output
+that we shall comment at the end of the section. Finally, it is not hurting either
+since the types we deal with in this example are not dependent -- binders
 are for terms only but \elpi{Fresh} represents a type.
 
 The \elpi{eqbar} predicate,~\cref{fig:eqbar}, traverses concrete type expressions and
@@ -2517,17 +2560,19 @@ quantifications.
 %elpi:hm.elpi
 \begin{elpicode}
 pred bind i:list tye, i:list tye, i:tye, o:ty.
-bind [uvar X _|XS] Theta T (all E x\ T1 x) :- % load the substitution
+bind [uvar X _|XS] Theta T (all E x\ T1 x) :-
   if (mem Theta (uvar X _)) (E = tt) (E = ff),
   pi c\ (copy (uvar X _) c :- !) => bind XS Theta T (T1 c).
+%       ^^^^^^^^^^^^^^^^^^^^^^^^^^^   load the substitution
 bind [] _ T (mono T1) :- copy T T1. % fire the substitution
 \end{elpicode}
-The key is the \elpi{copy} predicate, which implements
+The key is the \elpi{copy} predicate, given below, which implements
 substitution by traversing an expression. Since this substitution is not
-the built-in one (i.e., not function application), we can alter its behavior
+the built-in one (i.e., not function application), \elpi{bind} can alter its behavior
 by loading into the program some ad hoc rules. In particular, for
 each variable \elpi{uvar X _} to abstract, we postulate a fresh symbol
 \elpi{c} and load a rule to copy \elpi{uvar X _} to \elpi{c}.
+
 %elpi:hm.elpi
 \begin{elpicode}
 
@@ -2613,7 +2658,7 @@ Success
 Constraints:
  theta [int, X0] 
    /* suspended on X1 */
- {c0} : of c0 (all tt c1 \ mono (list c1 --> bool)) ?- eqbar X0 
+ {f} :> of f (all tt c1 \ mono (list c1 --> bool)) ?- eqbar X0 
    /* suspended on X0, X1 */
 \end{elpioutput}
 This time, \elpi{theta} contains an unassigned variable \elpi{X0}. On this same
@@ -2629,7 +2674,7 @@ that it lacks code for error reporting, but its size is quite remarkable: it
 roughly matches the length of a pen-and-paper presentation of the same
 algorithm.
 
-\subsection{A word on bidirectionality}
+\subsection{A word on bidirectional type inference}
 
 Perhaps the most unexpected feature of the running example is that it is a
 bidirectional algorithm. In particular, the rule for application pushes down
@@ -2663,7 +2708,7 @@ are some pitfalls that have tricked everyone (ourselves included).
 
 When one writes \elpi{A, B => C, D}, what he really means is \elpi{A, B => (C, D)}.
 This becomes clear when one has a program \elpi{A, B => D} and wants to sneak in
-a debug print before \elpi{D}, i.e., \elpi{A, B => print D, D} that reads as
+a debug print before \elpi{D}. For example \elpi{A, B => print D, D} reads as
 \elpi{A, (B => print D), D}.
 
 We argue that \elpi{=>} should bind more strongly than ``,'' on the left but
@@ -2671,15 +2716,17 @@ not on the right -- something that parsing technology does not support out of th
 box but that can be implemented with a bit of elbow grease. 
 
 To improve on this we introduced a new syntax for implication, namely \elpi{==>},
-that parses with these precedences and added a
+that parses with these precedences, i.e.,
+\elpi{A, B ==> C, D} means \elpi{A, (B => (C, D))}.
+We also have added a
 warning whenever \elpi{A, B => C, D} is used. This warning can be silenced by
-writing \elpi{A, (B => C), D}.
+adding explicit parentheses as in \elpi{A, (B => C), D}.
 
 \subsection{Treacherous one-rule anonymous predicates}
 
 The higher-order capabilities of Elpi let one write code like
 \begin{elpicode}
-code L L' :- map L (x\r\p x A, q A r) L'.
+code L L' :- map L (x\r\ p x A, q A r) L'.
 \end{elpicode}
 where \elpi{A} is arguably quantified (allocated) in the wrong place. By
 convention, variables are considered parameters of the entire rule, not of the
@@ -2687,7 +2734,7 @@ inlined sub-rule.
 
 The correct way to write the code above is
 \begin{elpicode}
-code L L' :- map L (x\r\sigma A\p x A, q A r) L'.
+code L L' :- map L (x\r\ sigma A\ p x A, q A r) L'.
 \end{elpicode}
 \noindent
 where each call to the anonymous rule has a different \elpi{A}.
@@ -2729,7 +2776,8 @@ to higher-order unification for these tasks.
 The CHR semantics described in \cref{sec:sem} behaves intuitively most of the
 time: rules are scanned in order and applied when applicable. It becomes a bit
 surprising, according to our experience, when the multiset nature of the
-constraint store plays a role, particularly when permutations contain
+constraint store plays a role, particularly when the permutations
+considered by step 5 contain
 duplicate constraints and when rules have some symmetry in their patterns.
 
 
