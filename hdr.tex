@@ -2213,15 +2213,15 @@ This makes a good use case for Elpi because:
 
 \subsection{Hindley-Milner in a nutshell}
 
-Before delving into the implementation we recall the main idea of this type
-inference algorithm that is capable of assigning to let-bound functions
-a polymoprhic type, under some conditions. More precisely
-the type of a let bound function is universally quantified over all the type
-variables that are used \emph{only} to type the function body.
-If a type variable ``leaks'' from the body, then it cannot be universally
-quantified.
 
-For example the first \ocaml{f} is polymorphic, while \ocaml{h} is not:
+Before delving into the implementation, let us recall the main idea behind
+this type inference algorithm, which can assign a polymorphic type to
+let-bound functions under certain conditions. More precisely, the type of a
+let-bound function is universally quantified over all type variables that are
+used \emph{only} within the function body. If a type variable ``leaks'' from
+the body, it cannot be universally quantified.
+
+For example, the function \ocaml{f} below is polymorphic, while \ocaml{h} is not:
 \begin{ocamlcode}
 let a = (* a : $\mathrm{string} \times \mathrm{int}$ *)
   let f x = (* f : $\forall \alpha, \alpha \to \alpha$ *)
@@ -2235,22 +2235,24 @@ let b y = (* b : $\alpha \to \mathrm{bool} \times \mathrm{bool} $ *)
   in
     (h "foo", h 1)  (* error: $\alpha = \mathrm{string} \not= \mathrm{int} = \alpha$ *)
 \end{ocamlcode}
-The typing algorithm proceeds pretty much like
-the type checker for simply typed $\lambda$-calculus of~\cref{sec:hello}, i.e.,
-using existentially quantified type variables to represent
-unknown types, and using unification to establish type equality.
-The clever step is recognizing that an existentially quantified variable
-used to type a function body occurs nowhere else, indicating that the code
-makes no assumption on that type. In this case the function
-is given a polymorphic type.
 
-In the example above the body of \ocaml{h} compares \ocaml{x} with \ocaml{y} forcing
-their type to be the same $\alpha$ that hence escapes the body of \ocaml{h}.
-Indeed one is not able to use \ocaml{h}
-on arguments of types other than the type of \ocaml{y}. If the
-definition \ocaml{b} was allowed (by considering \ocaml{h} polymorphic),
-then by running \ocaml{b} on, say, \ocaml{2},
-one would get a runtime type error when comparing \ocaml{2} with \ocaml{"foo"}.
+The typing algorithm proceeds much like the type checker for simply typed
+$\lambda$-calculus described in~\cref{sec:hello}. It uses existentially
+quantified type variables to represent unknown types and relies on
+unification to establish type equality. The clever step is to recognize
+when an existentially quantified variable used in a function body occurs
+nowhere else, indicating that the code makes no assumptions about that type.
+In this case, the function is given a polymorphic type.
+
+
+In the example above, the body of \ocaml{h} compares \ocaml{x} with \ocaml{y},
+forcing their type to be the same $\alpha$, which thus escapes the body of
+\ocaml{h}. As a result, one cannot use \ocaml{h} on arguments of types other
+than the type of \ocaml{y} by being also used to type \ocaml{x}.
+If the definition \ocaml{b} were allowed (by
+treating \ocaml{h} as polymorphic), then running \ocaml{b} on, say,
+\ocaml{2}, would result in a runtime type error when comparing \ocaml{2} with
+\ocaml{"foo"}.
 
 \subsection{Syntax of terms and types}
 
