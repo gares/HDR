@@ -1157,6 +1157,52 @@ We refer the interested reader to~\cite{TASSI_2019} for details of a CHR rule mo
 the uniqueness of typing property in Rocq's logic, and to~\cite{Jojgov} for
 the role played by unification variable scopes in dependent type theory.
 
+\subsection{Constraints v.s. global variables}
+
+Most programming languages, including variants of Prolog, offer the concept of
+global variables -- a feature that, while best used sparingly, can be extremely
+convenient. Elpi does not natively support global variables, but it is easy to
+implement a global state on top of constraint handling rules, provided that the
+read/write performance of global variables is not critical for the application.
+
+
+Here is an example of an integer global variable with a set/get API.
+
+\begin{elpicode}
+pred set i:int.
+set I :- declare_constraint (set I) [_].
+
+pred get o:int.
+get I :- declare_constraint (get I) [_].
+
+pred value i:int.
+value I :- declare_constraint (value I) [_].
+
+constraint set get value {
+  rule \ (set I) (value _)   <=> (value I).           
+  rule (value J) \ (get I)   <=> (I = J).      
+  rule (set _)               <=> (halt "no global variable").
+  rule (get _)               <=> (halt "no global variable").
+  rule (value _) (value _)   <=> (halt "double initialization").
+}
+\end{elpicode}
+
+The code uses \elpi{value} to initialize the global variable, and
+\elpi{set} or \elpi{get} to overwrite or read its value.
+
+\begin{elpioutput}
+goal> value 2, get N, set 3.
+
+Success:
+  N = 2
+
+Constraints:
+ value 3  /* suspended on X0 */
+\end{elpioutput}
+
+Note that the constraint store honors backtracking, making this global state
+simply a convenient way to avoid threading an explicit state, as one would do
+in a pure language.
 
 % , and S2 in T2. In this
 % richer setting comparing T1 and T2 in the disjoint union is incorrect,
@@ -1835,7 +1881,7 @@ $$
 \begin{enumerate}
 \item add the active constraint $(\prog,\ c,\ t)$ to $k$ to obtain $k'$, and set $g'$ to $\EmptyList$
 \item for each rule $P_1 \ldots P_x\ \backslash\ P_{x+1} \ldots P_n\ |\ Q \Leftrightarrow G$
-\item for each position $0 < j \leq n$
+\item for each position $0 < j \leq n$ in increasing order
 \item for each permutation of $C_1 \ldots C_n$ constraints in $k'$ having $C_j = (\prog,\ c,\ t)$ ($C_j$ is
 the active constraint)
 \item match all $C_i$ with $P_i$ and run the guard $Q$ in the initial program $\pi_0$.
