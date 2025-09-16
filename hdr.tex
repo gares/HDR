@@ -2190,6 +2190,7 @@ the todo list is generated, which may have been the intended behavior.
 Based on our experience, the closest execution point generally aligns with
 the programmer's expectations, but it has been undeniably a source of debate.
 
+\newpage
 \section{A complete example: Hindley-Milner type inference}\label{sec:milner}
 
 The most well known type inference algorithm is the one crafted by Milner
@@ -2210,11 +2211,54 @@ This makes a good use case for Elpi because:
     that is set if the equality test is used on values of their type.
 \end{itemize}
 
+\subsection{Hindley-Milner in a nutshell}
+
+Before delving into the implementation we recall the main idea of this type
+inference algorithm that is capable of assigning to let-bound functions
+a polymoprhic type, under some conditions. More precisely
+the type of a let bound function is universally quantified over all the type
+variables that are used \emph{only} to type the function body.
+If a type variable ``leaks'' from the body, then it cannot be universally
+quantified.
+
+For example the first \ocaml{f} is polymorphic, while \ocaml{h} is not:
+\begin{ocamlcode}
+let a = (* a : $\mathrm{string} \times \mathrm{int}$ *)
+  let f x = (* f : $\forall \alpha, \alpha \to \alpha$ *)
+    x
+  in
+    (f "foo", f 1)
+
+let b y = (* b : $\alpha \to \mathrm{bool} \times \mathrm{bool} $ *)
+  let h x = (* h : $\alpha \to \mathrm{bool}$ *)
+    x = y
+  in
+    (h "foo", h 1)  (* error: $\alpha = \mathrm{string} \not= \mathrm{int} = \alpha$ *)
+\end{ocamlcode}
+The typing algorithm proceeds pretty much like
+the type checker for simply typed $\lambda$-calculus of~\cref{sec:hello}, i.e.,
+using existentially quantified type variables to represent
+unknown types, and using unification to establish type equality.
+The clever step is recognizing that an existentially quantified variable
+used to type a function body occurs nowhere else, indicating that the code
+makes no assumption on that type. In this case the function
+is given a polymorphic type.
+
+In the example above the body of \ocaml{h} compares \ocaml{x} with \ocaml{y} forcing
+their type to be the same $\alpha$ that hence escapes the body of \ocaml{h}.
+Indeed one is not able to use \ocaml{h}
+on arguments of types other than the type of \ocaml{y}. If the
+definition \ocaml{b} was allowed (by considering \ocaml{h} polymorphic),
+then by running \ocaml{b} on, say, \ocaml{2},
+one would get a runtime type error when comparing \ocaml{2} with \ocaml{"foo"}.
+
+\subsection{Syntax of terms and types}
+
 The syntax of terms is very similar to that of the simply typed
 $\lambda$-calculus, with the addition of \texttt{let} and the equality test.
 We omit conditionals, loops, and recursion, since they do not play an
 important role here.
-\begin{figure}
+\begin{figure}[!h]
 \begin{center}
 \begin{minipage}{0.35\textwidth}
 $$
@@ -2274,6 +2318,8 @@ instead of supporting a generic n-ary type former, but unlike the ML
 tradition, we place type constructors to the left of an application (i.e.
 we write \elpi{list int} rather than \elpi{int list}). We use
 the infix symbol \elpi{-->} for the function space of ML.
+
+\subsection{Typing rules}
 
 The typing routine works with a context and, as we did for the simply typed
 lambda calculus, we delegate its management to the programming language.
@@ -2475,6 +2521,8 @@ of X (mono T) :-
 \caption{Typing algorithm\label{fig:hm}}
 \end{figure}
 
+\subsection{Type generalization}
+
 We have already described how \elpi{specialize} relates to $\sqsubseteq$.
 What remains to be described is the $\overline{\Gamma}$ operation
 in charge of synthesizing type schemas.
@@ -2649,7 +2697,8 @@ filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
 filter [_|XS] F YS :- filter XS F YS.
 \end{elpicode}
 
-\noindent
+\subsection{Execution example}
+
 We can run the type inference algorithm on the following term, which defines a
 function $f$ that tests whether the input list is empty and then applies $f$ to
 two different expressions:
