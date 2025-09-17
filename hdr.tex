@@ -265,34 +265,51 @@ To Cinzia and Anna
 
 %% Résumé en anglais : pas plus de 2000 caractères
 \begin{abstract}
-This document presents the Elpi, a rule-based extension language
-designed for embedding in applications such as interactive theorem provers
-(notably Rocq). Elpi is a blend of
-λProlog (a higher-order logic programming language) and Constraint Handling
-Rules (CHR), enabling expressive manipulation of syntax trees with binders and
-holes.
+This document presents Elpi, a rule-based language designed to extend
+applications such as interactive theorem provers, notably Rocq. Elpi
+combines λProlog, a higher-order logic programming language, with
+Constraint Handling Rules, enabling concise and expressive manipulation of
+syntax trees that include binders and holes.
 
-The manuscript describes Elpi as a programming language
-contrasting it with Prolog and λProlog. It then describes
-its implementation, highligting the key to its efficiency and
-ease of integration in host applications. It continues detailing
-the integration of Elpi with Rocq and concludes with
-a survey that catalogs applications built on
-Elpi, identifying the language features that are important to each of them.
+The manuscript presents Elpi as a programming language and contrasts it
+with Prolog and λProlog. It then describes the implementation, highlighting
+the factors that contribute to its efficiency and the ease with which it can
+be integrated into host applications. The text continues with details on
+Elpi's integration with Rocq and concludes with a survey of applications
+built on Elpi, identifying the language features most relevant to each.
 
-Two case studies illustrate Elpi's power. The first one a version of
-Hindley-Milner type-inference algorithm with equality types. The second one
-is a proof-transfer tool.
+Two case studies illustrate Elpi's capabilities. The first presents a
+version of the Hindley-Milner type inference algorithm. The second describes
+a proof-transfer tool for Rocq.
 \end{abstract}
 
 %% Résumé en français : pas plus de 2000 caractères
-\begin{resume} TODO \end{resume}
+\begin{resume}
+Ce document présente Elpi, un langage par règles
+conçu pour étendre des applications telles que les assistants de preuve
+interactifs (notamment Rocq). Elpi est un mélange de
+λProlog, un langage de programmation logique d'ordre supérieur, et de
+Constraint Handling Rules, permettant une manipulation facile des arbres
+de syntaxe avec des lieurs et des trous.
+
+Le manuscrit décrit Elpi comme un langage de programmation,
+en le comparant à Prolog et λProlog. Il détaille ensuite
+son implémentation, en soulignant les clés de son efficacité et
+de sa facilité d'intégration dans les applications hôtes. Il poursuit avec
+la description de l'intégration d'Elpi dans Rocq et conclut par
+une enquête qui recense les applications développées avec Elpi,
+en identifiant les fonctionnalités du langage importantes pour chacune.
+
+Deux études de cas illustrent la puissance d'Elpi. La première est
+une version de l'algorithme d'inférence de types Hindley-Milner.
+La seconde est un outil de transfert de preuves pour Rocq.
+\end{resume}
 
 
 %% Mots-clés en français
-\motscles{Pâtisserie, Macaron, Ladurée.}
 %% Mots-clés en anglais
-\keywords{Pastry, Macaron, Ladurée.}
+\motscles{λProlog, CHR, Elpi, OCaml, Rocq.}
+\keywords{λProlog, CHR, Elpi, OCaml, Rocq.}
 \end{ResumeMotsCles}
 
 % \begin{remerciements}
@@ -5370,7 +5387,7 @@ form -- performance was not critical according to the benchmarks in~\cite{gregoi
 in Rocq, particularly in the APIs for managing universe constraints.
 
 
-\section{Hierarchy Builder}\label{sec:hb}
+\newpage\section{Hierarchy Builder}\label{sec:hb}
 
 
 The Mathematical Components library is the largest and most widely used
@@ -5496,7 +5513,7 @@ To the best of our knowledge, most of the time spent in HB today is actually
 consumed by calls to the Rocq API, typically to typecheck and define the terms
 that are automatically synthesized.
 
-\section{Other applications}
+\newpage\section{Other applications}
 
 
 Elpi and Rocq-Elpi have found applications in other projects in which I did not
