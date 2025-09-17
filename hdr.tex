@@ -2274,6 +2274,12 @@ treating \ocaml{h} as polymorphic), then running \ocaml{b} on, say,
 \ocaml{2}, would result in a runtime type error when comparing \ocaml{2} with
 \ocaml{"foo"}.
 
+The algorithm we describe in the following section also tracks
+type variables that are used to type terms that are compared with
+the equality predicate \ocaml{(=)}. If abstracted in a schema, these
+variables are flagged so that the schema can only apply to types
+that admit an equality test (unlike the function space).
+
 \subsection{Syntax of terms and types}
 
 The syntax of terms is very similar to that of the simply typed
