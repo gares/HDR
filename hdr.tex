@@ -1962,7 +1962,7 @@ Note that the constraint store honors backtracking, making this global state
 simply a convenient way to avoid threading an explicit state, as one would do
 in a pure language.
 
-
+\newpage
 \section{Syntactic sugar}
 
 
@@ -2628,7 +2628,7 @@ The definition of free type variables, \cref{img:free}, is not surprising,
 but it is worth reminding two details 
 from~\cref{sec:chrui} of the corresponding Elpi code.
 
-\begin{figure}
+\begin{figure}[p]
 $$
 \begin{array}{ll}
   \text{free}(\ \mathtt{int}\ ) &=\ \emptyset\\
@@ -2660,6 +2660,20 @@ free (A --> B) L L1 :- L1 = {free B {free A L}}.
 free (uvar _ _ as X) L L1 :- if (mem L X) (L1 = L) (L1 = [X|L]).
 \end{elpicode}
 \caption{Free type variable\label{img:free}}
+\end{figure}
+\begin{figure}[p]
+%elpi:hm.elpi
+\begin{elpicode}
+pred mem i:list tye, i:tye.
+mem [uvar X _|_] (uvar X _) :- !.
+mem [_|XS] X :- mem XS X.
+ 
+pred filter i:list A, i:(pred i:A), o:list A.
+filter [] _ [].
+filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
+filter [_|XS] F YS :- filter XS F YS.
+\end{elpicode}
+\caption{Auxiliary code\label{img:aux}}
 \end{figure}
 
 
@@ -2708,22 +2722,11 @@ copy (uvar _ _ as V) V.
 \end{elpicode}
 
 
-For completeness, the remaining code follows. It may be worth explaining the
+For completeness, the remaining code is given in~\cref{img:aux}. It may be worth explaining the
 signature of the polymorphic, higher-order \elpi{filter} predicate. In
 particular, \texttt{i:(pred i:A)} stands for an input predicate over
 \elpi{A}, where the predicate itself expects an input.
 
-%elpi:hm.elpi
-\begin{elpicode}
-pred mem i:list tye, i:tye.
-mem [uvar X _|_] (uvar X _) :- !.
-mem [_|XS] X :- mem XS X.
- 
-pred filter i:list A, i:(pred i:A), o:list A.
-filter [] _ [].
-filter [X|XS] F [X|YS] :- F X, !, filter XS F YS.
-filter [_|XS] F YS :- filter XS F YS.
-\end{elpicode}
 
 \subsection{Execution example}
 
@@ -2822,6 +2825,7 @@ Note how \elpi{TH} is not related to \elpi{TA} before the call to
 \elpi{of A (mono TA)}, and how the code only checks after the fact that
 \elpi{TH = (TA --> T)}.
 
+\newpage
 \section{Pitfalls}
 
 Over the years, we have put Elpi in the hands of a good number of users. Here
