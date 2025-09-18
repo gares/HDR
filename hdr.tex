@@ -4188,7 +4188,7 @@ order programs that lie inside the fragment \thefragment{} (see
 from the Teyjus test suite for normalizing SKI-expressions.
 
 Benchmarks within \thefragment{} include a type checker for $\lambda$-terms
-(the \verb+of+ program discussed in~\cref{sec:hello}) and an two evaluators that
+(the \verb+of+ program discussed in~\cref{sec:hello}) and two evaluators that
 compute expressions such as $5^5$ using Church numerals: one that follows
 the call-by-value strategy and one the call-by-name one. The
 type-checking benchmark is designed to measure the cost of traversing
@@ -4286,7 +4286,7 @@ shorter than the equivalent OCaml program: it is expressed in roughly fifty
 rules.
 
 Grundlagen is a corpus of 6911 items (about 8MB). When the benchmarks were
-run (circa 2015), Teyjus appeared to be limited by a fixed heap size of
+run (around 2015), Teyjus appeared to be limited by a fixed heap size of
 256MB, which restricted it to verifying the first 2615 items. The tables
 below report pre-processing time (Pre), which includes parsing and
 compilation/elaboration, and verification time (Ver). We compare Elpi with
@@ -6298,14 +6298,21 @@ duplication. Still Gallina features a programming language that can
 be used to encode other formal systems, and proof theoretically speaking it is
 strong enough to contain them, reason about them and share, at some
 extent, theorems.
-Maybe the most shiny example of this approach is Iris. Iris is a separation logic
-that is proved sound in Rocq, that thanks to its proof mode it
-can be used to reason about imperative programs. When possible
+Maybe the most shiny example of this approach is Iris~\cite{10.1007/978-3-662-54434-1_26}.
+Iris is a separation logic
+that is proved sound in Rocq, that thanks to its proof mode~\cite{IPM} it
+can be used to reason about imperative programs. When possible,
 pointers and heap locations are related to mathematical objects, like
-lists made of cons and nil, and imperative algorithms to their
+(immutable) lists made of cons and nil, and imperative algorithms to their
 functional specification, the same specification other...
 
-VST, FOL,
+VST~\cite{VST}, FOL~\cite{FOL},
+
+what is the role of Elpi in such a future. surely can stay as EL.
+If one goes in the direction of~\cite{concon} it may serve as the missing
+code
+
+TODO
 
 
 \backmatter

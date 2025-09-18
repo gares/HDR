@@ -1023,3 +1023,80 @@ location = {Tbilisi, Georgia}
     Number= {UCB/CSD-89-509},
     Abstract= {This report describes a suite of benchmarks for Prolog implementation research. It includes an explanation of the format of the suite, which is meant to facilitate use of the benchmarks. The principal idea of this format is to maintain for each benchmark a master file from which particular instances -- for particular Prolog execution systems, for particular statistics to capture, etc. -- are generated automatically using a preprocessor. A preprocessor provided with the suite for this purpose is described, along with a related utility and a simple framework for execution time measurement. Source code for these is appended. Possibilities for future work with respect both to this suite and to Prolog benchmarking more generally are discussed briefly. For each benchmark in the suite, source code and execution times under C Prolog and Quintus Prolog (compiled) on a Sun 3/60 are appended.},
 }
+
+@inproceedings{concon,
+author = {Pientka, Brigitte and Thibodeau, David and Abel, Andreas and Ferreira, Francisco and Zucchini, Rebecca},
+title = {A type theory for defining logics and proofs},
+year = {2021},
+publisher = {IEEE Press},
+abstract = {We describe a Martin-L\"{o}f-style dependent type theory, called Cocon, that allows us to mix the intensional function space that is used to represent higher-order abstract syntax (HOAS) trees with the extensional function space that describes (recursive) computations. We mediate between HOAS representations and computations using contextual modal types. Our type theory also supports an infinite hierarchy of universes and hence supports type-level computation thereby providing metaprogramming and (small-scale) reflection. Our main contribution is the development of a Kripke-style model for Cocon that allows us to prove normalization. From the normalization proof, we derive subject reduction and consistency. Our work lays the foundation to incorporate the methodology of logical frameworks into systems such as Agda and bridges the longstanding gap between these two worlds.},
+booktitle = {Proceedings of the 34th Annual ACM/IEEE Symposium on Logic in Computer Science},
+articleno = {29},
+numpages = {13},
+location = {Vancouver, Canada},
+series = {LICS '19}
+}
+@InProceedings{FOL,
+author="Forster, Yannick
+and Kirst, Dominik
+and Wehr, Dominik",
+editor="Artemov, Sergei
+and Nerode, Anil",
+title="Completeness Theorems for First-Order Logic Analysed in Constructive Type Theory",
+booktitle="Logical Foundations of Computer Science",
+year="2020",
+publisher="Springer International Publishing",
+address="Cham",
+pages="47--74",
+abstract="We study various formulations of the completeness of first-order logic phrased in constructive type theory and mechanised in the Coq proof assistant. Specifically, we examine the completeness of variants of classical and intuitionistic natural deduction and sequent calculi with respect to model-theoretic, algebraic, and game semantics. As completeness with respect to standard model-theoretic semantics is not readily constructive, we analyse the assumptions necessary for particular syntax fragments and discuss non-standard semantics admitting assumption-free completeness. We contribute a reusable Coq library for first-order logic containing all results covered in this paper.",
+isbn="978-3-030-36755-8"
+}
+@InProceedings{VST,
+author="Appel, Andrew W.",
+editor="Barthe, Gilles",
+title="Verified Software Toolchain",
+booktitle="Programming Languages and Systems",
+year="2011",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="1--17",
+abstract="The software toolchain includes static analyzers to check assertions about programs; optimizing compilers to translate programs to machine language; operating systems and libraries to supply context for programs. Our Verified Software Toolchain verifies with machine-checked proofs that the assertions claimed at the top of the toolchain really hold in the machine-language program, running in the operating-system context, on a weakly-consistent-shared-memory machine.",
+isbn="978-3-642-19718-5"
+}
+@article{10.1145/3093333.3009855,
+author = {Krebbers, Robbert and Timany, Amin and Birkedal, Lars},
+title = {Interactive proofs in higher-order concurrent separation logic},
+year = {2017},
+issue_date = {January 2017},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {52},
+number = {1},
+issn = {0362-1340},
+url = {https://doi.org/10.1145/3093333.3009855},
+doi = {10.1145/3093333.3009855},
+abstract = {When using a proof assistant to reason in an embedded logic -- like separation logic -- one cannot benefit from the proof contexts and basic tactics of the proof assistant. This results in proofs that are at a too low level of abstraction because they are cluttered with bookkeeping code related to manipulating the object logic.  In this paper, we introduce a so-called proof mode that extends the Coq proof assistant with (spatial and non-spatial) named proof contexts for the object logic. We show that thanks to these contexts we can implement high-level tactics for introduction and elimination of the connectives of the object logic, and thereby make reasoning in the embedded logic as seamless as reasoning in the meta logic of the proof assistant. We apply our method to Iris: a state of the art higher-order impredicative concurrent separation logic.  We show that our method is very general, and is not just limited to program verification. We demonstrate its generality by formalizing correctness proofs of fine-grained concurrent algorithms, derived constructs of the Iris logic, and a unary and binary logical relation for a language with concurrency, higher-order store, polymorphism, and recursive types. This is the first formalization of a binary logical relation for such an expressive language. We also show how to use the logical relation to prove contextual refinement of fine-grained concurrent algorithms.},
+journal = {SIGPLAN Not.},
+month = jan,
+pages = {205–217},
+numpages = {13},
+keywords = {Separation Logic, Logical Relations, Interactive Theorem Proving, Fine-grained Concurrency, Coq}
+}
+
+@inproceedings{IPM,
+author = {Krebbers, Robbert and Timany, Amin and Birkedal, Lars},
+title = {Interactive proofs in higher-order concurrent separation logic},
+year = {2017},
+isbn = {9781450346603},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3009837.3009855},
+doi = {10.1145/3009837.3009855},
+abstract = {When using a proof assistant to reason in an embedded logic -- like separation logic -- one cannot benefit from the proof contexts and basic tactics of the proof assistant. This results in proofs that are at a too low level of abstraction because they are cluttered with bookkeeping code related to manipulating the object logic.  In this paper, we introduce a so-called proof mode that extends the Coq proof assistant with (spatial and non-spatial) named proof contexts for the object logic. We show that thanks to these contexts we can implement high-level tactics for introduction and elimination of the connectives of the object logic, and thereby make reasoning in the embedded logic as seamless as reasoning in the meta logic of the proof assistant. We apply our method to Iris: a state of the art higher-order impredicative concurrent separation logic.  We show that our method is very general, and is not just limited to program verification. We demonstrate its generality by formalizing correctness proofs of fine-grained concurrent algorithms, derived constructs of the Iris logic, and a unary and binary logical relation for a language with concurrency, higher-order store, polymorphism, and recursive types. This is the first formalization of a binary logical relation for such an expressive language. We also show how to use the logical relation to prove contextual refinement of fine-grained concurrent algorithms.},
+booktitle = {Proceedings of the 44th ACM SIGPLAN Symposium on Principles of Programming Languages},
+pages = {205–217},
+numpages = {13},
+keywords = {Separation Logic, Logical Relations, Interactive Theorem Proving, Fine-grained Concurrency, Coq},
+location = {Paris, France},
+series = {POPL '17}
+}
