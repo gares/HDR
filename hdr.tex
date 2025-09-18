@@ -4178,24 +4178,22 @@ this limitation is possible and planned.
 
 \section{Benchmarks}
 
-In~\cite{dunchev15lpar} we  assess the performances of 
-Elpi on a set of synthetic benchmarks and
-a real application. Synthetic benchmarks are divided into three groups:
-first order programs from the Aquarius test suite~\cite{aquarius} (the
-crypto-multiplication, $\mu$-puzzle,
-generalized eight queens problem and the Einstein's zebra puzzle);
-higher order programs falling in \thefragment{} from~\cref{fig:bench}; and an higher
-order program falling outside \thefragment{} taken from the test suite of
-Teyjus normalizing expressions in the SKI calculus.
+In~\cite{dunchev15lpar} we evaluate Elpi on a collection of synthetic
+benchmarks and on a representative application. The synthetic tests are
+grouped into three categories: first-order programs drawn from the Aquarius
+test suite~\cite{aquarius} (crypto-multiplication, the $\mu$-puzzle, a
+generalized eight-queens instance, and the Einstein zebra puzzle); higher-
+order programs that lie inside the fragment \thefragment{} (see
+\cref{fig:bench}); and a higher-order program outside the fragment, taken
+from the Teyjus test suite for normalizing SKI-expressions.
 
-The programs in \thefragment{} are respectively type checking lambda terms using
-the \verb+of+ program discussed in~\cref{sec:hello}
-and reducing expressions like
-$5^5$ in the syntax of Church numerals using a call by value and by name
-reduction strategy.
-The typechecking test was specifically conceived to measure the cost of
-moving under binders: the type checked terms are projections, i.e.,
-are mainly made of \elpi{lam} nodes.
+Benchmarks within \thefragment{} include a type checker for $\lambda$-terms
+(the \verb+of+ program discussed in~\cref{sec:hello}) and an two evaluators that
+compute expressions such as $5^5$ using Church numerals: one that follows
+the call-by-value strategy and one the call-by-name one. The
+type-checking benchmark is designed to measure the cost of traversing
+binders: the test terms are largely projections and therefore contain many
+\elpi{lam} nodes.
 
 \begin{figure}
 \begin{elpicode}
@@ -4259,57 +4257,45 @@ cbn (app X Y) (app X2 Y2) :- cbn X X2, cbn Y Y2.
   \end{tabular}
 \end{center}
 
-The data in the 
-table shows that Elpi shines on programs in \thefragment, and compares well
-outside it. The alternating performance Teyjus on the reduction tests has
-to be attributed to the explicit substitutions machinery~\cite{NADATHUR200235}
-when employed to cross binders:
-by its very nature explicit substitutions fit well a lazy reduction strategy like
-call by name (even if some space overhead is visible).  On the contrary explicit substitutions
-are counterproductive in the call by value case since the program,
-by fully traversing the redex argument,
-systematically pushes the suspended substitution to the leaves of the
-term, completely defeating the purpose of the entire machinery (i.e. if the
-substitution has to be performed, there is no gain in delaying it).
-If one makes Teyjus artificially
-push explicit substitutions in the call by name case too,
-it halves memory consumption but degrades the performances by 10 seconds,
-confirming the time we see in the call by value case is dominated by the overhead of
-explicit subtitutions.
-By avoiding substitution when crossing binders
-Elpi is not only faster, but also more predictable performance wise: as one
-expects call by value is faster than call by name in computing the normal form of $5^5$
-since it avoids duplicating non-normal terms.
+The results reported in the table show that Elpi performs particularly well
+on programs inside \thefragment{} and remains competitive on the other
+benchmarks. The variable behaviour of Teyjus on the reduction tests can be
+explained by its explicit-substitutions machinery~\cite{NADATHUR200235} when
+crossing binders. Explicit substitutions naturally suit a lazy strategy
+such as call-by-name, although they incur some space overhead. By contrast,
+explicit substitutions are detrimental in call-by-value: when the redex
+argument is fully traversed the implementation tends to push suspended
+substitutions to the term leaves, which defeats the goal of delaying
+substitution. Forcing Teyjus to push explicit substitutions in the call-
+by-name case reduces memory use but increases running time (about ten
+seconds in our experiments), suggesting that the call-by-value timings are
+dominated by the overhead of explicit substitutions.
 
-In~\cite{dunchev15lpar} we also compare Elpi and Teyjus
-on Helena, a type checker for the formal system
-$\lambda\delta$~\cite{lambdadeltaJ1,lambdadeltaJ3a}. Such
-checker is able to validate the proof terms of the formalization of Landau's
-``Grundlagen''~\cite{Jut79} done in Automath. The reference checker for
-$\lambda\delta$, named Helena, has been implemented in OCaml.
-Our Elpi implementation follows it closely, and
-naturally falls in \thefragment{}.
-Nevertheless, the Elpi code is much simpler than the corresponding OCaml code
-and consists of just 50 rules.
+Elpi avoids substitution when crossing binders; this design choice yields
+both faster and more predictable behaviour. In the $5^5$ reduction test,
+call-by-value outperforms call-by-name because it avoids duplicating
+non-normal terms.
 
-The Grundlagen is a theory comprising definitions and proofs
-for a total of 6911 items (circa 8MB of data).
-When we run the benchmarks, around 2015, Teyjus seemed to have
-a fixed maximum heap size of 256MB that in turn
-limited it to the verification of the first 2615 items.
-In the table we compare pre-processing (Pre) time like parsing, compilation
-or elaboration, and verification (Ver).
-We compare Elpi with Helena, Teyjus, and Rocq.
-The Rocq system implements a
-type checker for a $\lambda$-calculus strictly more expressive than
-$\lambda\delta$, hence can check the proof terms
-directly but surely incurs in some overhead. 
-We use its timings as a
-reference for the order of magnitude between the performance of Elpi and
-the ones of a state-of-the-art interactive prover.
-We compare native code against interpreted code where applicable.
-%When applicable we compare softwares compiled to native code or interpreted.
+In~\cite{dunchev15lpar} we also compare Elpi and Teyjus on Helena, a type
+checker for the formal system $\lambda\delta$~\cite{lambdadeltaJ1,lambdadeltaJ3a}.
+Helena validates the proof terms of Landau's ``Grundlagen''~\cite{Jut79}
+formalized in Automath. The reference Helena checker is implemented in
+OCaml; our Elpi implementation follows its algorithm closely and falls
+within \thefragment{}. The Elpi implementation is, however, substantially
+shorter than the equivalent OCaml program: it is expressed in roughly fifty
+rules.
 
+Grundlagen is a corpus of 6911 items (about 8MB). When the benchmarks were
+run (circa 2015), Teyjus appeared to be limited by a fixed heap size of
+256MB, which restricted it to verifying the first 2615 items. The tables
+below report pre-processing time (Pre), which includes parsing and
+compilation/elaboration, and verification time (Ver). We compare Elpi with
+Helena, Teyjus, and Rocq. Rocq implements a type checker for a
+$\lambda$-calculus that is strictly more expressive than $\lambda\delta$;
+thus Rocq can type-check the proof terms directly but possibly with additional
+overhead. We use Rocq timings as a reference for the order of magnitude when
+comparing Elpi against a state-of-the-art interactive prover. Where
+applicable we contrast native and interpreted executions.
 \begin{center}
   \scriptsize 
 \begin{tabular}{|l|c|c|c|}
@@ -4338,24 +4324,24 @@ Ver & 4.40 & 0.33 & 13.90 & 7.21 & 1.19\\ % coqchk.opt: 3.90
 \end{tabular}
 \end{center}
 
-This data suggests that Elpi performs quite similarly to Teyjus on first order
-programs. The difference in performance, in favour of Elpi, is probably due to
-the more efficient garbage collector Elpi uses (the OCaml one). The same
-happens on programs manipulating higher order data outside~\thefragment{}.
+The data indicate that Elpi behaves similarly to Teyjus on first-order
+programs. The observed advantage of Elpi is likely attributable to the more
+efficient garbage collector available in OCaml. The same behaviour is seen
+for higher-order programs that lie outside \thefragment{}.
 
-Inside~\thefragment{} Elpi is sensibly more effecient.
-Teyjus matches Elpi's performance only if
-the program benefits from a lazy handling of substitutions, and even there
-the memory overhead is significant.
+Within \thefragment{} Elpi is noticeably more efficient. Teyjus only
+matches Elpi when the program benefits from a lazy treatment of
+substitutions; even in that case Teyjus incurs a substantial memory
+overhead.
 
-Given that Elpi targets Rocq as its host application, the most interesting
-benchmark is how it compares, on a similar task, with its OCaml implementation.
-Elpi is about 10 times slower than Rocq. Considering Elpi is an interpreter
-this difference is somewhat expected and we find it acceptable. After all,
-when Rocq provides an efficient routine an Elpi program can take advantage
-of it by simply calling it. What Elpi is expected to provide is a more
-high level language to maniplate syntax trees, fast \emph{enough} to be useful
-in practice.
+Because Elpi is designed to serve as an extension language for Rocq, the
+most relevant comparison is with Rocq's native OCaml implementation. Elpi
+is roughly an order of magnitude slower than Rocq, which is expected for an
+interpreter; we consider this penalty acceptable in light of the benefits of
+rapid prototyping and extensibility. Moreover, Elpi programs can invoke
+efficient Rocq routines when necessary. In short, Elpi aims to provide a
+high-level language for manipulating syntax trees while remaining fast
+enough for practical use.
 
 
 \chapter{Rocq-Elpi}\label{sec:rocq}
