@@ -4176,6 +4176,188 @@ and web apps are run in a memory constrained sandbox by VSCode.
 Removing
 this limitation is possible and planned.
 
+\section{Benchmarks}
+
+In~\cite{dunchev15lpar} we  assess the performances of 
+Elpi on a set of synthetic benchmarks and
+a real application. Synthetic benchmarks are divided into three groups:
+first order programs from the Aquarius test suite~\cite{aquarius} (the
+crypto-multiplication, $\mu$-puzzle,
+generalized eight queens problem and the Einstein's zebra puzzle);
+higher order programs falling in \thefragment{} from~\cref{fig:bench}; and an higher
+order program falling outside \thefragment{} taken from the test suite of
+Teyjus normalizing expressions in the SKI calculus.
+
+The programs in \thefragment{} are respectively type checking lambda terms using
+the \verb+of+ program discussed in~\cref{sec:hello}
+and reducing expressions like
+$5^5$ in the syntax of Church numerals using a call by value and by name
+reduction strategy.
+The typechecking test was specifically conceived to measure the cost of
+moving under binders: the type checked terms are projections, i.e.,
+are mainly made of \elpi{lam} nodes.
+
+\begin{figure}
+\begin{elpicode}
+of (app M N) B :- of M (arr A B), of N A.
+of (lam F) (arr A B) :- pi x\ of x A => of (F x) B.
+
+copy (app M N) (app M2 N2) :- copy M M2, copy N N2.
+copy (lam F) (lam F2) :- pi x\ copy x x => copy (F x) (F2 x).
+
+cbv (lam F) (lam F2) :- pi x\ cbv x x => copy x x => cbv (F x) (F2 x).
+cbv (app M N) R2 :- cbv N N2, cbv M M2, beta M2 N2 R2.
+
+beta (lam F) T R2 :- !, subst F T R, cbv R R2.
+beta H A (app H A).
+
+subst F N B :- pi x\ copy x N => copy (F x) B.
+
+cbn (lam F) (lam F2) :- pi x\ cbn x x => copy x x => cbn (F x) (F2 x).
+cbn (app (lam F) N) M :- !, subst F N B, cbn B M.
+cbn (app M N) R :- cbn M (lam F), !, cbn (app (lam F) N) R.
+cbn (app X Y) (app X2 Y2) :- cbn X X2, cbn Y Y2.
+\end{elpicode}
+\caption{Source code of the second group of benchmarks\label{fig:bench}}
+\end{figure}
+
+\begin{center}
+  \scriptsize 
+  \begin{tabular}{|p{1.5cm}||c|r||c|r||c|c|}
+    \hline
+      \multicolumn{1}{|c||}{Test} &
+      \multicolumn{2}{|c||}{Elpi} &
+      \multicolumn{2}{|c||}{Teyjus} &
+      \multicolumn{2}{|c|}{Elpi/Teyjus} \\
+    \hline
+    &  time (s)     & space (Kb)  & time (s) & space (Kb) &  time & space \\
+    \hline
+    \hline
+    crypto-mult &  3.48 & 27,632  & 6.59 & 18,048 &  0.52 & 1.53 \\
+    \hline    
+    $\mu$-puzzle &  1.82 & 5,684 &  3.62 & 50,076 &  0.50 & 0.11 \\
+    \hline
+    queens &  1.41  & 108,324 &  2.02 & 69,968 &  0.69 & 1.54 \\
+    \hline    
+    zebra &  0.85 & 7,008 &  1.89 & 8,412 &  0.44 & 0.83 \\
+    \hline     
+    \hline
+    of &  0.27 & 8,872 &  5.64 & 239,892 &  0.04 & 0.03 \\
+    \hline
+    cbv &  0.15 & 7,248 &  11.11 & 57,404  & 0.01 & 0.12 \\
+    \hline
+    cbn &  0.33 & 8,968 &  0.81 & 102,896  & 0.40 & 0.08 \\
+    \hline
+    %reduce\_cbv\_nocopy & ... & ... &  11.25 & 50,892  & ... & ... \\
+    %\hline
+    %reduce\_cbn\_nocopy & ... & ... &  0.52 & 70,760  & ... & ... \\
+    %\hline
+    \hline
+    SKI &  1.32 & 15,472 &  2.68 & 8,896  & 0.49 & 2.73 \\
+    \hline
+    
+  \end{tabular}
+\end{center}
+
+The data in the 
+table shows that Elpi shines on programs in \thefragment, and compares well
+outside it. The alternating performance Teyjus on the reduction tests has
+to be attributed to the explicit substitutions machinery~\cite{NADATHUR200235}
+when employed to cross binders:
+by its very nature explicit substitutions fit well a lazy reduction strategy like
+call by name (even if some space overhead is visible).  On the contrary explicit substitutions
+are counterproductive in the call by value case since the program,
+by fully traversing the redex argument,
+systematically pushes the suspended substitution to the leaves of the
+term, completely defeating the purpose of the entire machinery (i.e. if the
+substitution has to be performed, there is no gain in delaying it).
+If one makes Teyjus artificially
+push explicit substitutions in the call by name case too,
+it halves memory consumption but degrades the performances by 10 seconds,
+confirming the time we see in the call by value case is dominated by the overhead of
+explicit subtitutions.
+By avoiding substitution when crossing binders
+Elpi is not only faster, but also more predictable performance wise: as one
+expects call by value is faster than call by name in computing the normal form of $5^5$
+since it avoids duplicating non-normal terms.
+
+In~\cite{dunchev15lpar} we also compare Elpi and Teyjus
+on Helena, a type checker for the formal system
+$\lambda\delta$~\cite{lambdadeltaJ1,lambdadeltaJ3a}. Such
+checker is able to validate the proof terms of the formalization of Landau's
+``Grundlagen''~\cite{Jut79} done in Automath. The reference checker for
+$\lambda\delta$, named Helena, has been implemented in OCaml.
+Our Elpi implementation follows it closely, and
+naturally falls in \thefragment{}.
+Nevertheless, the Elpi code is much simpler than the corresponding OCaml code
+and consists of just 50 rules.
+
+The Grundlagen is a theory comprising definitions and proofs
+for a total of 6911 items (circa 8MB of data).
+When we run the benchmarks, around 2015, Teyjus seemed to have
+a fixed maximum heap size of 256MB that in turn
+limited it to the verification of the first 2615 items.
+In the table we compare pre-processing (Pre) time like parsing, compilation
+or elaboration, and verification (Ver).
+We compare Elpi with Helena, Teyjus, and Rocq.
+The Rocq system implements a
+type checker for a $\lambda$-calculus strictly more expressive than
+$\lambda\delta$, hence can check the proof terms
+directly but surely incurs in some overhead. 
+We use its timings as a
+reference for the order of magnitude between the performance of Elpi and
+the ones of a state-of-the-art interactive prover.
+We compare native code against interpreted code where applicable.
+%When applicable we compare softwares compiled to native code or interpreted.
+
+\begin{center}
+  \scriptsize 
+\begin{tabular}{|l|c|c|c|}
+\hline
+\multicolumn{4}{|c|}{Time (s) for 2615 items only}\\
+\hline
+ & Elpi          & Teyjus  & Elpi/Teyjus        \\
+\hline
+Pre      & 2.55 & 49.57 & 0.05 \\
+\hline
+Ver      & 3.06 & 203.36 & 0.02 \\ \hline
+RAM (Mb) & 91,628 & 1,072,092 & 0.09 \\
+\hline
+\end{tabular}
+~~
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\multicolumn{6}{|c|}{Time (s) for all 6911 items}\\
+\hline
+Task                   &\multicolumn{2}{|c|}{Helena}         & Elpi          & \multicolumn{2}{|c|}{Rocq 8.3}            \\
+                 &interp. & comp.& interp. &interp. & comp.\\ \hline
+Pre & 2.42 & 0.41 & 9.04 & 49.28 & 8.83 \\
+\hline
+Ver & 4.40 & 0.33 & 13.90 & 7.21 & 1.19\\ % coqchk.opt: 3.90
+\hline
+\end{tabular}
+\end{center}
+
+This data suggests that Elpi performs quite similarly to Teyjus on first order
+programs. The difference in performance, in favour of Elpi, is probably due to
+the more efficient garbage collector Elpi uses (the OCaml one). The same
+happens on programs manipulating higher order data outside~\thefragment{}.
+
+Inside~\thefragment{} Elpi is sensibly more effecient.
+Teyjus matches Elpi's performance only if
+the program benefits from a lazy handling of substitutions, and even there
+the memory overhead is significant.
+
+Given that Elpi targets Rocq as its host application, the most interesting
+benchmark is how it compares, on a similar task, with its OCaml implementation.
+Elpi is about 10 times slower than Rocq. Considering Elpi is an interpreter
+this difference is somewhat expected and we find it acceptable. After all,
+when Rocq provides an efficient routine an Elpi program can take advantage
+of it by simply calling it. What Elpi is expected to provide is a more
+high level language to maniplate syntax trees, fast \emph{enough} to be useful
+in practice.
+
+
 \chapter{Rocq-Elpi}\label{sec:rocq}
 
 
@@ -6101,7 +6283,44 @@ effort.
 
 \subsection{Rocq framework}
 
-TODO
+The history of logical frameworks and interactive provers is intertwined.
+Maybe Isabelle is most well known prover rooted on that idea: it hosts
+various foundational languages, from the set theory Isabelle/ZF to first order
+classical logic Isabelle/FOL and the most widely known higher order logic
+Isabelle/HOL. The main
+drawback in its design, to me, is that the logical framework is so weak,
+from a proof theoretic point of view, that one cannot really talk about
+these formal systems in it, e.g., one cannot relate a result in Isabelle/ZF 
+with one in Isabelle/HOL, nor reuse the automatic proof search tools
+that make Isabelle/HOL so practical when working in Isabelle/ZF. In
+support of this observation we mention that Paulson implemented
+Isabelle/ZF and later mechanised ZF(C) in Isabelle/HOL~\cite{zfhol}.
+
+In a way each Isabelle/X is a different,
+incompatible, prover with Isabelle/Y. The economy made by sharing a common
+implementation infrastructure seems irrelevant compared to the economy made
+by sharing mechanized theorems. One can try to solve this problem by
+reconsiliating different theories via an external translation, as the
+ones provided by Dedukti~\cite{dedukti}, but in that way he likely loses
+the benefits of sharing an implementation infrastructure.
+
+What I see as an emerging third approach is to use Rocq's logic as the
+``logical framework''. The calculus of inductive constructions is not designed
+for that, for example the function space is not the right one for an
+HOAS encoding of binders, and it is also unrestricted with respect to
+duplication. Still Gallina features a programming language that can
+be used to encode other formal systems, and proof theoretically speaking it is
+strong enough to contain them, reason about them and share, at some
+extent, theorems.
+Maybe the most shiny example of this approach is Iris. Iris is a separation logic
+that is proved sound in Rocq, that thanks to its proof mode it
+can be used to reason about imperative programs. When possible
+pointers and heap locations are related to mathematical objects, like
+lists made of cons and nil, and imperative algorithms to their
+functional specification, the same specification other...
+
+VST, FOL,
+
 
 \backmatter
 
