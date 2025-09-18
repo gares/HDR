@@ -3038,13 +3038,13 @@ but it was extremely slow -- about 20,000 times slower than reasonable.
 The main reason was that
 terms were purely functional, to facilitate backtracking: unification
 variables were encoded with numbers, and the execution would carry a
-companion purely functional map carrying variable assignments made by unification.
-In this backtracking, a feature with a
+companion purely-functional map carrying variable assignments made by unification.
+In this setting, backtracking, a feature with a
 reputation for making things difficult, becomes trivial, since 
 holding a pointer to a previous version of the assignment map is
 enough to time travel. At the same time decorrelating terms from
 the assigment map, a heap really, means one cannot take advantage of
-the programming language automatic memry management: when a unification
+the programming language automatic memory management: when a unification
 variables disappears from a term, no mechanism removes it from the map,
 and worse, the OCaml garbage collector has to scan this evergrowing
 map.\\
@@ -3118,7 +3118,7 @@ type term =
   | Nil
   | Discard
 
-  (* FFI *)
+  (* FFI (Foreign Function Interface) *)
   | Builtin of builtin_predicate * term list
   | CData of CData.t
 
@@ -3142,7 +3142,7 @@ Pure terms represent the $\lambda$-calculus part of the language, where the
 \ocaml{Const} node is used for both globally and locally bound names (i.e.,
 global constants and bound variables). We detail the representation in terms
 of De Bruijn levels in~\cref{sec:dbl}. Optimized terms are simply lists and
-the discard sink-hole \elpi{_}. The FFI part is for calling built-in
+the discard placeholder \elpi{_}. The Foreign Function Interface (FFI) part is for calling built-in
 predicates and for opaque data, which we detail in~\cref{FFI}. What remains
 are nodes for unification variables, and we postpone the description of
 \ocaml{UVar} and \ocaml{Arg} to~\cref{sec:llambo}, since they are optimized
@@ -3170,7 +3170,7 @@ stack is a piece of memory efficiently reclaimed).
 
 As in the WAM, we keep the invariant that no heap term points to the stack;
 i.e., no term contained in a \ocaml{uvar} has an \ocaml{Arg} or
-\ocaml{AppArg} node. Heap terms are longer lived, typically kept alive by a
+\ocaml{AppArg} node. Heap terms are longer lived, they are typically kept alive by a
 uvar present in the initial query, while stack frames are volatile.
 
 
@@ -3439,7 +3439,7 @@ can be indexed on $c_n$ with no further complication.
 \subsubsection{Map}
 
 
-As in standard Prolog, this index only considers one predicate argument at
+As in standard Prolog, the Map index only considers one predicate argument at
 depth 1. The user can choose which argument to index (usually the first one).
 
 \begin{elpicode}
@@ -3804,7 +3804,7 @@ both in order.
 
 First-order data is data whose exchange does not depend on the Elpi context of
 hypothetical rules and constraints. Such data must be equipped with a
-\ocaml{Conversion.t} datum.
+\ocaml{Conversion.t} declaration for its type.
 
 \begin{ocamlcode}
 module Conversion : sig
@@ -3836,7 +3836,7 @@ The \ocaml{depth} argument is present mainly because most of the other APIs
 work for the general case of terms with binders, and in DBL notation it is of
 paramount importance to know under how many binders we are operating. When the
 data has no binders, it serves no real purpose in the conversion code, but
-passing a meaningful value to the other APIs is still a sensible thisng to do.\\
+passing a meaningful value to the other APIs is still a sensible things to do.\\
 The \ocaml{state} part is a convenience: as described in~\cref{sec:state},
 the programmer can store any pure datum, and Elpi takes care to keep this
 state in sync with backtracking.\\
@@ -3892,8 +3892,11 @@ abstraction, and usual OCaml code makes extensive use of them. An algebraic
 data type consists of a list of constructors (i.e., function symbols that build
 the data type) and works in tandem with pattern matching to destructure it.
 
-Elpi provides a GADT-based~\cite{SHEARD200849} API to declare an algebraic
-data type. Below, we present the declaration for the \ocaml{option} type.
+Elpi's API to declare an algebraic data type is based on
+OCaml's Generalized Algebraic Data Types (GADTs)~\cite{SHEARD200849}.
+GADTs are a simple version of dependent types, where the indexes, and hence
+the equations considered for type checking, can only range over types.
+Below, we present the declaration for the \ocaml{option} type.
 
 \begin{ocamlcode}
 let option (a : 'a Conversion.t) : 'a option Conversion.t =
@@ -3998,7 +4001,8 @@ context available.
 
 The signature and OCaml code of a built-in predicate are encapsulated by the
 \ocaml{Pred} constructor, as shown in~\cref{fig:ffi}. The signature is a GADT that
-specifies the type of the latter. Built-ins' rguments can be of three types: input,
+specifies the type of the latter. The arguments of a built-in predicate
+can be of three kinds: input,
 output, or both.
 \begin{itemize}
 \item
@@ -4140,7 +4144,7 @@ Although we are personally quite fond of ``debugging using printf,'' we found
 it rather cumbersome, especially when Elpi code is shipped as a Rocq library;
 that is, when code is used far from its definition point.
 
-Since its inception, the Elpi runtime has included a debugging facility based
+Since the beginning, the Elpi runtime has included a debugging facility based
 on conditional compilation. The runtime is compiled twice: once with
 no instrumentation, for speed, and another time with (slow) printing
 instrumentation. This instrumentation was crucial for debugging the runtime
@@ -4168,7 +4172,7 @@ also searchable.
 
 The main limitation is that the implementation currently handles only
 ``small'' traces (below 20 megabytes), as it loads the trace upfront
-and web apps are run in a momery constrained sandbox by VSCode.
+and web apps are run in a memory constrained sandbox by VSCode.
 Removing
 this limitation is possible and planned.
 
@@ -4221,14 +4225,14 @@ problem is that when a binder is crossed, one must always remember something
 about it, typically the type of the bound variable. Hence, programs have to
 pass around typing contexts (aka environments). It is tempting not to do this
 upfront, but expecting all developers -- especially casual ones -- to be disciplined
-seems a lost battle. We are in good company with this~\cite[page 20]{mcbride}:
+seems a lost battle. We deeply agree with Mc Bride on this~\cite[page 20]{mcbride}:
 ``Mantra: $\Gamma$ is with me, wherever I go.''
 
 Holes are missing subterms and come with metadata: a typing sequent. Since the
-same hole can occur non-linearly, a single sequent is stored on the side of
+same hole can have multiple occurrences, a single sequent is stored on the side of
 terms. Moreover, since binders may be reduced away, each occurrence has an
-explicit substitution. So there is a state that accompanies the terms -- a state
-to be threaded in a functional setting. This state also gathers universe
+explicit substitution. So there is a state that that is associated with the terms --
+a state to be threaded in a functional setting. This state also gathers universe
 constraints, as required by Rocq's typical ambiguity (writing \rocq{Type} with
 no explicit level).
 Assignments are also part of this state, and the bugs that stem from the
@@ -4339,8 +4343,9 @@ projections.
 \begin{elpicode}
 type primitive primitive-value -> term.
 \end{elpicode}
-What is worth focusing on is the representation of contexts -- a convention used
-when crossing binders to enable APIs to be called deep inside terms. Two
+What is worth focusing on is the representation of contexts since it
+defines a convention to be used when crossing binders. In turn
+this convention enables APIs to be called deep inside terms. Two
 context entries need to be available: one for abstraction and one for
 abbreviation.
 
@@ -4404,7 +4409,7 @@ judgements to holes, i.e., the call to the \ocaml{get_sigma} and
 
 
 Each Rocq hole has an entry in \ocaml{sigma} that resembles a sequent.
-We show in~\cref{fig:sigma} simplified code from the sources of Rocq 9.0:
+We show in~\cref{fig:sigma} simplified code from the sources of Rocq 9.0.
 
 \begin{figure}[h]
 \begin{ocamlcode}
@@ -4469,7 +4474,7 @@ evar X Ty R :- not(var X), var R, !,
 The code above enforces the following invariants:
 
 \begin{itemize}
-  \item each unassigned Rocq evar has a cooresponding Elpi constraint
+  \item each unassigned Rocq evar has a corresponding Elpi constraint
   \item \elpi{Ev} can be assigned to a term \elpi{R} only if
         \elpi{R} has type \elpi{Ty} in context \elpi{Ctx}
   \item \elpi{RawEv} can only be assigned to a term \elpi{X} if
@@ -4567,7 +4572,8 @@ terms and the built-in predicates. Extra code can be added to a command via
 file or a string) or dynamic (from a database; see~\cref{sec:homo}).
 
 A command \texttt{hello} is executed with \rocq{Elpi hello} followed by
-arguments. The \elpi{argument} data type has constructors for built-in data
+arguments. The entry point is the \elpi{main} predicate
+that receives a list of arguments. The \elpi{argument} data type has constructors for built-in data
 types such as strings or numbers, as well as Gallina terms.
 
 \begin{rocqcode}
@@ -4610,9 +4616,9 @@ elpi intro "Hp".
 
 
 In the example above, the tactic expects to receive a string \elpi{ID}; it
-checks that no Rocq proof variable is already using the same name, and finally
+checks that no Rocq proof variable is already using the name \elpi{ID}, and finally
 refines\footnote{The \elpi{refine} API is akin to Rocq's \rocq{refine}
-ractic: it makes progress on one goal by
+tactic: it makes progress on one goal by
 providing a term containing holes, holes for which new goals are generated}
 the goal with a lambda abstraction, which is the proof term for the
 logical rule of introduction of universal quantification or implication.
@@ -4735,7 +4741,7 @@ in logic programming, the same line can be used to analyze the syntax of a
 piece of code in order to extract the name and age. Moreover, since expressions
 and commands are not confused in logic programming, there is no confusion
 in the user's intention: she wants to build/inspect a piece of code, not to run
-it.\footnote{In other words the key \texttt{'} operator of the Lisp family
+it.\footnote{In other words the quotation operator \texttt{'} of the Lisp family
 of languages is not needed.}
 
 
@@ -4845,7 +4851,7 @@ Elpi Tactic to_bool.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
 
-solve (goal Ctx _ Ty _ _ as G) [G1] :-
+solve (goal Ctx _ Ty _ [] as G) [G1] :-
   tb Ty P,
   refine {{ elimT lp:P _ }} G [G1].
 
@@ -5013,7 +5019,7 @@ containers (e.g., lists) are involved, and it often fails to generate useful
 equality tests.
 
 We identified an opportunity for improvement, beginning with the L3
-internship of Luc Chabassier, who developed the first prototype during the
+internship of Luc Chabassier~\footnote{\url{https://www-sop.inria.fr/members/Enrico.Tassi/chabassier.pdf}}, who developed the first prototype during the
 summer of 2017. Within two months, he successfully generated equality tests
 and their proofs. While much of the credit goes to his learning abilities,
 this experience confirmed that Rocq-Elpi could effectively support research
@@ -5051,7 +5057,7 @@ Definition is_nat_3 : is_nat 3 :=
 
 One can see \elpi{is_nat} as a first class description of the
 typing assignment, i.e. each term is equipped with a proof that
-is has the expected type, i.e. \rocq{0} with \rocq{is_zero};
+it has the expected type, i.e. \rocq{0} with \rocq{is_zero};
 \rocq{1} with \rocq{is_succ 0 is_zero}, and so on.
 
 The translation becomes interesting when the type has parameters such as
@@ -5081,7 +5087,7 @@ Parametricity is a meta-theorem in Rocq, that is, a theorem about Rocq itself.
 Since it cannot be represented by a Gallina term, a meta-language is required for
 its effective implementation. Cyril Cohen implemented the binary parametricity
 translation in the fall of 2017, motivated by his interest in applying the
-translation to the Rocq-EAL project. I based the unary version on his code. Each
+translation to the Rocq-EAL project~\cite{coqeal}.\footnote{\url{https://github.com/rocq-community/coqeal}} I based the unary version on his code. Each
 translation consists of about 250 lines of Elpi code.
 
 \subsection{Deep induction principles}
@@ -5144,7 +5150,7 @@ Lemma rtree_is_rtree A isA : (∀a, isA a) -> ∀l, is_rtree A isA l.
 While this assumption may seem strong at first, it actually matches two
 relevant classes of predicates:
 \begin{itemize}
-  \item the one we are defining, e.g., \rocq{nat_is_nat} fits
+  \item the one we are defining, e.g., \rocq{nat_is_nat : ∀n, is_nat n} fits
   \item any \rocq{P : t -> U} we are defining by induction on the whole type
     \rocq{t}, e.g., the \rocq{P} of an induction principle
 \end{itemize}
@@ -5312,7 +5318,7 @@ We synthesize these three functions upfront.
 \begin{rocqcode}
 Definition tag A : rtree A -> positive.
 Definition fields_t : positive -> Type.
-Definition fields A :  ∀r : rtree A, fields_t (tag t).
+Definition fields A :  ∀r : rtree A, fields_t (tag r).
 \end{rocqcode}
 
 The main code pattern matches over the first \rocq{rtree} and 
@@ -5400,7 +5406,7 @@ organized, and the fine-tuning of the mechanisms that link the interfaces to
 their instances: the Rocq elaborator is programmed to automatically find a
 justification when an abstract theory is applicable to an instance.
 
-The Achilles' heel of the library is its barrier to entry. While documentation
+The Achilles' heel of the library is its steep learning curve. While documentation
 such as \cite{assia_mahboubi_2022_7118596} is certainly helpful, the
 complexity of building the hierarchy and programming the elaborator cannot be
 overcome by explanation alone, just as assembly language cannot be made
@@ -5717,7 +5723,7 @@ Iris Inductive is_del_list : loc → list val → iProp :=
 
 \subsubsection{The role of Rocq-Elpi in eIris}
 The example above takes advantage of the capability of Elpi commands to
-raceive Gallina declarations as arguments, also in \emph{raw} form.
+receive Gallina declarations as arguments, also in \emph{raw} form.
 In particular the inductive declaration above does not make any sense
 taken as a Gallina term, if only because it uses the linear function
 space of separation logic, and the \rocq{iProp} sort.
@@ -5750,7 +5756,7 @@ As part of his Ph.D., Ulysse G\'{e}rard designed and implemented a
 functional programming language with support for binder mobility, called MLTS~\cite{mlts}.
 His implementation relies on Elpi for animating the rules defining its
 semantics, and he made a prototype available in the browser by transpiling
-Elpi to JavaScript, see~\cref{fig:mlts}.
+the Elpi runtime to JavaScript, see~\cref{fig:mlts}.
 
 \begin{sidewaysfigure}
     % \includegraphics[width=.9\textwidth]{trace}
@@ -5843,8 +5849,8 @@ time required to produce a working implementation would have been prohibitive
 without an Inria position: free from compulsory teaching duties and with
 engineering support from the institute. % (see~\cref{sec:trace}).
 
-It is also important to acknowledge that we stood on the shoulders of a third
-giant: Elpi is written in OCaml, which enables both reasonable performance and
+It is also important to acknowledge that we stood on the shoulders of a
+giant: Elpi is written in OCaml, which enables both good performance and
 ease of integration with Rocq. The ability to use mutable data structures to
 represent unification variables allows Elpi to avoid reifying the heap (the
 assignment), thereby aligning the notion of garbage in Elpi data with that in
@@ -5994,8 +6000,8 @@ codebase had two code paths (and thus two bugs) that could sometimes be
 incorrect. The root cause was a misnamed variable: \elpi{extraargs} did not
 actually hold \emph{all} the extra arguments (those for which there is no
 lambda), which misled the programmer into discarding some arguments. The other
-two bugs were incorrect, but fortunately not very relevant in practice,
-optimizations in the higher-order unification algorithm.
+two bugs consisted in bad optimizations, fortunately not very relevant in practice,
+in the higher-order unification algorithm.
 
 As we are mechanizing~\cite{elpidet}, we have begun to take the first steps in
 this direction, but we believe it would take a full Ph.D. to complete the
