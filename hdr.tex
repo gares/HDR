@@ -5797,7 +5797,7 @@ Thanks Nathan!
 \section{Summary}
 
 
-In this document, we have presented the Elpi programming language, its
+In this document, I have presented the Elpi programming language, its
 implementation, and its main application as an extension language for Rocq.
 
 \subsection{Elpi the language}
@@ -5809,23 +5809,23 @@ programs manipulate syntax trees with binders. CHR is essential for scaling the
 programming comfort of $\lambda$Prolog to syntax trees with holes, without
 burdening the language with numerous non-logical introspection features.
 
-Throughout this document, we have emphasized that the \emph{key} feature of Elpi
-is its rule-based nature. We have identified three main advantages:
+Throughout this document, I have emphasized that the \emph{key} feature of Elpi
+is its rule-based nature. I have identified three main advantages:
 \begin{enumerate}
 \item Dynamic rules allow the language to scale effectively to syntax with binders (see \cref{sec:hello}).
 \item Static rules make it easy to write code that is easily extensible (see \cref{sec:homo}).
 \item Treating rules as code units greatly facilitates self-manipulation (see \cref{sec:tb}).
 \end{enumerate}
 
-We invite the reader to attempt writing the \rocq{to_bool} tool shown in
+I invite the reader to attempt writing the \rocq{to_bool} tool shown in
 \cref{sec:tb} in any other extension language, and to match it in both
 size and functionality.
 
-We also wish to highlight the importance of the clarity provided by
+I also wish to highlight the importance of the clarity provided by
 $\lambda$Prolog (and CHR) in the design of Elpi. Building on sound foundations
 draws a clear distinction between syntactic sugar and ``hacks.'' In particular,
 the parallel between the execution of $\lambda$Prolog code and proof search in
-intuitionistic proof theory made it evident that we should avoid 
+intuitionistic proof theory made it evident that I should avoid 
 some ad-hoc introspection primitives, such as those described in~\cite[Section 8 and
 later]{10.1145/3236788}, to implement the type inference algorithm for a form
 of Standard ML (see \cref{sec:milner}) or the type checker for the
@@ -5841,15 +5841,15 @@ formally -- as the meta-theory of the proof system.
 \subsection{Elpi the software}
 
 
-What we enjoy most about our work is designing and building
+What I enjoy most about my work is designing and building
 tools~\cite{DBLP:journals/jar/AspertiCTZ07,gonthier:inria-00258384,Coq-refman}.
 To us, Elpi is a tool for building tools more efficiently. Implementing Elpi
-was great fun; in fact, it is our first fully-fledged programming language. The
+was great fun; in fact, it is my first fully-fledged programming language. The
 time required to produce a working implementation would have been prohibitive
 without an Inria position: free from compulsory teaching duties and with
 engineering support from the institute. % (see~\cref{sec:trace}).
 
-It is also important to acknowledge that we stood on the shoulders of a
+It is also important to acknowledge that I stood on the shoulders of a
 giant: Elpi is written in OCaml, which enables both good performance and
 ease of integration with Rocq. The ability to use mutable data structures to
 represent unification variables allows Elpi to avoid reifying the heap (the
@@ -5860,7 +5860,7 @@ development of the Foreign Function Interface in a generic way, somewhat
 analogous to how the signature of printf depends on the format string.
 GADTs proved to be essential for this purpose.
 
-Our main contribution to the implementation of $\lambda$Prolog is the
+My main contribution to the implementation of $\lambda$Prolog is the
 observation that De Bruijn levels enable an efficient implementation of a
 fragment of the language~\cite{dunchev15lpar}. The fragment
 $\mathcal{L}_\lambda^{\beta}$ occurs frequently in real code and supports
@@ -5901,7 +5901,7 @@ depended-upon Rocq package, which in turn makes Hierarchy Builder (and
 Rocq-Elpi) very important parts of the Rocq ecosystem.
 
 It is also worth mentioning the existence of a substantial amount of
-closed-source Elpi code used internally by BlueRock Systems. We wish them
+closed-source Elpi code used internally by BlueRock Systems. I wish them
 success in their industrial applications.
 
 \section{Current and future work}
@@ -5981,7 +5981,7 @@ map F [] = [].
 map F [X|XS] = [F X|map F XS].
 \end{elpicode}
 
-\noindent In this way, we
+\noindent In this way, I
 wonder whether some syntactic sugar, driven by types and determinacy, could
 recover some of the benefits of functional languages while retaining \emph{all}
 the advantages of $\lambda$Prolog. MLTS~\cite{mlts} goes in this direction,
@@ -5990,10 +5990,10 @@ thus automatic context management and easy self-extensibility.
 
 \subsection{Certified runtime}
 
-Over the years, we have gained confidence that the runtime is mostly correct,
-but we would very much like to machine-check some parts.
+Over the years, I have gained confidence that the runtime is mostly correct,
+but I would very much like to machine-check some parts.
 
-In the past ten years, we have found and fixed four bugs that we consider
+In the past ten years, I have found and fixed four bugs that I consider
 relevant (i.e., they could be triggered in legitimate code) and somewhat
 embarrassing. Two were related to beta reduction: a routine used throughout the
 codebase had two code paths (and thus two bugs) that could sometimes be
@@ -6003,8 +6003,8 @@ lambda), which misled the programmer into discarding some arguments. The other
 two bugs consisted in bad optimizations, fortunately not very relevant in practice,
 in the higher-order unification algorithm.
 
-As we are mechanizing~\cite{elpidet}, we have begun to take the first steps in
-this direction, but we believe it would take a full Ph.D. to complete the
+As Fissore and myself are mechanizing~\cite{elpidet}, we have begun to take the first steps in
+this direction, but I believe it would take a full Ph.D. to complete the
 mechanization of the runtime.
 
 \subsection{Program logic}
@@ -6015,7 +6015,7 @@ point, as it comes with a program logic for plain $\lambda$Prolog. This program
 logic does not consider the cut operator. 
 
 The big-step semantics
-in~\cref{sec:sem} does consider cut, and we believe it could be made fully
+in~\cref{sec:sem} does consider cut, and I believe it could be made fully
 formal, but it is not clear that it would provide a good foundation for a
 program logic. In the ongoing mechanization of~\cite{elpidet}, we were forced
 to define an equivalent semantics with a much more explicit description of the
@@ -6026,18 +6026,18 @@ than the list of alternatives used in~\cref{sec:sem}.
 
 \subsection{Elpi as a foundational language}
 
-We have always seen, and still see, Elpi as a programming language
+I have always seen, and still see, Elpi as a programming language
 that puts \emph{practical} before \emph{foundational}.
 
 One of the reasons is surely
 that I felt in the ``marmitte'' of the Calculus of
-Inductive Contructions very early in our career, possibly because
+Inductive Contructions very early in my career, possibly because
 the French and Italian schools are quite close in that respect.
 So, maybe uncousciously, the foundational language has always
 been Rocq to me, leaving to Elpi the role of being practical.
 
-At the same our voyage in the neighborhood of computation logic
-gave us the opportunity to see other ways to look at programming
+At the same my voyage in the neighborhood of computation logic
+gave me the opportunity to see other ways to look at programming
 languages with support for binders, i.e. as frameworks to formally
 describe the object of interest and possibly reason about it.
 
@@ -6088,7 +6088,7 @@ quite convincing, and deeper integration of Elpi in Rocq would enable the
 generation of more informative error messages when these elaboration mechanisms
 fail.
 
-Finally, based on our experience implementing the first Elpi proof of
+Finally, based on my experience implementing the first Elpi proof of
 concept (\cref{sec:poc}), the Rocq proof engine could benefit from the trail
 mechanism as implemented in Elpi. It turns out that, for a typical Elpi
 workload, mutable terms and a trail (a log of mutable cells to unset upon
