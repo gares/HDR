@@ -1164,8 +1164,9 @@ version below accepts different contexts and different sets of fresh constants.
 
 
 \begin{chrcode}
-rule (E1 :> G1 ?- of (uvar X S1) T1)
-    \ (E2 :> G2 ?- of (uvar X S2) T2)
+~\PYG{k+kd}{rule}~ (E1 :> G1 ?- of (uvar X S1) T1)
+   ~\PYG{k+kd}{\PYGZbs{}}~ (E2 :> G2 ?- of (uvar X S2) T2)
+ <=> (T1 = T2).
 \end{chrcode}
 
 \noindent
@@ -1182,7 +1183,7 @@ that is, \elpi{E1} and \elpi{E2} are made disjoint.
 
 While correct for simple types, this rule does not scale to a type
 discipline like that of Rocq, where terms can occur in types. For example,
-the constants in \elpi{S1} may occur in \elpi{T1}, and the
+the bound variables in \elpi{S1} may occur in \elpi{T1}, and the
 ones in \elpi{S2} may occur in \elpi{T2}: one needs to align \elpi{T1}
 with \elpi{T2} before equating them.
 We refer the interested reader to~\cite{TASSI_2019} for details of a CHR rule modeling
