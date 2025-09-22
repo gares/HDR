@@ -6186,7 +6186,7 @@ but I would very much like to machine-check some parts.
 In the past ten years, I have found and fixed four bugs that I consider
 relevant (i.e., they could be triggered in legitimate code) and somewhat
 embarrassing. Two were related to beta reduction: a routine used throughout
-the codebase had two code paths (and thus two bugs) that could sometimes be
+the codebase had two code paths that could sometimes be
 incorrect. The root cause was a misnamed variable: \elpi{extraargs} did not
 actually hold \emph{all} the extra arguments (those for which there is no
 lambda), which misled the programmer into discarding some arguments. The other
