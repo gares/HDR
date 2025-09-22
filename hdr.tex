@@ -6294,67 +6294,64 @@ could also benefit long running automation.
 
 \subsection{Rocq as a Logical Framework}
 
-The history of logical frameworks and interactive provers is intertwined.
-Maybe Isabelle is the most well-known prover rooted in that idea: it hosts
-various foundational languages, from the set theory Isabelle/ZF to first-order
-classical logic Isabelle/FOL and the most widely known higher-order logic
-Isabelle/HOL. The main drawback in its design, to me, is that the logical
-framework is so weak, from a proof-theoretic point of view, that one cannot
-really talk about these formal systems in it, e.g., one cannot relate a result
-in Isabelle/ZF with one in Isabelle/HOL, nor reuse in Isabelle/ZF
-the automatic proof search
-tools that make Isabelle/HOL so practical. In
-support of this observation, we mention that Paulson implemented Isabelle/ZF
-and later mechanized ZF in Isabelle/HOL~\cite{zfhol}.\\
-In a way, each Isabelle/X is a different, incompatible prover with
-Isabelle/Y. The economy made by sharing a common implementation infrastructure
-seems little compared to the economy one could make by sharing mechanized
-theorems. One can try to solve this problem by reconciling different theories
-via an external translation, as the ones provided by Dedukti~\cite{dedukti},
-but in that way, one can hardly reason on the translation itself.
+The history of logical frameworks and interactive provers is deeply intertwined.
+Perhaps the most well-known prover rooted in this idea is Isabelle, which hosts
+various foundational languages, ranging from the set theory Isabelle/ZF to
+first-order classical logic Isabelle/FOL and the widely recognized higher-order
+logic Isabelle/HOL. However, a significant drawback in its design is that the
+logical framework is so weak, from a proof-theoretic perspective, that it cannot
+effectively address these formal systems. For instance, one cannot relate a
+result in Isabelle/ZF with one in Isabelle/HOL, nor reuse the automatic proof
+search tools that make Isabelle/HOL so practical in Isabelle/ZF. Supporting this
+observation, Paulson implemented Isabelle/ZF and later mechanized ZF in
+Isabelle/HOL~\cite{zfhol}.
 
-What I see as an emerging approach is to use Rocq's logic as the logical
-framework. The Calculus of Inductive Constructions is not designed for that;
-for example, the function space is not the right one for an HOAS encoding of
-terms with binders, and it is also unrestricted with respect to duplication.
-Still, Gallina features a programming language that can be used to encode
-other formal systems, and proof-theoretically speaking, CIC is strong enough
-to contain them, reason about them, and share, to some extent, theorems. Maybe
-the most shining example of this approach is Iris~\cite{10.1007/978-3-662-54434-1_26}.
-Iris is a separation logic that is proved sound in Rocq, and thanks to its
-proof mode~\cite{IPM}, it can be used to reason about imperative programs
-within Rocq. Moreover, whenever possible, pointers and heap locations are
-related to mathematical (immutable) objects like lists made of cons and nil,
-via inductive predicates. Then imperative algorithms are related to their
-functional specification, and at that level, theorems can be shared and
-tranferred, in a proved-correct way,
-with tools like Trocq~\cite{10.1007/978-3-031-57262-3_10}.
-Other
-examples of frameworks are VST~\cite{VST} implementing a program logic for C,
-or the FOL~\cite{FOL} library implementing first-order logic, giving results
-on its metatheory and letting one write proofs in it. Even the Mathematical
-Component library~\cite{assia_mahboubi_2022_7118596} is built this way,
-even if its framework is thin compared to, say, Iris. In practice, the
-extensive use of booleans to encode decidable
-propositions makes reasoning by excluded middle look native, and it paves
-the way to proof irrelevance, effectively building a comfortable shell for
-classical reasoning within CIC without adding axioms and hence providing
-a base of theorems reusable in other frameworks. For
-example~\cite{10461453} reuses some linear algebra from
-Mathematical Components to prove correct a C function that multiplies sparse
-matrices over IEEE-754 conforming floating point numbers.
+In essence, each Isabelle/X is a distinct, incompatible prover with Isabelle/Y.
+The economy achieved by sharing a common implementation infrastructure seems
+minimal compared to the potential economy of sharing mechanized theorems. One
+approach to address this issue is to reconcile different theories via external
+translation, such as those provided by Dedukti~\cite{dedukti}. However, this
+method makes it challenging to reason about the translation itself.
 
-If this trend continues, I see two roles Elpi could play. One is to continue to
-serve as an extension language; after all, these frameworks need encoding, and
-Elpi can help to implement them, or hide them to the user.
-See for example~\cite{krebbers25} that gives the user the illusion of
-having inductive predicates in the Iris logic.\\
-Maybe a more
-intriguing possibility would be to take a step back and try to retrofit a
-logical framework in CIC, in the spirit of~\cite{concon}. If that
-happens, the techniques employed to implement Elpi's runtime could provide a
-solid starting point for the logical framework infrastructure the new type
-theory would require.
+An emerging approach is to use Rocq's logic as the logical framework. While the
+Calculus of Inductive Constructions was not explicitly designed for this
+purpose -- or example, the function space is not ideal for an HOAS encoding of
+terms with binders, and it is unrestricted with respect to duplication -- it still
+offers a programming language, Gallina, that can encode other formal systems.
+Proof-theoretically, CIC is robust enough to contain, reason about, and share
+theorems across these systems. A prominent example of this approach is
+Iris~\cite{10.1007/978-3-662-54434-1_26}, a separation logic proved sound in
+Rocq. Thanks to its proof mode~\cite{IPM}, Iris can be used to reason about
+imperative programs within Rocq. Moreover, pointers and heap locations are often
+related to mathematical (immutable) objects like lists made of cons and nil via
+inductive predicates. This enables imperative algorithms to be connected to
+their functional specifications, allowing theorems to be shared at this level
+possibly by 
+a proved-correct transfer using tools like Trocq~\cite{10.1007/978-3-031-57262-3_10}.
+
+Other examples of frameworks include VST~\cite{VST}, which implements a program
+logic for C, and the FOL~\cite{FOL} library, which provides results on its
+metatheory and enables proof writing within it. Even the Mathematical Component
+library~\cite{assia_mahboubi_2022_7118596} follows this approach, albeit with
+a thinner framework compared to the ones above. The extensive use of booleans to encode
+decidable propositions in the Mathematical Component library makes reasoning by
+excluded middle appear native. This approach paves the way for proof irrelevance,
+effectively creating a comfortable shell for classical reasoning within CIC
+without adding axioms, thereby providing a reusable base of theorems for other
+frameworks. For example,~\cite{10461453} reuses linear algebra from Mathematical
+Components to verify in VST the correctness of a C function that multiplies sparse
+matrices over IEEE-754 conforming floating-point numbers.
+
+If this trend continues, Elpi could play two significant roles. First, it could
+continue to serve as an extension language. These frameworks require encoding,
+and Elpi can assist in their implementation or abstract them for the user. For
+instance,~\cite{krebbers25} provides users with the illusion of having inductive
+predicates in the Iris logic. Second, and perhaps more intriguingly, the Rocq
+developers could
+take a step back and attempt to retrofit a logical framework in CIC, inspired
+by~\cite{concon}. If this happens, the techniques used to implement Elpi's
+runtime could offer a solid foundation for the logical framework infrastructure
+required by the new type theory.
 
 
 \backmatter
