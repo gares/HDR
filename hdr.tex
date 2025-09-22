@@ -5883,7 +5883,7 @@ some parts of the Iris proof mode~\cite{10.1007/978-3-662-54434-1_26} in
 Rocq-Elpi. Later, Krebbers, Maas and myself studied an encoding of inductive
 predicates as fixpoints internal to the Iris logic an implemented,
 in Rocq-Elpi, a command that takes an indcutive specification, as the example
-below, and generates the corresponding induction principle~\cite{TODO}.
+below, and generates the corresponding induction principle~\cite{krebbers25}.
 
 \begin{rocqcode}
 Iris Inductive is_del_list : loc → list val → iProp :=
@@ -6077,35 +6077,33 @@ It is also worth mentioning the existence of a substantial amount of
 closed-source Elpi code used internally by BlueRock Systems. I wish them
 success in their industrial applications.
 
-\section{Current and future work}
+\section{Current and Future Work}
 
 If only I had a century -- or perhaps two.
 
-There are two main axes to consider:
-Elpi as a language in its own right, and Rocq-Elpi as a framework for extending
-Rocq. On the Elpi side, the most valuable improvement would be to increase its
-appeal to programmers already experienced in functional languages. Most
-newcomers to Elpi are already familiar with functional programming, and are
-encountering logic programming for the first time. Some improvements related to
-syntax -- a delicate, though not deeply intellectual, aspect of any language.
-Another important area is static analysis, which is so prevalent in modern
-functional languages that programmers often take it for granted (for example,
-an untyped language no longer feels familiar, even if it is functional). On the
-Rocq side, it seems reasonable to pursue deeper integration with the system,
-making Elpi an integral part of Rocq. Power users frequently request a
-reduction in the inevitable friction caused by a language that is integrated as
-a plugin, and thus limited by Rocq’s public extension points and extensible
-syntax.
+There are two main axes to consider: Elpi as a language in its own right, and
+Rocq-Elpi as a framework for extending Rocq. On the Elpi side, the most
+valuable improvement would be to increase its appeal to programmers already
+experienced in functional languages. Most newcomers to Elpi are familiar with
+functional programming and are encountering logic programming for the first
+time. Improvements related to syntax -- a delicate, though not deeply
+intellectual, aspect of any language -- are important. Another significant area
+is static analysis, which is so prevalent in modern functional languages that
+programmers often take it for granted (for example, an untyped language no
+longer feels familiar, even if it is functional). On the Rocq side, it seems
+reasonable to pursue deeper integration with the system, making Elpi an
+integral part of Rocq. Power users frequently request a reduction in the
+inevitable friction caused by a language integrated as a plugin, which is
+limited by Rocq’s public extension points and extensible syntax.
 
 Below, I discuss several concrete aspects of these two directions.
 
-\subsection{Static analysis and functional programming languages} 
+\subsection{Static Analysis and Functional Programming Languages}
 
-Fissore
-integrated a determinacy checker into Elpi 3.0~\cite{elpidet}, along with a new
-keyword, \elpi{func}, to be used in place of \elpi{pred} in predicate
-signatures. This static check essentially guarantees that each call to a
-functional predicate \elpi{p} is operationally equivalent to a call to
+Fissore integrated a determinacy checker into Elpi 3.0~\cite{elpidet}, along
+with a new keyword, \elpi{func}, to be used in place of \elpi{pred} in
+predicate signatures. This static check essentially guarantees that each call
+to a functional predicate \elpi{p} is operationally equivalent to a call to
 \elpi{once p}:
 
 \begin{elpicode}
@@ -6113,9 +6111,9 @@ pred once i:pred.
 once P :- P, !.
 \end{elpicode}
 
-\noindent As expected, \elpi{once} can be flagged as \elpi{func} since it never
-leaves any choice points behind. The signature reported below uses the arrow
-to separate inputs from outputs and means that \elpi{once} behaves as a
+\noindent As expected, \elpi{once} can be flagged as \elpi{func} since it
+never leaves any choice points behind. The signature below uses an arrow to
+separate inputs from outputs, indicating that \elpi{once} behaves as a
 function operationally, i.e., it leaves no choice points even if its argument
 does.
 
@@ -6123,8 +6121,8 @@ does.
 func once (pred) -> .
 \end{elpicode}
 
-\noindent
-An interesting example comes from the functional programming repertoire:
+\noindent An interesting example comes from the functional programming
+repertoire:
 \begin{elpicode}
 func map (func A -> B), list A -> list B.
 map F [] [].
@@ -6133,25 +6131,23 @@ map F [X|XS] [Y|YS] :- F X Y, map F XS YS.
 
 \noindent The signature states that \elpi{map} is a function under the
 condition that its higher-order argument \elpi{F} is a function. If the
-precondition is not met, we say that \elpi{map} is miscalled but still runs fine
-even if it may leave choice points. Miscalled functions are tracked by
-the static analyzer and considered as relation for the analsysis of the
-surrounding code. In other words the signare of \elpi{map} is allowed to
-degrade to the following one, that requires nothing on its input but also
-guarantees nothing on the choice points it may leave.
+precondition is not met, \elpi{map} is considered miscalled but still runs
+fine, even if it may leave choice points. Miscalled functions are tracked by
+the static analyzer and treated as relations for analyzing the surrounding
+code. In other words, the signature of \elpi{map} is allowed to degrade to the
+following one, which requires nothing of its input but also guarantees nothing
+about the choice points it may leave:
 \begin{elpicode}
 pred map (pred A -> B), list A -> list B.
 \end{elpicode}
 
-
-Since the syntax for \elpi{func} requires
-input arguments first, it paves the way for a syntax for functional predicate
-bodies that is closer to functional languages, where expressions and statements
-are intermingled.
-Spilling, section \ref{sec:spilling}, already moves in this direction, but one must
-explicitly invoke it by using curly braces instead of parentheses (which can be
-omitted when not needed by the parser). One wonders if this default could be
-reversed for functional predicates, enabling the previous program to be
+Since the syntax for \elpi{func} requires input arguments first, it paves the
+way for a syntax for functional predicate bodies that is closer to functional
+languages, where expressions and statements are intermingled. Spilling,
+Section \ref{sec:spilling}, already moves in this direction, but one must
+explicitly invoke it by using curly braces instead of parentheses (which can
+be omitted when not needed by the parser). One wonders if this default could
+be reversed for functional predicates, enabling the previous program to be
 unambiguously written as follows:
 
 \begin{elpicode}
@@ -6159,14 +6155,14 @@ func map (func A -> B), list A -> list B.
 map F [] R :- R = [].
 map F [X|XS] R :- R = [F X|map F XS].
 \end{elpicode}
-\noindent Currently one has to write:
+
+\noindent Currently, one has to write:
 \begin{elpicode}
 map F [X|XS] R :- R = [{F X}|{map F XS}].
 \end{elpicode}
 
-\noindent
-In turn, the \elpi{R :- R} part could be made implicit, yielding the familiar
-code below:
+\noindent In turn, the \elpi{R :- R} part could be made implicit, yielding the
+familiar code below:
 
 \begin{elpicode}
 func map (func A -> B), list A -> list B.
@@ -6174,91 +6170,88 @@ map F [] = [].
 map F [X|XS] = [F X|map F XS].
 \end{elpicode}
 
-\noindent In this way, I
-wonder whether some syntactic sugar, driven by types and determinacy, could
-recover some of the benefits of functional languages while retaining \emph{all}
-the advantages of $\lambda$Prolog. MLTS~\cite{mlts} goes in this direction,
-maintaining automatic binder management but dropping the rule-based nature, and
-thus automatic context management and easy self-extensibility.
+\noindent In this way, I wonder whether some syntactic sugar, driven by types
+and determinacy, could recover some of the benefits of functional languages
+while retaining \emph{all} the advantages of $\lambda$Prolog.
+MLTS~\cite{mlts} goes in this direction, maintaining automatic binder
+management but dropping the rule-based nature, and thus automatic context
+management and easy self-extensibility.
 
-\subsection{Certified runtime}
+\subsection{Certified Runtime}
 
 Over the years, I have gained confidence that the runtime is mostly correct,
 but I would very much like to machine-check some parts.
 
 In the past ten years, I have found and fixed four bugs that I consider
 relevant (i.e., they could be triggered in legitimate code) and somewhat
-embarrassing. Two were related to beta reduction: a routine used throughout the
-codebase had two code paths (and thus two bugs) that could sometimes be
+embarrassing. Two were related to beta reduction: a routine used throughout
+the codebase had two code paths (and thus two bugs) that could sometimes be
 incorrect. The root cause was a misnamed variable: \elpi{extraargs} did not
 actually hold \emph{all} the extra arguments (those for which there is no
 lambda), which misled the programmer into discarding some arguments. The other
-two bugs consisted in bad optimizations, fortunately not very relevant in practice,
-in the higher-order unification algorithm.
+two bugs consisted of bad optimizations, fortunately not very relevant in
+practice, in the higher-order unification algorithm.
 
-As Fissore and myself are mechanizing~\cite{elpidet}, we have begun to take the first steps in
-this direction, but I believe it would take a full Ph.D. to complete the
-mechanization of the runtime.
+As Fissore and I are mechanizing~\cite{elpidet}, we have begun to take the
+first steps in this direction, but I believe it would take a full Ph.D. to
+complete the mechanization of the runtime.
 
-\subsection{Program logic}
+\subsection{Program Logic for Elpi}
 
-This is the area where even a hundred years would not suffice for me, but there
-are smarter people who could tackle it. Abella~\cite{abella} is a good starting
-point, as it comes with a program logic for plain $\lambda$Prolog. This program
-logic does not consider the cut operator. 
+This is the area where even a hundred years would not suffice for me, but
+there are smarter people who could tackle it. Abella~\cite{abella} is a good
+starting point, as it comes with a program logic for plain $\lambda$Prolog.
+This program logic does not consider the cut operator.
 
-The big-step semantics
-in~\cref{sec:sem} does consider cut, and I believe it could be made fully
-formal, but it is not clear that it would provide a good foundation for a
-program logic. In the ongoing mechanization of~\cite{elpidet}, we were forced
-to define an equivalent semantics with a much more explicit description of the
-ongoing computation in order to reason about the scope of a cut.
-While this facilitated proofs by making invariants easier
-to express, it also departs from what the symbolic evaluation of a logic
-program looks like. In particular, the computation state is much more complex
-than the list of alternatives used in~\cref{sec:sem}. Proving the two
-semantics equivalent is ongoing work.
+The big-step semantics in~\cref{sec:sem} does consider cut,
+but it is not clear that it would provide a good
+foundation for a program logic. In the ongoing mechanization of~\cite{elpidet},
+we were forced to define an equivalent semantics with a much more explicit
+description of the ongoing computation in order to reason about the scope of a
+cut. While this facilitated proofs by making invariants easier to express, it
+also departs from what the symbolic evaluation of a logic program looks like.
+In particular, the computation state is much more complex than the list of
+alternatives used in~\cref{sec:sem}. Proving the two semantics equivalent in Rocq
+is ongoing work.
 
-From a practical perspective it is unclear to me if programs written in
-Rocq-Elpi would truly benefit from a program logic. Rocq features five extension
-languages to our knowledge (Ltac1, Ltac2, MTac, Meta-Rocq and Elpi) and only
-Meta-Rocq has one: it uses Gallina itself as a programming language, so, at
-least in principle one could use Rocq to prove properties of meta programs in
-Rocq itself. While I find it very intriguing intellectually, this possibility
-found, at the time of writing, almost no application. So I'm skeptical
-providing a program logic for the full Elpi language would make it significantly
-more practical. Hence it will not be a priority of mine, but I would love to read
-such a program logic written on paper by someone else.
+From a practical perspective, it is unclear to me if programs written in
+Rocq-Elpi would truly benefit from a program logic. Rocq features five
+extension languages to our knowledge (Ltac1, Ltac2, MTac, Meta-Rocq, and
+Elpi), and only Meta-Rocq has one: it uses Gallina itself as a programming
+language, so, at least in principle, one could use Rocq to prove properties of
+meta-programs in Rocq itself. While I find it very intriguing intellectually,
+this possibility has found, at the time of writing, almost no application. So
+I'm skeptical that providing a program logic for the full Elpi language would
+make it significantly more practical. Hence, it will not be a priority of
+mine, but I would love to read such a program logic written on paper by
+someone else.
 
-\subsection{Elpi as a foundational language}
+\subsection{Elpi as a Foundational Language}
 
-I have always seen, and still see, Elpi as a programming language
-that puts \emph{practical} before \emph{foundational}, i.e., disregarding
-the possibility of looking at Elpi programs, or their execution, as a formal
+I have always seen, and still see, Elpi as a programming language that puts
+\emph{practicality} before \emph{foundationality}, i.e., disregarding the
+possibility of looking at Elpi programs, or their execution, as a formal
 specification or formal proof.
 
-One of the reasons is surely
-that I felt in the ``marmitte'' of the Calculus of
-Inductive Contructions very early in my career, possibly because
-the French and Italian schools are quite close in that respect.
-So, maybe uncousciously, the foundational language has always
-been Rocq to me, leaving to Elpi the role of being practical.
+One of the reasons is surely that I felt in the ``marmitte'' of the Calculus of
+Inductive Constructions very early in my career, possibly because the French
+and Italian schools are quite close in that respect. So, maybe unconsciously,
+the foundational language has always been Rocq to me, leaving Elpi the role of
+being practical.
 
-At the same my voyage in the neighborhood of computation logic
-gave me the opportunity to see other ways to look at programming
-languages with support for binders, i.e. as frameworks to formally
-describe the object of interest and possibly reason about it.
-Even if we did not choose to follow the footsteps of 
-Twelf~\cite{twelf},
-Beluga~\cite{DBLP:conf/cade/PientkaC15,10.1007/978-3-642-12251-4_1} or
-MMT~\cite{RABE20131} when it comes to being foundational,
-the literature that describes these systems has been
-very influential to me.
+At the same time, my voyage in the neighborhood of computational logic gave me
+the opportunity to see other ways to look at programming languages with
+support for binders, i.e., as frameworks to formally describe the object of
+interest and possibly reason about it. Even if I did not choose to follow the
+footsteps of Twelf~\cite{twelf}, Beluga~\cite{DBLP:conf/cade/PientkaC15,10.1007/978-3-642-12251-4_1},
+or MMT~\cite{RABE20131} when it comes to being a foundational language, the literature
+that describes these systems has been very influential to me, and I think it is
+fair to say that Elpi would not have existed without it.
 
-\subsection{Deeper integration in Rocq}
+\subsection{Deeper Integration in Rocq}
 
-There are plenty of Prolog implementations in the Rocq codebase, most of
-which are disguised as other features. Some tactics to automatically prove
+There are plenty of Prolog implementations in the Rocq codebase, most of which
+are disguised as other features. Some tactics to automatically prove
 tautologies essentially explore the search space by backtracking. Type class
 resolution essentially amounts to executing a logic program~\cite{fctc}.
 Canonical Structure resolution is yet another, deterministic, logic
@@ -6273,90 +6266,96 @@ As part of his Ph.D., Fissore has implemented an alternative type class solver.
 It is based on an Elpi program that compiles type class instances into rules,
 which are then queried each time Rocq needs to resolve a type class
 instance~\cite{newtc,unifforfree}. While the approach seems promising, the
-chances of replacing the existing engine (with all its quirks) are low. Fissore
-also found it difficult to find real and computationally demanding examples to
-justify the introduction of caching mechanisms such as tabling in
+chances of completely replacing the existing engine (with all its quirks) are low.
+Fissore also found it difficult to find real and computationally demanding
+examples to justify the introduction of caching mechanisms such as tabling in
 Elpi~\cite{selsam2020tabledtypeclassresolution,brigittePHD}. He (or we) will
 probably implement a simple version of tabling in the future, but focusing on
 user experience (e.g., preventing loops) rather than performance.
 
 Pierre Roux, Quentin Vermande, and Cyril Cohen have conducted substantial
-experiments leveraging Elpi in the elaboration process of Rocq, particularly to
-obtain well-typed terms from intuitively correct but ill-typed ones, both in
-the context of arithmetical and set-theoretic expressions. Some examples are
+experiments leveraging Elpi in the elaboration process of Rocq, particularly
+to obtain well-typed terms from intuitively correct but ill-typed ones, both
+in the context of arithmetical and set-theoretic expressions. Some examples are
 quite convincing, and deeper integration of Elpi in Rocq would enable the
-generation of more informative error messages when these elaboration mechanisms
-fail.
+generation of more informative error messages when these elaboration
+mechanisms fail.
 
-Finally, based on my experience implementing the first Elpi proof of
-concept (\cref{sec:poc}), the Rocq proof engine could benefit from the trail
-mechanism as implemented in Elpi. It turns out that, for a typical Elpi
-workload, mutable terms and a trail (a log of mutable cells to unset upon
-backtracking) provide much better performance than immutable terms paired with
-a substitution implemented as a functional map (a reified heap, essentially).
-This is partly because the OCaml garbage collector can do its job in the former
-case, while the substitution grows unchecked in the latter. Reworking the proof
-engine to validate this efficiency claim would require substantial engineering
-effort.
+Finally, based on my experience implementing the first Elpi proof of concept
+(\cref{sec:poc}), the Rocq proof engine could benefit from the trail mechanism
+as implemented in Elpi. It turns out that, for a typical Elpi workload, mutable
+terms and a trail (a log of mutable cells to unset upon backtracking) provide
+much better performance than immutable terms paired with a substitution
+implemented as a functional map (a reified heap, essentially). This is partly
+because the OCaml garbage collector can do its job in the former case, while
+the substitution grows unchecked in the latter. Reworking the proof engine to
+validate this efficiency claim would require substantial engineering effort, but
+could also benefit long running automation.
 
-\subsection{Rocq as a logical framework}
+\subsection{Rocq as a Logical Framework}
 
 The history of logical frameworks and interactive provers is intertwined.
-Maybe Isabelle is most well known prover rooted on that idea: it hosts
-various foundational languages, from the set theory Isabelle/ZF to first order
-classical logic Isabelle/FOL and the most widely known higher order logic
-Isabelle/HOL. The main
-drawback in its design, to me, is that the logical framework is so weak,
-from a proof theoretic point of view, that one cannot really talk about
-these formal systems in it, e.g., one cannot relate a result in Isabelle/ZF 
-with one in Isabelle/HOL, nor reuse the automatic proof search tools
-that make Isabelle/HOL so practical when working in Isabelle/ZF. In
-support of this observation we mention that Paulson implemented
-Isabelle/ZF and later mechanised ZFC in Isabelle/HOL~\cite{zfhol}.
+Maybe Isabelle is the most well-known prover rooted in that idea: it hosts
+various foundational languages, from the set theory Isabelle/ZF to first-order
+classical logic Isabelle/FOL and the most widely known higher-order logic
+Isabelle/HOL. The main drawback in its design, to me, is that the logical
+framework is so weak, from a proof-theoretic point of view, that one cannot
+really talk about these formal systems in it, e.g., one cannot relate a result
+in Isabelle/ZF with one in Isabelle/HOL, nor reuse in Isabelle/ZF
+the automatic proof search
+tools that make Isabelle/HOL so practical. In
+support of this observation, we mention that Paulson implemented Isabelle/ZF
+and later mechanized ZF in Isabelle/HOL~\cite{zfhol}.\\
+In a way, each Isabelle/X is a different, incompatible prover with
+Isabelle/Y. The economy made by sharing a common implementation infrastructure
+seems little compared to the economy one could make by sharing mechanized
+theorems. One can try to solve this problem by reconciling different theories
+via an external translation, as the ones provided by Dedukti~\cite{dedukti},
+but in that way, one can hardly reason on the translation itself.
 
-In a way each Isabelle/X is a different,
-incompatible, prover with Isabelle/Y. The economy made by sharing a common
-implementation infrastructure seems little compared to the economy one could
-make by sharing mechanized theorems. One can try to solve this problem by
-reconciliating different theories via an external translation, as the
-ones provided by Dedukti~\cite{dedukti}, but in that way he likely loses
-the benefits of sharing an implementation infrastructure.
-
-What I see as an emerging approach is to use Rocq's logic as the
-``logical framework''. The Calculus of Inductive Constructions is not designed
-for that, for example the function space is not the right one for an
-HOAS encoding of terms with binders, and it is also unrestricted with respect to
-duplication. Still Gallina features a programming language that can
-be used to encode other formal systems, and proof theoretically speaking
-CIC it is strong enough to contain them, reason about them and share, at some
-extent, theorems.
-Maybe the most shiny example of this approach is
-Iris~\cite{10.1007/978-3-662-54434-1_26}. Iris is a separation logic
-that is proved sound in Rocq, and that thanks to its proof mode~\cite{IPM} it
-can be used to reason about imperative programs within Rocq.
-Moreover, whenever possible, pointers and heap locations are related to
-mathematical (immutable) objects like lists made of cons and nil,
+What I see as an emerging approach is to use Rocq's logic as the logical
+framework. The Calculus of Inductive Constructions is not designed for that;
+for example, the function space is not the right one for an HOAS encoding of
+terms with binders, and it is also unrestricted with respect to duplication.
+Still, Gallina features a programming language that can be used to encode
+other formal systems, and proof-theoretically speaking, CIC is strong enough
+to contain them, reason about them, and share, to some extent, theorems. Maybe
+the most shining example of this approach is Iris~\cite{10.1007/978-3-662-54434-1_26}.
+Iris is a separation logic that is proved sound in Rocq, and thanks to its
+proof mode~\cite{IPM}, it can be used to reason about imperative programs
+within Rocq. Moreover, whenever possible, pointers and heap locations are
+related to mathematical (immutable) objects like lists made of cons and nil,
 via inductive predicates. Then imperative algorithms are related to their
-functional specification, and at that level theorems can be shared.
-Other examples of frameworks are VST~\cite{VST} implementing a program
-logic for C, of the FOL~\cite{FOL} library implementing first order logic,
-giving results on its metatheory and letting one write proofs in it.
-Even the Mathematical Component library is built this way even if
-its framework  is thin, compared to, say, Iris. In particular 
-the extensive use of booleans to encode dicidable propositions make
-reasoning by excluded middle more practical and it paves the way to proof
-irrelevance effectively building a comfortable shell for ``classical reasoning''
-(without adding any classical axiom).
+functional specification, and at that level, theorems can be shared and
+tranferred, in a proved-correct way,
+with tools like Trocq~\cite{10.1007/978-3-031-57262-3_10}.
+Other
+examples of frameworks are VST~\cite{VST} implementing a program logic for C,
+or the FOL~\cite{FOL} library implementing first-order logic, giving results
+on its metatheory and letting one write proofs in it. Even the Mathematical
+Component library~\cite{assia_mahboubi_2022_7118596} is built this way,
+even if its framework is thin compared to, say, Iris. In practice, the
+extensive use of booleans to encode decidable
+propositions makes reasoning by excluded middle look native, and it paves
+the way to proof irrelevance, effectively building a comfortable shell for
+classical reasoning within CIC without adding axioms and hence providing
+a base of theorems reusable in other frameworks. For
+example~\cite{10461453} reuses some linear algebra from
+Mathematical Components to prove correct a C function that multiplies sparse
+matrices over IEEE-754 conforming floating point numbers.
 
-If this trend continues, I see two roles Elpi could play.
-One is to continue to serve as an extension language, after all these
-frameworks needs ecoding and Elpi can help to hide them, see for
-example~\cite{TODOIRIS}. Maybe a more intriguing possibility would
-be to make a step back an try to retrofit a logical framework in type
-theory, in the spirit of~\cite{concon}. If that happens, the techniques
-employed to implement Elpi's runtime could
-provide a starting point for the logical framework infrastructure
-the new type theory requires.
+If this trend continues, I see two roles Elpi could play. One is to continue to
+serve as an extension language; after all, these frameworks need encoding, and
+Elpi can help to implement them, or hide them to the user.
+See for example~\cite{krebbers25} that gives the user the illusion of
+having inductive predicates in the Iris logic.\\
+Maybe a more
+intriguing possibility would be to take a step back and try to retrofit a
+logical framework in CIC, in the spirit of~\cite{concon}. If that
+happens, the techniques employed to implement Elpi's runtime could provide a
+solid starting point for the logical framework infrastructure the new type
+theory would require.
+
 
 \backmatter
 

@@ -1113,3 +1113,20 @@ pages="202--206",
 abstract="Twelf is a meta-logical framework for the specification, implementation, and meta-theory of deductive systems from the theory of programming languages and logics. It relies on the LF type theory and the judgments-as-types methodology for specification [HHP93], a constraint logic programming interpreter for implementation [Pfe91], and the meta-logic M2 for reasoning about object languages encoded in LF [SP98]. It is a significant extension and complete reimplementation of the Elf system [Pfe94].",
 isbn="978-3-540-48660-2"
 }
+
+@INPROCEEDINGS {10461453,
+author = { Kellison, Ariel E. and Appel, Andrew W. and Tekriwal, Mohit and Bindel, David },
+booktitle = { 2023 IEEE 30th Symposium on Computer Arithmetic (ARITH) },
+title = {{ LAProof: A Library of Formal Proofs of Accuracy and Correctness for Linear Algebra Programs }},
+year = {2023},
+volume = {},
+ISSN = {},
+pages = {36-43},
+abstract = { The LAProof library provides formal machine-checked proofs of the accuracy of basic linear algebra operations: inner product using conventional multiply and add, inner product using fused multiply-add, scaled matrix-vector and matrix-matrix multiplication, and scaled vector and matrix addition. These proofs can connect to concrete implementations of low-level basic linear algebra subprograms; as a proof of concept we present a machine-checked correctness proof of a C function implementing sparse matrix-vector multiplication using the compressed sparse row format. Our accuracy proofs are backward error bounds and mixed backward-forward error bounds that account for underflow, proved subject to no assumptions except a low-level formal model of IEEE-754 arithmetic. We treat low-order error terms concretely, not approximating as $\mathcal{O}\left( {{u^2}} \right)$. },
+keywords = {Error analysis;Libraries;Mathematical models;Roundoff errors;Vectors;Stability analysis;Sparse matrices},
+doi = {10.1109/ARITH58626.2023.00021},
+url = {https://doi.ieeecomputersociety.org/10.1109/ARITH58626.2023.00021},
+publisher = {IEEE Computer Society},
+address = {Los Alamitos, CA, USA},
+month =sep}
+
