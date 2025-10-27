@@ -373,7 +373,7 @@ by convention.
 Our goal became to help users craft such programs, since
 programming the elaborator as we did was challenging. Structuring the library
 so that knowledge could be organized by the author and retrieved by these
-programs was possibly even harder, but we started from the fist one.
+programs was possibly even harder, but we started from the first one.
 The programming mechanism, called Canonical Structure
 inference~\cite{tassi13}, is closely related to the language of Unification
 Hints~\cite{asperti09} I studied during my Ph.D. Around the same time, Rocq was
@@ -384,7 +384,7 @@ To me, these programming languages were strikingly similar to Prolog. Our code w
 as rules and driven by unification. At that time, I had barely heard of Prolog;
 I even have passed over that course in my university curricula.
 Coincidentally, the Parsifal team at Inria Saclay was working on a language of
-that family, and thanks to Assia Mahboubi and Stephane Legrand, I was invited
+that family, and thanks to Assia Mahboubi and St\'ephane Graham-Lengrand, I was invited
 to give a talk at a workshop they were hosting.
 
 In my talk, I explained some of the programs we had written and how they helped
@@ -5743,7 +5743,7 @@ factor in the five seconds, making it usable in practice even on such an
 extreme goal (for an interactive theorem prover).
 
 
-\subsection{Takt and TRocq: proof transfer tools}
+\subsection{Trakt and TRocq: proof transfer tools}
 
 
 The most frequently asked question regarding the Mathematical Components
@@ -6047,7 +6047,7 @@ of bound variables grows in length.
 At the time of writing, Elpi comprises about 20,000 lines of code:
 approximately 10,000 for the runtime and 10,000 for the parser, static checker,
 and compiler. Rocq-Elpi totals 13,000 lines: 5,000 for the Higher Order
-Abstract Syntax of Rocq terms; 5,000 for the bindings of
+Abstract Syntax (HOAS) of Rocq terms; 5,000 for the bindings of
 about 300 Rocq APIs; and 3,000 for the vernacular language used to declare
 programs. The most complex part is the HOAS, but it is also what makes the
 language stand out, enabling each Rocq API to require, on average, only 16
@@ -6175,7 +6175,7 @@ map F [X|XS] = [F X|map F XS].
 and determinacy, could recover some of the benefits of functional languages
 while retaining \emph{all} the advantages of $\lambda$Prolog.
 MLTS~\cite{mlts} goes in this direction, maintaining automatic binder
-management but dropping the rule-based nature, and thus automatic context
+management but dropping the rule-based nature, and thus loosing automatic context
 management and easy self-extensibility.
 
 \subsection{Certified Runtime}
@@ -6195,7 +6195,7 @@ practice, in the higher-order unification algorithm.
 
 As Fissore and I are mechanizing~\cite{elpidet}, we have begun to take the
 first steps in this direction, but I believe it would take a full Ph.D. to
-complete the mechanization of the runtime.
+complete the mechanization of a proof of correctness of the runtime.
 
 \subsection{Program Logic for Elpi}
 
@@ -6234,7 +6234,9 @@ I have always seen, and still see, Elpi as a programming language that puts
 possibility of looking at Elpi programs, or their execution, as a formal
 specification or formal proof.
 
-One of the reasons is surely that I felt in the ``marmitte'' of the Calculus of
+One of the reasons is surely that I felt in the marmitte\footnote{As Obelix felt
+in the pot of magic potion as a child, from the French comic Asterix.}
+of the Calculus of
 Inductive Constructions very early in my career, possibly because the French
 and Italian schools are quite close in that respect. So, maybe unconsciously,
 the foundational language has always been Rocq to me, leaving to Elpi the role of
@@ -6316,7 +6318,7 @@ method makes it challenging to reason about the translation itself.
 
 An emerging approach is to use Rocq's logic as the logical framework. While the
 Calculus of Inductive Constructions was not explicitly designed for this
-purpose -- or example, the function space is not ideal for an HOAS encoding of
+purpose -- for example, the function space is not ideal for an HOAS encoding of
 terms with binders, and it is unrestricted with respect to duplication -- it still
 offers a programming language, Gallina, that can encode other formal systems.
 Proof-theoretically, CIC is robust enough to contain, reason about, and share
