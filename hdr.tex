@@ -61,7 +61,7 @@
 \usepackage{wrapfig}
 \usepackage{xspace}
 \usepackage{xpatch}
-\usepackage[firstpageonly=false]{draftwatermark}
+% \usepackage[firstpageonly=false]{draftwatermark}
 \usepackage{amsfonts}
 \usepackage{amssymb}
 \usepackage{amsmath}
@@ -136,14 +136,14 @@
 
 \makeindex[name=concept,title=Index of concepts ,intoc]
 
-\SetWatermarkText{Draft \today}
+% \SetWatermarkText{Draft \today}
 
-\SetWatermarkScale{.09}
-\SetWatermarkAngle{30}
-\SetWatermarkColor{red!50!white}
+% \SetWatermarkScale{.09}
+% \SetWatermarkAngle{30}
+% \SetWatermarkColor{red!50!white}
 
-\SetWatermarkHorCenter{0.15\paperwidth}
-\SetWatermarkVerCenter{0.08\paperheight}
+% \SetWatermarkHorCenter{0.15\paperwidth}
+% \SetWatermarkVerCenter{0.08\paperheight}
 
 
 \makeatletter
@@ -244,12 +244,12 @@
 \begin{jury}%[xxx \Nom{YYY}, Grand chef cuisinier/L'Auberge du Pont de Collonges]%% Mettre ici le nom du président à commenter tant que le président du jury n'est pas connu
 %% Autant de lignes \rapporteur que nécessaire
 %% Autant de lignes \examinateur que nécessaire
-% \rapporteur{Catherine \Nom{Dubois}}{Professeur}{Ecole Nationale Supérieure d'Informatique pour l'Industrie et l'Entreprise}
-% \rapporteur{Dale \Nom{Miller}}{Directeur de Recherche}{Inria - Saclay}
-%   \rapporteur{Alberto \Nom{Momigliano}}{Associate Professor}{University of Milan}
-%   \rapporteur{Brigitte \Nom{Pientka}}{Full Professor}{McGill University, Monreal}
-%   \examinateur{Christine \Nom{Paulin-Morhing}}{Professeur}{Université Paris-Saclay}
-  % \invite{Michel \Nom{Guérard}}{Cuisinier}{Les Prés d'Eugénie}
+\invite{Yves \Nom{Bertot}}{Directeur de Recherche}{Inria Centre at Université Côte d’Azur}
+\rapporteur{Catherine \Nom{Dubois}}{Professeur}{Ecole Nationale Supérieure d'Informatique pour l'Industrie et l'Entreprise}
+\rapporteur{Dale \Nom{Miller}}{Directeur de Recherche}{Inria Saclay Centre}
+\examinateur{Alberto \Nom{Momigliano}}{Associate Professor}{University of Milan}
+\examinateur{Christine \Nom{Paulin-Mohring}}{Professeur}{Université Paris-Saclay}
+\rapporteur{Brigitte \Nom{Pientka}}{Full Professor}{McGill University, Monreal}
 \end{jury}
 
 \maketitle
