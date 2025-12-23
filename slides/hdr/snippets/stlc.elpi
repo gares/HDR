@@ -1,0 +1,53 @@
+/*#region types*/
+kind tm type.
+type app tm -> tm -> tm.
+type lam (tm -> tm) -> tm.
+
+kind ty type.
+type arr ty -> ty -> ty.
+/*#endregion*/
+
+/*#region of*/
+pred of i:tm, o:ty.
+of (app H A) T :-
+  of H (arr S T), of A S.
+of (lam F) (arr S T) :-
+  pi x\ of x S => of (F x) T.
+/*#endregion*/
+
+/*#region of1*/
+pred of i:tm, o:ty.
+of c S0.
+of (app H A) T :-
+  of H (arr S T), of A S.
+of (lam F) (arr S T) :-
+  pi x\ of x S => of (F x) T.
+/*#endregion*/
+
+/*#region of2*/
+pred of i:tm, o:ty.
+of d S1.
+of c S0.
+of (app H A) T :-
+  of H (arr S T), of A S.
+of (lam F) (arr S T) :-
+  pi x\ of x S => of (F x) T.
+/*#endregion*/
+
+/*#region cst*/
+of (uvar as E) T :-
+  declare_constraint (of E T) [E].
+/*#endregion*/
+
+/*#region chr*/
+constraint of {
+    rule (of X T1) \ (of X T2) <=> (T1 = T2).
+}
+/*#endregion*/
+
+
+main :- std.spy-do! [
+  of (lam x\ lam y\ x) TyFst,
+  of (app H A) T, print_constraints,
+  of (app D D) _,
+].
