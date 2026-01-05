@@ -6,7 +6,7 @@ color: rocq
 # like them? see https://unsplash.com/collections/94734566/slidev
 # background: https://cover.sli.dev
 # some information about your slides (markdown enabled)
-title: Elpi rule-based meta-languge for Rocq
+title: "Elpi: rule-based extension language"
 info: |
   ## Slidev Starter Template
   Presentation slides for developers.
@@ -21,28 +21,30 @@ drawings:
 # enable MDC Syntax: https://sli.dev/features/mdc
 mdc: true
 layout: cover
-image: logo.png
+ximage: logo.png
 transition: fade
 level: 2
 hideInToc: true
 ---
 
-# Elpi: rule-based meta-languge for Rocq
+# Elpi: rule-based extension language
 
-Enrico Tassi<sup>1</sup> - CoqPL 2025
+<style>
+  tr { border-style: none; padding-top: 0.1rem; padding-bottom: 0.1rem; }
+  td { border-style: none; padding-top: 0.1rem; padding-bottom: 0.1rem; text-align: left !important; }
+</style>
+<table><tbody>
+<tr ><td style="text-align: right !important;">Candidate:</td><td>Enrico Tassi</td></tr>
+<tr ><td style="text-align: right !important;">Jury:</td><td>Catherine Dubois, Professeur, ENSIIE </td></tr>
+<tr ><td ></td><td>Dale Miller, Directeur de Recherche, Inria</td></tr>
+<tr ><td ></td><td>Brigitte Pientka, Full Professor, McGill University</td></tr>
+<tr ><td ></td><td>Alberto Momigliano, Associate Professor, University of Milan</td></tr>
+<tr ><td ></td><td>Christine Paulin-Mohring, Professeur, Université Paris-Saclay</td></tr>
+<tr ><td ></td><td>Yves Bertot, Directeur de Recherche, Inria</td></tr>
+</tbody></table>
 
-<div class="flex justify-center items-center">
+<div style="text-align: right !important;">HDR 9/1/2026</div>
 
-<div>
-
-![Elpi logo](/logo.png "Logo")
-
-</div>
-
-</div>
-
-:: note ::
-1 Inria Centre at Université Côte d’Azur 
 
 ---
 layout: center
@@ -59,345 +61,62 @@ First of all thanks the orga
 -->
 
 ---
-layout: section
-color: rocq
+layout: default
+title: When, what, how
 ---
 
-# Users of Elpi
-
-- https://github.com/math-comp/hierarchy-builder/
-- https://github.com/coq-community/trocq
-- https://github.com/LPCIC/coq-elpi/tree/master/apps/derive
-- https://github.com/math-comp/algebra-tactics/
-
----
-layout: two-cols-header
-level: 2
----
-
-# Hierarchy Builder
-
-<div class="authors">
-
-![CohenCyril](/avatars/CohenCyril.jpg)
-![pi8027](/avatars/pi8027.jpg)
-![gares](/avatars/gares.jpg)
-![proux01](/avatars/proux01.jpg)
-![ThomasPortet](/avatars/ThomasPortet.jpg)
-![affeldt-aist](/avatars/affeldt-aist.jpg)
-<!--
-![FissoreD](/avatars/FissoreD.jpg)
-![SkySkimmer](/avatars/SkySkimmer.jpg)
-![thery](/avatars/thery.jpg)
-![Tvallejos](/avatars/Tvallejos.jpg)
-![VojtechStep](/avatars/VojtechStep.jpg)
-![ybertot](/avatars/ybertot.jpg)
--->
-
-</div>
-
-DSL to declare a hierarchy of interfaces
-
-:: left ::
-
-* generates boilerplate via Elpi's API: modules, implicit arguments, canonical structures, ... 
-* used by the Mathematical Components library and other ~20 libraries
-* makes "packed classes" easy
-
-  ![MC](/hb_intf.png "number of interfaces"){style="width: 80%"}
-
-  2017
-  <span style="width:8em; display:inline-block"/>
-  2022
-  <span style="width:2em; display:inline-block"/>
-  2024
-
-:: right ::
-
-```coq
-From HB Require Import structures.
-
-HB.mixin Record IsAddComoid A := {
-  zero : A;
-  add : A -> A -> A;
-  addrA : forall x y z, add x (add y z) = add (add x y) z;
-  addrC : forall x y, add x y = add y x;
-  add0r : forall x, add zero x = x;
-}.
-
-HB.structure Definition AddComoid := { A of IsAddComoid A }.
-
-Notation "0" := zero.
-Infix "+" := add.
-
-Check forall (M : AddComoid.type) (x : M), x + x = 0.
-```
-
-<!--
-this is the command / this is the argument
-
-uses the APIs to declare modules, coercions, implicit arguments
--->
-
----
-layout: two-cols-header
-level: 2
----
-
-# Trocq
-
-<div class="authors">
-
-![ecranceMERCE](/avatars/ecranceMERCE.jpg)
-![amahboubi](/avatars/amahboubi.jpg)
-![CohenCyril](/avatars/CohenCyril.jpg)
-<!-- ![palmskog](/avatars/palmskog.jpg) -->
-
-</div>
-
-Proof transfer via parametricity (with or without univalence).
-
-:: left ::
-
-<div style="padding-right: 3em">
-
-
-- Registers in Elpi Databases translation rules
-- Synthesizes transfer proofs minimizing the axioms required
-
-</div>
-
-:: right :: 
-
-<div style="transform: scale(1.2)">
-
-```coq 
-From Trocq Require Import Trocq.
-
-Definition RN : (N <=> nat)%P := ...
-Trocq Use RN.
-
-Lemma RN0 : RN 0%N 0%nat. ...
-Lemma RNS m n : RN m n -> RN (N.succ m) (S n). ...
-Trocq Use RN0 RNS.
-
-Lemma N_Srec : ∀P : N -> Type, P 0%N ->
-    (∀n, P n -> P (N.succ n)) -> ∀n, P n.
-Proof.
-trocq. (* replaces N by nat in the goal *)
-exact nat_rect.
-Qed.
-```
-
-</div>
-
----
-layout: two-cols-header
-level: 2
----
-
-# Derive
-
-<div class="authors">
-
-![gares](/avatars/gares.jpg)
-![CohenCyril](/avatars/CohenCyril.jpg)
-![bgregoir](/avatars/bgregoir.jpg)
-![eponier](/avatars/eponier.jpg)
-![Blaisorblade](/avatars/Blaisorblade.jpg)
-![rlepigre](/avatars/rlepigre.jpg)
-![dwarfmaster](/avatars/dwarfmaster.jpg)
-<!--
-![artagnon](/avatars/artagnon.jpg)
-![ecranceMERCE](/avatars/ecranceMERCE.jpg)
-![ejgallego](/avatars/ejgallego.jpg)
-![FissoreD](/avatars/FissoreD.jpg)
-![herbelin](/avatars/herbelin.jpg)
-![jfehrle](/avatars/jfehrle.jpg)
-![maximedenes](/avatars/maximedenes.jpg)
-![pedrotst](/avatars/pedrotst.jpg)
-![phikal](/avatars/phikal.jpg)
-![pi8027](/avatars/pi8027.jpg)
-![ppedrot](/avatars/ppedrot.jpg)
-![proux01](/avatars/proux01.jpg)
-![robblanco](/avatars/robblanco.jpg)
-![SimonBoulier](/avatars/SimonBoulier.jpg)
-![SkySkimmer](/avatars/SkySkimmer.jpg)
-![Tragicus](/avatars/Tragicus.jpg)
-![vbgl](/avatars/vbgl.jpg)
-![VojtechStep](/avatars/VojtechStep.jpg)
-![wdeweijer](/avatars/wdeweijer.jpg)
-![whonore](/avatars/whonore.jpg)
-![ybertot](/avatars/ybertot.jpg)
-![yoichi-at-bedrock](/avatars/yoichi-at-bedrock.jpg)
-![Zimmi48](/avatars/Zimmi48.jpg)
--->
-
-</div>
-
-Framework for type driven code synthesis
-
-:: left ::
-
-<div style="padding-right: 3em">
-
-Derivations:
-- parametricity
-- deep induction
-- equality tests and proofs
-- lenses (record update syntax)
-- a few more...
-
-</div>
-
-:: right :: 
-
-<div style="transform: scale(1.2)">
-
-```coq
-From elpi.apps Require Import derive.std lens.
-
-#[only(lens_laws, eqb), module] derive
-Record Box A := { contents : A; tag : nat }.
-
-About Box. (* Notation Box := Box.t *)
-
-Check Box.eqb :
-  ∀A, (A -> A -> bool) -> Box A -> Box A -> bool.
-
-(* the Lens for the second field *)
-Check @Box._tag : ∀A, Lens (Box A) (Box A) nat nat.
-
-(* a Lens law *)
-Check Box._tag_set_set : ∀A (r : Box A) y x,
-  set Box._tag x (set Box._tag y r) = set Box._tag x r.
-```
-
-</div>
-
-
----
-layout: two-cols-header
-level: 2
----
-
-# Algebra Tactics
-
-<div class="authors">
-
-![pi8027](/avatars/pi8027.jpg)
-![proux01](/avatars/proux01.jpg)
-![amahboubi](/avatars/amahboubi.jpg)
-<!-- ![CohenCyril](/avatars/CohenCyril.jpg)
-![gares](/avatars/gares.jpg) -->
-
-</div>
-
-`ring`, `field`, `lra`, `nra`, and `psatz` tactics for the Mathematical Components library. 
-
-:: left ::
-
-- works with any instance of the structure: concrete, abstract and mixed
-  like `int * R` where `R` is a variable
-- automatically push down ring morphisms and additive functions to
-  leaves of the expression
-- reification up to instance unification in Elpi
-
-
-:: right ::
-
-```coq
-From mathcomp Require Import all_ssreflect.
-From mathcomp Require Import all_algebra.
-From mathcomp Require Import ring lra.
-
-Lemma test (F : realFieldType) (x y : F) :
-  x + 2 * y <= 3 ->
-  2 * x + y <= 3 ->
-    x + y <= 2.
-Proof. lra. Qed.
-
-Variables (R : unitRingType) (x1 x2 x3 y1 y2 y3 : R).
-Definition f1 : R := ...
-Definition f2 : R := ...
-Definition f3 : R := ...
-
-(* 500 lines of polynomials later... *)
-
-Lemma example_from_Sander : f1 * f2 = f3.
-Proof. rewrite /f1 /f2 /f3. ring. Qed.
-```
-
-
----
-layout: section
-color: rocq
----
-
-# Elpi in a nutshell
-
-https://github.com/LPCIC/elpi/
-
----
-layout: two-cols-header
-image: vespa.png
-backgroundSize: 80%
-level: 2
----
-
-# Rules, rules, rules!{style="text-align:center"}
-
-
-:: left ::
-
-
-## Roots
-
-- Elpi is a constraint logic programming language
-- Elpi is a dialect of λProlog and CHR
-- backtracking is not the point
+# Elpi: rule-based extension language
 
 <br/>
 
-## What really matters
+## context: extension language (for an ITP)
 
-- Code is organized in rules
-- Rule application is guided by a pattern
-- Rules can be added statically and dynamically
+- no such a thing as general purpose PL
+- take advantage of the host
+
+## the key: rule-based
+
+- binders
+- context
+- scheduling
+- self extension
+
+---
+layout: image
+image: coq-brain.svg
+title: The arcitecture of an ITP
+backgroundSize: 40%
+#transition: slide-left
+level: 2
+---
+
+# The architecture of an ITP
+
+---
+title: The elaborator
+level: 2
+---
+
+# The elaborator and its daemons
+
+$\lambda x.x + 1$ <br/>
+$\lambda x :~ ?_T.~ add~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type} \}$ <br/>
+$\lambda x :~ ?_T.~ add~ ?_s~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; ?_s \mapsto \mathrm{some~ record} \}$ <br/>
+$\lambda x :~ ?_T.~ add~ ?_{s[x]}~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; x :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \}$ <br/>
+$\lambda   :~ ?_T.~ add~ ?_{s[\$1]}~ \$1~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; x :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \}$<br/>
+
+- binders: numbers <mdi-bomb/>
+- holes: pointers <mdi-biohazard/>
+- reduction/substitution <mdi-bottle-tonic-skull/>
 
 
 
-:: right ::
+---
+layout: section
+color: rocq
+---
 
-## <icon-park-twotone-caution/> Vintage syntax ahead
-
-<ul>
-<li><p>variables are capitals
-<force-inline>
-```elpi
-X
-```
-</force-inline>
-</p></li>
-
-<li><p> λx.t  is written
-<force-inline>
-```elpi
-x\ t
-```
-</force-inline>
-</p></li>
-
-<li><p>rules are written
-<force-inline>
-```elpi
-goal :- subgoal1, subgoal2...
-```
-</force-inline>
-</p></li>
-
-</ul>
-
+# The language in a nutshell
 
 ---
 layout: two-cols-header
@@ -549,14 +268,151 @@ Failure
 
 
 ---
-layout: section
-color: rocq
-transition: fade
+layout: image
+image: chr.png
+level: 2
+backgroundSize: 50%
 ---
 
-# Integration in Rocq
+# Elpi = $\lambda$Prolog + CHR
 
-https://github.com/LPCIC/coq-elpi/
+
+---
+layout: section
+color: rocq
+---
+
+# The integration in Rocq
+
+
+---
+layout: section
+color: rocq
+---
+
+# The good company
+
+https://github.com/coq-community/metaprogramming-rosetta-stone
+
+---
+transition: fade
+zoom: 0.75
+level: 2
+---
+
+# Comparison
+
+<table>
+
+<thead>
+<tr style="border-bottom-width: 4px"> <th></th> <th>Elpi</th> <th>Ltac2</th> <th>MetaCoq</th> </tr>
+</thead>
+<tbody>
+
+<tr> <td>Gallina</td>
+  <td>
+    <icon-park-twotone-pie-seven/>
+    <br/><small>no mutual fix/ind</small>
+  </td>
+  <td>
+    <icon-park-twotone-round/>
+  </td>
+  <td>
+    <icon-park-twotone-round/>
+  </td>
+</tr>
+
+<tr> <td>Bound Variables</td>
+  <td>
+    <icon-park-twotone-round/>
+  </td>
+  <td>
+    <icon-park-twotone-pie-three/>
+    <br/><small>quotations</small>
+
+  </td>
+  <td>
+    <icon-park-twotone-pie-one/>
+    <br/><small>toplevel quotation</small>
+  </td>
+</tr>
+
+<tr style="border-bottom-width: 4px"> <td>Holes</td>
+  <td>
+    <icon-park-twotone-round/>
+  </td>
+  <td>
+    <icon-park-twotone-pie-five/>
+    <br/><small>tactic monad</small>
+
+  </td>
+  <td>
+    <icon-park-twotone-pie-one/>
+    <br/><small>only AST</small>
+  </td>
+</tr>
+
+<tr> <td>Proof API</td>
+  <td>
+    <icon-park-twotone-pie-four/>
+    <br/><small>weak ltac1 bridge</small>
+  </td>
+  <td>
+    <icon-park-twotone-round/>
+    <br/><small>(sufficiently close)</small>
+  </td>
+  <td>
+    <icon-park-twotone-pie-one/>
+    <br/><small>only TC search, obligations</small>
+  </td>
+</tr>
+
+<tr style="border-bottom-width: 4px"> <td>Vernacular API</td>
+  <td>
+    <icon-park-twotone-pie-seven/>
+    <br/><small>no notations, obligations</small>
+  </td>
+  <td>
+    <material-symbols-circle-outline/>
+  </td>
+  <td>
+    <icon-park-twotone-pie-three/>
+    <br/><small>only env, obligations</small>
+  </td>
+</tr>
+
+<tr style="border-bottom-width: 4px"> <td>Elaborator API</td>
+  <td>
+    <icon-park-twotone-pie-six/>
+    <br/><small>no error locations</small>
+  </td>
+  <td>
+    <material-symbols-circle-outline/>
+  </td>
+  <td>
+    <material-symbols-circle-outline/>
+  </td>
+</tr>
+
+
+<tr style="border-bottom-width: 4px"> <td>Reasoning logic</td>
+  <td>
+    <icon-park-twotone-pie-one/>
+    <br/><small>Abella</small>
+  </td>
+  <td>
+    <material-symbols-circle-outline/>
+  </td>
+  <td>
+    <icon-park-twotone-pie-six/>
+    <br/><small>no holes, unif</small>
+  </td>
+</tr>
+
+</tbody>
+</table>
+
+To the best of my knowledge, on 1/1/2026 {style="text-align:center"}
 
 ---
 layout: image-right
@@ -663,133 +519,355 @@ Elpi Accumulate lp:{{
 
 ````
 
+
 ---
 layout: section
 color: rocq
 ---
 
-# The good company
+# What makes me proud
 
-https://github.com/coq-community/metaprogramming-rosetta-stone
 
 ---
-transition: fade
-zoom: 0.85
+layout: two-cols-header
 level: 2
 ---
 
-# Comparison
+# Hierarchy Builder
 
-<table>
+<div class="authors">
 
-<thead>
-<tr style="border-bottom-width: 4px"> <th></th> <th>Elpi</th> <th>Ltac2</th> <th>MetaCoq</th> </tr>
-</thead>
-<tbody>
+![CohenCyril](/avatars/CohenCyril.jpg)
+![pi8027](/avatars/pi8027.jpg)
+![gares](/avatars/gares.jpg)
+![proux01](/avatars/proux01.jpg)
+![ThomasPortet](/avatars/ThomasPortet.jpg)
+![affeldt-aist](/avatars/affeldt-aist.jpg)
+<!--
+![FissoreD](/avatars/FissoreD.jpg)
+![SkySkimmer](/avatars/SkySkimmer.jpg)
+![thery](/avatars/thery.jpg)
+![Tvallejos](/avatars/Tvallejos.jpg)
+![VojtechStep](/avatars/VojtechStep.jpg)
+![ybertot](/avatars/ybertot.jpg)
+-->
 
-<tr> <td>Gallina</td>
-  <td>
-    <icon-park-twotone-pie-seven/>
-    <br/><small>no mutual fix/ind</small>
-  </td>
-  <td>
-    <icon-park-twotone-round/>
-  </td>
-  <td>
-    <icon-park-twotone-round/>
-  </td>
-</tr>
+</div>
 
-<tr> <td>Bound Variables</td>
-  <td>
-    <icon-park-twotone-round/>
-  </td>
-  <td>
-    <icon-park-twotone-pie-three/>
-    <br/><small>quotations</small>
+DSL to declare a hierarchy of interfaces
 
-  </td>
-  <td>
-    <icon-park-twotone-pie-one/>
-    <br/><small>toplevel quotation</small>
-  </td>
-</tr>
+:: left ::
 
-<tr style="border-bottom-width: 4px"> <td>Holes</td>
-  <td>
-    <icon-park-twotone-round/>
-  </td>
-  <td>
-    <icon-park-twotone-pie-five/>
-    <br/><small>tactic monad</small>
+* generates boilerplate via Elpi's API: modules, implicit arguments, canonical structures, ... 
+* used by the Mathematical Components library and other ~20 libraries
+* makes "packed classes" easy
 
-  </td>
-  <td>
-    <icon-park-twotone-pie-one/>
-    <br/><small>only AST</small>
-  </td>
-</tr>
+  ![MC](/hb_intf.png "number of interfaces"){style="width: 80%"}
 
-<tr> <td>Proof API</td>
-  <td>
-    <icon-park-twotone-pie-four/>
-    <br/><small>weak ltac1 bridge</small>
-  </td>
-  <td>
-    <icon-park-twotone-round/>
-    <br/><small>(sufficiently close)</small>
-  </td>
-  <td>
-    <icon-park-twotone-pie-one/>
-    <br/><small>only TC search, obligations</small>
-  </td>
-</tr>
+  2017
+  <span style="width:8em; display:inline-block"/>
+  2022
+  <span style="width:2em; display:inline-block"/>
+  2024
 
-<tr style="border-bottom-width: 4px"> <td>Vernacular API</td>
-  <td>
-    <icon-park-twotone-pie-seven/>
-    <br/><small>no notations, obligations</small>
-  </td>
-  <td>
-    <material-symbols-circle-outline/>
-  </td>
-  <td>
-    <icon-park-twotone-pie-three/>
-    <br/><small>only env, obligations</small>
-  </td>
-</tr>
+:: right ::
 
-<tr style="border-bottom-width: 4px"> <td>Reasoning logic</td>
-  <td>
-    <icon-park-twotone-pie-one/>
-    <br/><small>Abella</small>
-  </td>
-  <td>
-    <material-symbols-circle-outline/>
-  </td>
-  <td>
-    <icon-park-twotone-pie-six/>
-    <br/><small>no holes, unif</small>
-  </td>
-</tr>
+```coq
+From HB Require Import structures.
 
-</tbody>
-</table>
+HB.mixin Record IsAddComoid A := {
+  zero : A;
+  add : A -> A -> A;
+  addrA : forall x y z, add x (add y z) = add (add x y) z;
+  addrC : forall x y, add x y = add y x;
+  add0r : forall x, add zero x = x;
+}.
 
-To the best of my knowledge, on 1/1/2025 {style="text-align:center"}
+HB.structure Definition AddComoid := { A of IsAddComoid A }.
+
+Notation "0" := zero.
+Infix "+" := add.
+
+Check forall (M : AddComoid.type) (x : M), x + x = 0.
+```
 
 <!--
+this is the command / this is the argument
 
-| | Elpi | Ltac2 | MetaCoq |
-|--|:--:|--|--|
-| Gallina         | <icon-park-twotone-pie-seven/><br/> cofix/mutind               | <icon-park-twotone-round/>                      | <icon-park-twotone-round/> |
-| Bound Variables | <icon-park-twotone-round/>                 | <icon-park-twotone-pie-three/> | <icon-park-twotone-pie-one/>
-| Holes (evars)   | <icon-park-twotone-round/>                 | <icon-park-twotone-pie-five/> | <icon-park-twotone-pie-one/> |
-| Quotations | <carbon-thunderstorm/> | <carbon-sun/> |
-| Vernacular API | |  |
-| Tactic API | <Thumb width="1em"/> |
-| Reasoning |  <icon-park-twotone-pie-two/><sup>2</sup> | <material-symbols-circle-outline/> |  <icon-park-twotone-round/> |
+uses the APIs to declare modules, coercions, implicit arguments
+
+--
+layout: two-cols-header
+level: 2
+--
+
+# Trocq
+
+<div class="authors">
+
+![ecranceMERCE](/avatars/ecranceMERCE.jpg)
+![amahboubi](/avatars/amahboubi.jpg)
+![CohenCyril](/avatars/CohenCyril.jpg)
+<!-- ![palmskog](/avatars/palmskog.jpg) -- >
+
+</div>
+
+Proof transfer via parametricity (with or without univalence).
+
+:: left ::
+
+<div style="padding-right: 3em">
+
+
+- Registers in Elpi Databases translation rules
+- Synthesizes transfer proofs minimizing the axioms required
+
+</div>
+
+:: right :: 
+
+<div style="transform: scale(1.2)">
+
+```coq 
+From Trocq Require Import Trocq.
+
+Definition RN : (N <=> nat)%P := ...
+Trocq Use RN.
+
+Lemma RN0 : RN 0%N 0%nat. ...
+Lemma RNS m n : RN m n -> RN (N.succ m) (S n). ...
+Trocq Use RN0 RNS.
+
+Lemma N_Srec : ∀P : N -> Type, P 0%N ->
+    (∀n, P n -> P (N.succ n)) -> ∀n, P n.
+Proof.
+trocq. (* replaces N by nat in the goal *)
+exact nat_rect.
+Qed.
+```
+
+</div>
+
+--
+layout: two-cols-header
+level: 2
+--
+
+# Derive
+
+<div class="authors">
+
+![gares](/avatars/gares.jpg)
+![CohenCyril](/avatars/CohenCyril.jpg)
+![bgregoir](/avatars/bgregoir.jpg)
+![eponier](/avatars/eponier.jpg)
+![Blaisorblade](/avatars/Blaisorblade.jpg)
+![rlepigre](/avatars/rlepigre.jpg)
+![dwarfmaster](/avatars/dwarfmaster.jpg)
+<!--
+![artagnon](/avatars/artagnon.jpg)
+![ecranceMERCE](/avatars/ecranceMERCE.jpg)
+![ejgallego](/avatars/ejgallego.jpg)
+![FissoreD](/avatars/FissoreD.jpg)
+![herbelin](/avatars/herbelin.jpg)
+![jfehrle](/avatars/jfehrle.jpg)
+![maximedenes](/avatars/maximedenes.jpg)
+![pedrotst](/avatars/pedrotst.jpg)
+![phikal](/avatars/phikal.jpg)
+![pi8027](/avatars/pi8027.jpg)
+![ppedrot](/avatars/ppedrot.jpg)
+![proux01](/avatars/proux01.jpg)
+![robblanco](/avatars/robblanco.jpg)
+![SimonBoulier](/avatars/SimonBoulier.jpg)
+![SkySkimmer](/avatars/SkySkimmer.jpg)
+![Tragicus](/avatars/Tragicus.jpg)
+![vbgl](/avatars/vbgl.jpg)
+![VojtechStep](/avatars/VojtechStep.jpg)
+![wdeweijer](/avatars/wdeweijer.jpg)
+![whonore](/avatars/whonore.jpg)
+![ybertot](/avatars/ybertot.jpg)
+![yoichi-at-bedrock](/avatars/yoichi-at-bedrock.jpg)
+![Zimmi48](/avatars/Zimmi48.jpg)
+- ->
+
+</div>
+
+Framework for type driven code synthesis
+
+:: left ::
+
+<div style="padding-right: 3em">
+
+Derivations:
+- parametricity
+- deep induction
+- equality tests and proofs
+- lenses (record update syntax)
+- a few more...
+
+</div>
+
+:: right :: 
+
+<div style="transform: scale(1.2)">
+
+```coq
+From elpi.apps Require Import derive.std lens.
+
+#[only(lens_laws, eqb), module] derive
+Record Box A := { contents : A; tag : nat }.
+
+About Box. (* Notation Box := Box.t *)
+
+Check Box.eqb :
+  ∀A, (A -> A -> bool) -> Box A -> Box A -> bool.
+
+(* the Lens for the second field *)
+Check @Box._tag : ∀A, Lens (Box A) (Box A) nat nat.
+
+(* a Lens law *)
+Check Box._tag_set_set : ∀A (r : Box A) y x,
+  set Box._tag x (set Box._tag y r) = set Box._tag x r.
+```
+
+</div>
+
+
+--
+layout: two-cols-header
+level: 2
+--
+
+# Algebra Tactics
+
+<div class="authors">
+
+![pi8027](/avatars/pi8027.jpg)
+![proux01](/avatars/proux01.jpg)
+![amahboubi](/avatars/amahboubi.jpg)
+<!-- ![CohenCyril](/avatars/CohenCyril.jpg)
+![gares](/avatars/gares.jpg) -- >
+
+</div>
+
+`ring`, `field`, `lra`, `nra`, and `psatz` tactics for the Mathematical Components library. 
+
+:: left ::
+
+- works with any instance of the structure: concrete, abstract and mixed
+  like `int * R` where `R` is a variable
+- automatically push down ring morphisms and additive functions to
+  leaves of the expression
+- reification up to instance unification in Elpi
+
+
+:: right ::
+
+```coq
+From mathcomp Require Import all_ssreflect.
+From mathcomp Require Import all_algebra.
+From mathcomp Require Import ring lra.
+
+Lemma test (F : realFieldType) (x y : F) :
+  x + 2 * y <= 3 ->
+  2 * x + y <= 3 ->
+    x + y <= 2.
+Proof. lra. Qed.
+
+Variables (R : unitRingType) (x1 x2 x3 y1 y2 y3 : R).
+Definition f1 : R := ...
+Definition f2 : R := ...
+Definition f3 : R := ...
+
+(* 500 lines of polynomials later... *)
+
+Lemma example_from_Sander : f1 * f2 = f3.
+Proof. rewrite /f1 /f2 /f3. ring. Qed.
+```
+
+
+--
+layout: section
+color: rocq
+--
+
+# Elpi in a nutshell
+
+https://github.com/LPCIC/elpi/
+
+--
+layout: two-cols-header
+image: vespa.png
+backgroundSize: 80%
+level: 2
+--
+
+# Rules, rules, rules!{style="text-align:center"}
+
+
+:: left ::
+
+
+## Roots
+
+- Elpi is a constraint logic programming language
+- Elpi is a dialect of λProlog and CHR
+- backtracking is not the point
+
+<br/>
+
+## What really matters
+
+- Code is organized in rules
+- Rule application is guided by a pattern
+- Rules can be added statically and dynamically
+
+
+
+:: right ::
+
+## <icon-park-twotone-caution/> Vintage syntax ahead
+
+<ul>
+<li><p>variables are capitals
+<force-inline>
+```elpi
+X
+```
+</force-inline>
+</p></li>
+
+<li><p> λx.t  is written
+<force-inline>
+```elpi
+x\ t
+```
+</force-inline>
+</p></li>
+
+<li><p>rules are written
+<force-inline>
+```elpi
+goal :- subgoal1, subgoal2...
+```
+</force-inline>
+</p></li>
+
+</ul>
+
+
+
+--
+layout: section
+color: rocq
+transition: fade
+--
+
+# Integration in Rocq
+
+https://github.com/LPCIC/coq-elpi/
 -->
+
 
 ---
 layout: section
@@ -803,13 +881,12 @@ layout: default
 level: 2
 ---
 
-# Elpi for Rocq: take home
+# Elpi: take home
 
 <br/>
 
 ## Extension language
   - Use a language (ony) when it is a good fit
-  - Good FFI -> many APIs!
   
 ## Rule-based is a good fit for
   - HOAS (binders and local context)
@@ -822,15 +899,14 @@ layout: default
 level: 2
 ---
 
-# Ongoing and future work on Rocq-Elpi
+# Perspectives
 
-- Type Class solver (D.Fissore PhD)
-- Obligations (commands that start a proof)
-- Mutual fixpoints and inductives (needed by 2 power users)
-
-# Ongoing and future work on Elpi
-
-- Mode and determinacy analysis
+- Rocq-Elpi into Rocq proper
+  - "functional" syntax
+- Mechanization of Elpi's semantics in Rocq (done, by Davide)
+  - static analysis (ongoing)
+  - unifier (todo and scary)
+- Mechanization of G in Rocq (warming up)
 - Memoization (tabling)
 
 ---
@@ -843,7 +919,6 @@ title: Thanks
 
 # Thanks! {style="text-align:center"}
 
-# Questions? {style="text-align:center; position: absolute; bottom: 1em; left:43%; display: block"}
 
 :: right ::
 
@@ -851,7 +926,7 @@ title: Thanks
 
 <div style="text-align:center">
 
-https://github.com/LPCIC/coq-elpi/
+https://github.com/LPCIC/elpi/
 
 </div>
 <br/>
@@ -913,7 +988,7 @@ https://github.com/LPCIC/coq-elpi/
 
 <div style="text-align:justify">
 
-For having invited me, for listening, and for **contributing** code:
+For  listening and for **contributing** code:
 <br/><br/>
 Pedro Abreu, Yves Bertot, Frederic Besson, Rob Blanco, Simon Boulier, Luc Chabassier, Cyril Cohen, Enzo Crance, Maxime Dénès, Jim Fehrle, Davide Fissore, Paolo G. Giarrusso, Gaëtan Gilbert, Benjamin Gregoire, Hugo Herbelin, Yoichi Hirai, Jasper Hugunin, Emilio Jesus Gallego Arias, Jan-Oliver Kaiser, Philip Kaludercic, Chantal Keller, Vincent Laporte, Jean-Christophe Léchenet, Rodolphe Lepigre, Karl Palmskog, Pierre-Marie Pédrot, Ramkumar Ramachandra, Pierre Roux, Pierre Roux, Claudio Sacerdoti Coen, Kazuhiko Sakaguchi, Matthieu Sozeau, Gordon Stewart, David Swasey, Alexey Trilis, Quentin Vermande, Théo Zimmermann, wdewe, whonore 
 

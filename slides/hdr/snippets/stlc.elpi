@@ -8,30 +8,30 @@ type arr ty -> ty -> ty.
 /*#endregion*/
 
 /*#region of*/
-pred of i:tm, o:ty.
+func of tm -> ty.
 of (app H A) T :-
   of H (arr S T), of A S.
 of (lam F) (arr S T) :-
-  pi x\ of x S => of (F x) T.
+  pi x\ of x S ==> of (F x) T.
 /*#endregion*/
 
 /*#region of1*/
-pred of i:tm, o:ty.
+func of tm -> ty.
 of c S0.
 of (app H A) T :-
   of H (arr S T), of A S.
 of (lam F) (arr S T) :-
-  pi x\ of x S => of (F x) T.
+  pi x\ of x S ==> of (F x) T.
 /*#endregion*/
 
 /*#region of2*/
-pred of i:tm, o:ty.
+func of tm -> ty.
 of d S1.
 of c S0.
 of (app H A) T :-
   of H (arr S T), of A S.
 of (lam F) (arr S T) :-
-  pi x\ of x S => of (F x) T.
+  pi x\ of x S ==> of (F x) T.
 /*#endregion*/
 
 /*#region cst*/
