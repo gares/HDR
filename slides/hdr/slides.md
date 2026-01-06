@@ -46,6 +46,34 @@ hideInToc: true
 <div style="text-align: right !important;">HDR 9/1/2026</div>
 
 
+<!--
+First of all thanks the orga
+-->
+
+---
+layout: default
+title: The title
+level: 2
+---
+
+# Elpi: [rule-based]{style="background-color: var(--highlight-one)"} [extension language]{style="background-color: var(--highlight-two)"}
+
+<br/>
+
+## [context]{style="background-color: var(--highlight-two)"}: extension language (for an ITP written in OCaml)
+
+<!--- no such a thing as general purpose PL-->
+- there is a host application and a host PL
+- the opposite of "general purpose" PL
+
+## [the key]{style="background-color: var(--highlight-one)"}: rule-based
+
+- binders
+- context
+- scheduling
+- self extension
+
+
 ---
 layout: center
 level: 2
@@ -56,30 +84,14 @@ level: 2
 
 <Toc minDepth="1" maxDepth="1" />
 
-<!--
-First of all thanks the orga
--->
+
 
 ---
-layout: default
-title: When, what, how
+layout: section
+color: rocq
 ---
 
-# Elpi: rule-based extension language
-
-<br/>
-
-## context: extension language (for an ITP)
-
-- no such a thing as general purpose PL
-- take advantage of the host
-
-## the key: rule-based
-
-- binders
-- context
-- scheduling
-- self extension
+# The host application
 
 ---
 layout: image
@@ -305,7 +317,7 @@ level: 2
 <table>
 
 <thead>
-<tr style="border-bottom-width: 4px"> <th></th> <th>Elpi</th> <th>Ltac2</th> <th>MetaCoq</th> </tr>
+<tr style="border-bottom-width: 4px"> <th></th> <th>Elpi</th> <th>Ltac2</th> <th>MetaRocq</th> </tr>
 </thead>
 <tbody>
 
@@ -917,18 +929,19 @@ level: 2
 title: Thanks
 ---
 
-# Thanks! {style="text-align:center"}
-
-
-:: right ::
-
-<div class="vauthors">
+# Thanks for contributing code! {style="text-align:center"}
 
 <div style="text-align:center">
 
 https://github.com/LPCIC/elpi/
 
 </div>
+
+:: right ::
+
+<div class="vauthors">
+
+
 <br/>
 
 ![Armael](/avatars/Armael.jpg)
@@ -988,8 +1001,57 @@ https://github.com/LPCIC/elpi/
 
 <div style="text-align:justify">
 
-For  listening and for **contributing** code:
-<br/><br/>
 Pedro Abreu, Yves Bertot, Frederic Besson, Rob Blanco, Simon Boulier, Luc Chabassier, Cyril Cohen, Enzo Crance, Maxime Dénès, Jim Fehrle, Davide Fissore, Paolo G. Giarrusso, Gaëtan Gilbert, Benjamin Gregoire, Hugo Herbelin, Yoichi Hirai, Jasper Hugunin, Emilio Jesus Gallego Arias, Jan-Oliver Kaiser, Philip Kaludercic, Chantal Keller, Vincent Laporte, Jean-Christophe Léchenet, Rodolphe Lepigre, Karl Palmskog, Pierre-Marie Pédrot, Ramkumar Ramachandra, Pierre Roux, Pierre Roux, Claudio Sacerdoti Coen, Kazuhiko Sakaguchi, Matthieu Sozeau, Gordon Stewart, David Swasey, Alexey Trilis, Quentin Vermande, Théo Zimmermann, wdewe, whonore 
 
 </div>
+
+
+---
+layout: two-cols-header
+image: logo.png
+backgroundSize: 80%
+level: 2
+title: Thanks
+---
+
+# Thanks for support and motivation! {style="text-align:center"}
+
+
+:: right ::
+
+![anna](./anna.jpg){style="size:80%"}
+
+:: left ::
+
+<img src="./cinzia.jpeg" alt="cinzia" style="width: 85%">
+
+
+---
+layout: image-right
+image: grill.svg
+backgroundSize: 80%
+level: 2
+title: Thanks
+---
+
+# Thanks for listening! {style="text-align:center"}
+
+<br/>
+
+[Elpi: rule-based extension language]{style="font-weight: bold"}
+
+<style>
+  tr { border-style: none; padding-top: 0.1rem; padding-bottom: 0.1rem; }
+  td { border-style: none; padding-top: 0.1rem; padding-bottom: 0.1rem; text-align: left !important; }
+</style>
+<table><tbody>
+<tr ><td style="text-align: right !important;">Candidate:</td><td>Enrico Tassi</td></tr>
+<tr ><td style="text-align: right !important;">Date:</td><td>9/1/2026</td></tr>
+<tr ><td style="text-align: right !important;">Jury:</td><td>Catherine Dubois</td></tr>
+<tr ><td ></td><td>Dale Miller</td></tr>
+<tr ><td ></td><td>Brigitte Pientka</td></tr>
+<tr ><td ></td><td>Alberto Momigliano</td></tr>
+<tr ><td ></td><td>Christine Paulin-Mohring</td></tr>
+<tr ><td ></td><td>Yves Bertot</td></tr>
+</tbody></table>
+
