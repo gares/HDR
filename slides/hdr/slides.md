@@ -60,13 +60,13 @@ level: 2
 
 <br/>
 
-## [context]{style="background-color: var(--highlight-two)"}: extension language (for an ITP written in OCaml)
+## [context]{style="background-color: var(--highlight-two)"} &nbsp; extension language (for an ITP written in OCaml)
 
 <!--- no such a thing as general purpose PL-->
-- there is a host application and a host PL
-- the opposite of "general purpose" PL
+- there is a *host application* and a *host programming language*
+- the opposite of "general purpose" programming language
 
-## [the key]{style="background-color: var(--highlight-one)"}: rule-based
+## [the key]{style="background-color: var(--highlight-one)"} &nbsp; rule-based
 
 - binders
 - context
@@ -109,17 +109,81 @@ title: The elaborator
 level: 2
 ---
 
-# The elaborator and its daemons
+# The elaborator...
 
-$\lambda x.x + 1$ <br/>
-$\lambda x :~ ?_T.~ add~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type} \}$ <br/>
-$\lambda x :~ ?_T.~ add~ ?_s~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; ?_s \mapsto \mathrm{some~ record} \}$ <br/>
-$\lambda x :~ ?_T.~ add~ ?_{s[x]}~ x~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; x :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \}$ <br/>
-$\lambda   :~ ?_T.~ add~ ?_{s[\$1]}~ \$1~ (S~ O) \qquad \Sigma = \{ ?_T \mapsto \mathrm{some~ type}; x :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \}$<br/>
+<style>
+  tr { border-style: none; padding-top: 0rem; padding-bottom: 0rem; }
+  td { border-style: none; padding-top: 0rem; padding-bottom: 0rem; text-align: left !important; }
+</style>
 
-- binders: numbers <mdi-bomb/>
-- holes: pointers <mdi-biohazard/>
-- reduction/substitution <mdi-bottle-tonic-skull/>
+<v-clicks>
+<table>
+<tbody>
+<tr><td> 
+
+$\lambda x.x + 1$
+
+</td></tr>
+<tr><td>
+
+$\lambda x :~ ?_T.~ \mathrm{add~} x~ (S~ O)$
+
+</td><td>
+
+$\Sigma = \{\; ?_T \mapsto \mathrm{some~ type} \;\}$
+
+</td></tr>
+<tr><td>
+
+$\lambda x :~ ?_T.~ \mathrm{add~} ?_s~ x~ (S~ O)$
+
+</td><td>
+
+$\Sigma = \{\; ?_T \mapsto \mathrm{some~ type};  \qquad\quad\;\;?_s \mapsto \mathrm{some~ record} \;\}$
+
+</td><td><mdi-database-search/></td></tr>
+<tr><td>
+
+$\lambda x :~ ?_T.~ \mathrm{add~} ?_{s[x]}~ x~ (S~ O)$
+
+</td><td>
+
+$\Sigma = \{\; ?_T \mapsto \mathrm{some~ type}; \;x :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \;\}$
+
+</td><td><mdi-database-search/></td></tr>
+<tr><td>
+
+$\lambda \;\, :~ ?_T.~ \mathrm{add~} ?_{s[\$1]}~ \$1~ (S~ O)$
+
+</td><td>
+
+$\Sigma = \{\; ?_T \mapsto \mathrm{some~ type}; \;\;\,\; :~?_T \vdash ?_s \mapsto \mathrm{some~ record} \;\}$
+
+</td><td><mdi-database-search/></td></tr>
+</tbody></table>
+</v-clicks>
+
+# ...and its daemons
+
+<v-clicks at="2">
+
+- holes (pointers in a heap)
+- ... and to be filled by user-given rules (database)
+
+</v-clicks>
+
+<v-clicks at="4">
+
+- reduction/substitution (scope)
+- binders (De Bruijn indexes)
+
+</v-clicks>
+
+<!--
+- <v-click at="2">holes: pointers <mdi-biohazard/></v-click>
+- <v-click at="4">reduction/substitution <mdi-bottle-tonic-skull/></v-click>
+- <v-click at="5">binders: numbers <mdi-bomb/></v-click>
+-->
 
 
 
@@ -298,13 +362,217 @@ color: rocq
 
 
 ---
+layout: image-right
+image: readme.png
+backgroundSize: 80%
+transition: fade
+level: 2
+---
+
+# Notable features
+
+- HOAS for Gallina
+- quotations and anti-quotations
+
+  ![Quotations](/quote.png "quote")
+
+- Databases of rules
+- Extensive API
+
+  ![API example](/api.png "api")
+
+
+---
+layout: two-cols-header
+transition: fade
+level: 2
+---
+
+# Integration with Rocq: from Prop to bool (1/3)
+
+:: left ::
+
+````md magic-move
+
+```coq
+Inductive is_even : nat -> Prop := ...
+
+Fixpoint even (n : nat) : bool := ...
+
+Lemma evenP n : reflect (is_even n) (even n).
+
+
+Lemma andP  {P Q : Prop} {p q : bool} :
+  reflect P p -> reflect Q q ->
+    reflect (P /\ Q) (p && q).
+
+
+Lemma elimT {P b} : reflect P b -> b = true -> P.
+
+Lemma test : is_even 6 /\ is_even 4.
+Proof.
+  refine (elimT (andP (evenP 6) (evenP 4)) _).
+
+
+  (* even 6 && even 4 = true *)
+  simpl. trivial.
+Qed.
+```
+
+```coq
+Inductive is_even : nat -> Prop := ...
+
+Fixpoint even (n : nat) : bool := ...
+
+Lemma evenP n : reflect (is_even n) (even n).
+
+
+Lemma andP  {P Q : Prop} {p q : bool} :
+  reflect P p -> reflect Q q ->
+    reflect (P /\ Q) (p && q).
+
+
+Lemma elimT {P b} : reflect P b -> b = true -> P.
+
+Lemma test : is_even 6 /\ is_even 4.
+Proof.
+  (* refine (elimT (andP (evenP 6) (evenP 4)) _). *)
+  to_bool.
+
+  (* even 6 && even 4 = true *)
+  simpl. trivial.
+Qed.
+```
+
+````
+
+:: right ::
+
+---
+layout: two-cols-header
+transition: fade
+level: 2
+---
+
+# Integration with Rocq: from Prop to bool (2/3)
+
+:: left ::
+
+```coq
+Inductive is_even : nat -> Prop := ...
+
+Fixpoint even (n : nat) : bool := ...
+
+Lemma evenP n : reflect (is_even n) (even n).
+
+
+Lemma andP  {P Q : Prop} {p q : bool} :
+  reflect P p -> reflect Q q ->
+    reflect (P /\ Q) (p && q).
+
+
+Lemma elimT {P b} : reflect P b -> b = true -> P.
+
+Lemma test : is_even 6 /\ is_even 4.
+Proof.
+  (* refine (elimT (andP (evenP 6) (evenP 4)) _). *)
+  to_bool.
+
+  (* even 6 && even 4 = true *)
+  simpl. trivial.
+Qed.
+```
+
+:: right ::
+
+```coq
+(* [tb P R] finds R : reflect P _ *)
+Elpi Tactic to_bool.
+Elpi Accumulate lp:{{
+  func tb term -> term.
+  tb {{ is_even lp:N }} {{ evenP lp:N }}.
+  tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- tb P PP, tb Q QQ.
+
+  solve (goal _ _ Ty _ _ as G) GL :-
+    tb Ty P, refine {{ elimT lp:P _ }} G GL.              }}.
+```
+
+
+---
+layout: two-cols-header
+transition: fade
+level: 2
+---
+
+# Integration with Rocq: from Prop to bool (3/3)
+
+:: left ::
+
+```coq
+Inductive is_even : nat -> Prop := ...
+Fixpoint even (n : nat) : bool := ...
+
+Lemma evenP n : reflect (is_even n) (even n).
+add_tb evenP.
+(* tb {{ is_even lp:N }} {{ evenP lp:N }} *)
+
+Lemma andP  {P Q : Prop} {p q : bool} :
+  reflect P p -> reflect Q q ->
+    reflect (P /\ Q) (p && q).
+add_tb andP.
+(* tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- 
+     tb P PP, tb Q QQ. *)
+
+Lemma elimT {P b} : reflect P b -> b = true -> P.
+Lemma test : is_even 6 /\ is_even 4.
+Proof.
+  (* refine (elimT (andP (evenP 6) (evenP 4)) _). *)
+  to_bool.
+
+  (* even 6 && even 4 = true *)
+  simpl. trivial.
+Qed.
+```
+
+:: right ::
+
+```coq
+(* [tb P R] finds R : reflect P _ *)
+Elpi Db tb.db lp:{{ func tb term -> term. }}.
+
+Elpi Tactic to_bool.
+Elpi Accumulate Db tb.db.
+Elpi Accumulate lp:{{
+  solve (goal _ _ Ty _ _ as G) GL :-
+    tb Ty P, refine {{ elimT lp:P _ }} G GL.              }}.
+
+Elpi Command add_tb.
+Elpi Accumulate Db tb.db.
+Elpi Accumulate lp:{{
+  func compile term, term, list prop -> prop.
+  compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
+  compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\C h) :- 
+    pi h\ compile Ty {coq.mk-app R [h]} [tb S h|Todo] (C h).
+  compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
+    pi x\ compile (Ty x) {coq.mk-app R [x]} Todo (C x).
+
+  main [str S] :-
+    coq.locate S GR,
+    coq.env.typeof GR Ty,
+    compile Ty (global GR) [] C,
+    coq.elpi.accumulate _ "tb.db" (clause _ _ C).        }}.
+
+```
+
+
+---
 layout: section
 color: rocq
 ---
 
 # The good company
 
-https://github.com/coq-community/metaprogramming-rosetta-stone
+https://github.com/rocq-community/metaprogramming-rosetta-stone
 
 ---
 transition: fade
@@ -425,111 +693,6 @@ level: 2
 </table>
 
 To the best of my knowledge, on 1/1/2026 {style="text-align:center"}
-
----
-layout: image-right
-image: readme.png
-backgroundSize: 80%
-transition: fade
-level: 2
----
-
-# Notable features
-
-- HOAS for Gallina
-- quotations and anti-quotations
-
-  ![Quotations](/quote.png "quote")
-
-- Databases of rules
-- Extensive API
-
-  ![API example](/api.png "api")
-
----
-layout: two-cols-header
-transition: fade
-level: 2
----
-
-# Demo: from Prop to bool
-
-:: left ::
-
-```coq
-Axiom is_even : nat -> Prop.
-
-Fixpoint even n : bool := match n with
-  | O => true
-  | S (S n) => even n
-  | _ => false
-  end.
-
-Lemma evenP n : reflect (is_even n) (even n).
-(* Elpi add_tb evenP. *)
-
-Lemma andP  {P Q : Prop} {p q : bool} :
-  reflect P p -> reflect Q q ->
-    reflect (P /\ Q) (p && q).
-(* Elpi add_tb andP. *)
-
-Lemma elimT {P b} : reflect P b -> b = true -> P.
-```
-
-```coq
-Lemma test : is_even 6 /\ is_even 4.
-Proof.
-  refine (elimT (andP (evenP 6) (evenP 4)) _).
-  (* elpi to_bool. *)
-  simpl. trivial.
-Qed.
-```
-
-:: right ::
-
-````md magic-move
-
-```coq
-(* [tb P R] finds R : reflect P _ *)
-Elpi Tactic to_bool.
-Elpi Accumulate lp:{{
-  pred tb i:term, o:term.
-  tb {{ is_even lp:N }} {{ evenP lp:N }}.
-  tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- tb P PP, tb Q QQ.
-
-  solve (goal _ _ Ty _ _ as G) GL :-
-    tb Ty P, refine {{ elimT lp:P _ }} G GL.              }}.
-```
-
-```coq
-(* [tb P R] finds R : reflect P _ *)
-Elpi Db tb.db lp:{{ pred tb i:term, o:term. }}.
-
-Elpi Tactic to_bool.
-Elpi Accumulate Db tb.db.
-Elpi Accumulate lp:{{
-  solve (goal _ _ Ty _ _ as G) GL :-
-    tb Ty P, refine {{ elimT lp:P _ }} G GL.              }}.
-
-Elpi Command add_tb.
-Elpi Accumulate Db tb.db.
-Elpi Accumulate lp:{{
-  pred compile i:term, i:term, i:list prop, o:prop.
-  compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
-  compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\C h) :-
-    pi h\ compile Ty {coq.mk-app R [h]} [tb S h|Todo] (C h).
-  compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
-    pi x\ compile (Ty x) {coq.mk-app R [x]} Todo (C x).
-
-  main [str S] :-
-    coq.locate S GR,
-    coq.env.typeof GR Ty,
-    compile Ty (global GR) [] C,
-    coq.elpi.accumulate _ "tb.db" (clause _ _ C).        }}.
-
-```
-
-````
 
 
 ---
@@ -914,11 +1077,12 @@ level: 2
 # Perspectives
 
 - Rocq-Elpi into Rocq proper
+  - mutual fixpoints (and mutual inductive types)
   - "functional" syntax
-- Mechanization of Elpi's semantics in Rocq (done, by Davide)
+- Mechanization of Elpi's semantics in Rocq (done, by Fissore)
   - static analysis (ongoing)
   - unifier (todo and scary)
-- Mechanization of G in Rocq (warming up)
+- Mechanization of $\mathcal{G}$ in Rocq (warming up)
 - Memoization (tabling)
 
 ---
