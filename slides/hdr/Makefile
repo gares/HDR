@@ -8,7 +8,7 @@ slides.pdf: slides.md Makefile
 html: slides.md Makefile
 	npm exec slidev -- build --out html --base /members/Enrico.Tassi/hdr/html/
 
-upload: slides.pdf html index.html
-	scp -Cr  roquableu.inria.fr:/net/servers/www-sop/members/Enrico.Tassi/hdr/
+upload: slides.pdf html
+	scp -Cr slides.pdf html/ roquableu.inria.fr:/net/servers/www-sop/members/Enrico.Tassi/hdr/
 	@echo
-	@echo 'https://www-sop.inria.fr/members/Enrico.Tassi/'
+	@echo 'https://www-sop.inria.fr/members/Enrico.Tassi/hdr'

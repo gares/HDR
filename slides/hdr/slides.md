@@ -68,9 +68,8 @@ level: 2
 
 ## [the key]{style="background-color: var(--highlight-one)"} &nbsp; rule-based
 
-- binders
-- context
-- scheduling
+- binders and context management
+- holes and scheduling
 - self extension
 
 
@@ -203,7 +202,7 @@ level: 2
 
 ::left::
 
-Simply typed $\lambda$-calculus in HOAS
+Simply typed $\lambda$-calculus in $\lambda$-tree syntax (HOAS)
 
 <<< @/snippets/stlc.elpi#types elpi
 
@@ -351,6 +350,87 @@ backgroundSize: 50%
 ---
 
 # Elpi = $\lambda$Prolog + CHR
+
+
+---
+layout: default
+level: 2
+backgroundSize: 50%
+---
+
+# Elpi's take on locally nameless
+
+<br/>
+
+#### De Bruijn introduced two notations for: $\lambda x.(\lambda y.\lambda z.f\ x\ y\ z)\ x$
+
+$$
+\begin{array}{ll}
+\mathrm{Indexes:} & \lambda x.(\lambda y.\lambda z.f\ x_2\ y_1\ z_0)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_1\ x_1\ z_0\\
+\mathrm{Levels:} & \lambda x.(\lambda y.\lambda z.f\ x_0\ y_1\ z_2)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_0\ x_0\ z_1\\
+\end{array}
+$$
+
+#### Elpi uses Levels (for both named and nameless):
+
+````md magic-move
+
+```elpi
+of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
+
+|- of (lam x0\ lam y0\ app x0 y1)
+```
+
+```elpi
+of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
+
+|- of (lam x0\ lam y0\ app x0 y1)
+|- of (lam F                    ) ... :-
+     pi c0\ of c0 S ==> of (F c0) T.
+```
+
+```elpi
+of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
+
+|- of (lam x0\ lam y0\ app x0 y1)
+|- of (lam F                    ) ... :-
+     pi c0\ of c0 S ==> of (F c0) T.
+
+|-F = (x0\ lam y1\ app x0 y1)
+```
+
+```elpi
+of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
+
+|- of (lam x0\ lam y0\ app x0 y1)
+|- of (lam F                    ) ... :-
+     pi c0\ of c0 S ==> of (F c0) T.
+
+|- F = (x0\ lam y1\ app x0 y1)
+c0 |- F c0 = (x0\ lam y1\ app x0 y1) c0 = lam y1\ app c0 y1
+```
+
+```elpi
+of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
+
+c0 |- of (lam y1\ app c0 y1)
+c0 |- of (lam F            ) ... :-
+        pi c1\ of c1 S ==> of (F c1) T.
+
+c0 |- F = (y1\ app c0 y1)
+c0 c1 |- F c1 = (y1\ app c0 c1) c1 = app c0 c1
+```
+
+````
+
+<v-clicks at="5">
+
+#### Benefits
+- Crossing a binder is cheap
+- Indexing the context is easy
+
+</v-clicks>
+
 
 
 ---
@@ -513,13 +593,13 @@ Inductive is_even : nat -> Prop := ...
 Fixpoint even (n : nat) : bool := ...
 
 Lemma evenP n : reflect (is_even n) (even n).
-add_tb evenP.
+Register evenP.
 (* tb {{ is_even lp:N }} {{ evenP lp:N }} *)
 
 Lemma andP  {P Q : Prop} {p q : bool} :
   reflect P p -> reflect Q q ->
     reflect (P /\ Q) (p && q).
-add_tb andP.
+Register andP.
 (* tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :- 
      tb P PP, tb Q QQ. *)
 
@@ -536,6 +616,8 @@ Qed.
 
 :: right ::
 
+````md magic-move
+
 ```coq
 (* [tb P R] finds R : reflect P _ *)
 Elpi Db tb.db lp:{{ func tb term -> term. }}.
@@ -546,15 +628,10 @@ Elpi Accumulate lp:{{
   solve (goal _ _ Ty _ _ as G) GL :-
     tb Ty P, refine {{ elimT lp:P _ }} G GL.              }}.
 
-Elpi Command add_tb.
+Elpi Command Register.
 Elpi Accumulate Db tb.db.
 Elpi Accumulate lp:{{
   func compile term, term, list prop -> prop.
-  compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
-  compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\C h) :- 
-    pi h\ compile Ty {coq.mk-app R [h]} [tb S h|Todo] (C h).
-  compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
-    pi x\ compile (Ty x) {coq.mk-app R [x]} Todo (C x).
 
   main [str S] :-
     coq.locate S GR,
@@ -563,6 +640,59 @@ Elpi Accumulate lp:{{
     coq.elpi.accumulate _ "tb.db" (clause _ _ C).        }}.
 
 ```
+
+```elpi
+% [compile Ty R Hyps C] invariant R : Ty
+func compile term, term, list prop -> prop.
+
+compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
+
+compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\ C h) :- !,
+  pi h\ compile Ty {{ lp:R lp:h }} [tb S h|Todo] (C h).
+
+compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
+  pi x\ compile (Ty x) {{ lp:R lp:x }} Todo (C x).
+```
+
+```elpi
+% [compile Ty R Hyps C] invariant R : Ty
+func compile term, term, list prop -> prop.
+
+compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
+
+compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\ C h) :- !,
+  pi h\ compile Ty {{ lp:R lp:h }} [tb S h|Todo] (C h).
+
+compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
+  pi x\ compile (Ty x) {{ lp:R lp:x }} Todo (C x).
+
+% compile {{ forall n, reflect (is_even n) (even n) }} {{ evenP }} []
+%   (pi n\ tb {{ is_even lp:n }} {{ evenP lp:n }} :- [])
+```
+
+```elpi
+% [compile Ty R Hyps C] invariant R : Ty
+func compile term, term, list prop -> prop.
+
+compile {{ reflect lp:P _ }} R Todo (tb P R :- Todo).
+
+compile {{ reflect lp:S _ -> lp:Ty }} R Todo (pi h\ C h) :- !,
+  pi h\ compile Ty {{ lp:R lp:h }} [tb S h|Todo] (C h).
+
+compile {{ forall x, lp:(Ty x) }} R Todo (pi x\ C x) :-
+  pi x\ compile (Ty x) {{ lp:R lp:x }} Todo (C x).
+
+% compile {{ forall n, reflect (is_even n) (even n) }} {{ evenP }} []
+%   (pi n\ tb {{ is_even lp:n }} {{ evenP lp:n }} :- [])
+
+% compile {{ forall P Q p q, reflect P p -> reflect Q q ->
+%              reflect (P /\ Q) (p && q) }} {{ andP }} []
+%   (pi P Q p q PP QQ\
+%        tb {{ lp:P /\ lp:Q }} {{ andP lp:PP lp:QQ }} :-
+%           [tb Q QQ, tb P PP])
+```
+
+````
 
 
 ---
@@ -1074,16 +1204,31 @@ layout: default
 level: 2
 ---
 
-# Perspectives
+# Perspectives - Elpi takes advantage of Rocq
 
-- Rocq-Elpi into Rocq proper
-  - mutual fixpoints (and mutual inductive types)
-  - "functional" syntax
-- Mechanization of Elpi's semantics in Rocq (done, by Fissore)
-  - static analysis (ongoing)
-  - unifier (todo and scary)
-- Mechanization of $\mathcal{G}$ in Rocq (warming up)
-- Memoization (tabling)
+- Mechanization of Elpi in Rocq (durability)
+  - operational semantics of $\lambda$Prolog + cut (done, by Fissore)
+  - determinacy analysis (control part done, HO part ongoing)
+  - term representation, unifier (todo and scary)
+- Mechanization of $\mathcal{G}$ in Rocq 
+  - metatheory of $\mathcal{G}$ (warming up)
+  - proofs about Elpi code in Rocq
+
+
+---
+layout: default
+level: 2
+---
+
+# Perspectives - Rocq takes advantage of Elpi
+
+- Rocq-Elpi into Rocq proper (use Elpi in lower layers)
+  - need HOAS encoding for mutual fixpoints (and mutual inductive types)
+  - functional (rule based) syntax could be more familiar to Rocq users
+  - user manual definitely needed
+- Memoization (tabling via SLG)
+  - no good public benchmark, but BedRock/BlueRock/SkyLabs-AI needs it
+  - loop detection could help beginners
 
 ---
 layout: two-cols-header
@@ -1183,12 +1328,19 @@ title: Thanks
 
 :: right ::
 
-![anna](./anna.jpg){style="size:80%"}
+<div class="vfamily">
+
+![anna](./public/anna.jpg){style="object-fit: contain;"}
+
+</div>
 
 :: left ::
 
-<img src="./cinzia.jpeg" alt="cinzia" style="width: 85%">
+<div class="vfamily">
 
+![cinzia](./public/cinzia.jpeg){style="width: 85%"}
+
+</div>
 
 ---
 layout: image-right

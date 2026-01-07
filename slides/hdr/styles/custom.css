@@ -64,6 +64,16 @@ force-inline {
 
 }
 
+.vfamily {
+
+  display: block;
+  top: 6em;
+  bottom: auto;
+  height: 20em;
+  width: 20em;
+
+}
+
 .authors {
   display: block;
   position: absolute;
@@ -76,3 +86,5 @@ force-inline {
 .authors p img { display:inline-block; height: 3em;   border-radius: 50%; }
 .vauthors p { display:inline; }
 .vauthors p img { display:inline-block; height: 3em;   border-radius: 50%;}
+.vfamily p { display:inline; }
+.vfamily p img { display:inline-block;   border-radius: 50%;}
