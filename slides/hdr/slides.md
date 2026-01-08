@@ -353,77 +353,108 @@ backgroundSize: 50%
 
 
 ---
-layout: default
+layout: two-cols-header
 level: 2
 backgroundSize: 50%
 ---
+
+<style>
+.slidev-code { font-size: 1.5em !important; }
+</style>
 
 # Elpi's take on locally nameless
 
 <br/>
 
-#### De Bruijn introduced two notations for: $\lambda x.(\lambda y.\lambda z.f\ x\ y\ z)\ x$
+#### De Bruijn introduced two notations for bound variables: indexes and levels
+
+::left::
+
+#### $\beta$-reduction (with indexes)
 
 $$
-\begin{array}{ll}
-\mathrm{Indexes:} & \lambda x.(\lambda y.\lambda z.f\ x_2\ y_1\ z_0)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_1\ x_1\ z_0\\
-\mathrm{Levels:} & \lambda x.(\lambda y.\lambda z.f\ x_0\ y_1\ z_2)\ x_0\ \to_\beta\ \lambda x.\lambda z.f\ x_0\ x_0\ z_1\\
+\begin{array}{l}
+\lambda x.(\lambda y.\lambda z.f\ x_2\ y_1\ z_0)\ x_0\ \to_\beta \\
+\lambda x.\quad\;\;\,\lambda z.f\ x_1\ x_1\ z_0
 \end{array}
 $$
 
-#### Elpi uses Levels (for both named and nameless):
+
+<br/>
+
+#### Moving under a binder (with indexes)
+
+```elpi
+⊢ lam x\ lam y\ app x₁ y₀
+```
 
 ````md magic-move
 
-```elpi
-of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
-
-|- of (lam x0\ lam y0\ app x0 y1)
+```
 ```
 
 ```elpi
-of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
-
-|- of (lam x0\ lam y0\ app x0 y1)
-|- of (lam F                    ) ... :-
-     pi c0\ of c0 S ==> of (F c0) T.
+c₀ ⊢ (x\ lam y\ app x₁ y₀) c₀
 ```
 
 ```elpi
-of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
-
-|- of (lam x0\ lam y0\ app x0 y1)
-|- of (lam F                    ) ... :-
-     pi c0\ of c0 S ==> of (F c0) T.
-
-|-F = (x0\ lam y1\ app x0 y1)
+c₀ ⊢ lam y\ app c₀ y₀
 ```
 
 ```elpi
-of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
-
-|- of (lam x0\ lam y0\ app x0 y1)
-|- of (lam F                    ) ... :-
-     pi c0\ of c0 S ==> of (F c0) T.
-
-|- F = (x0\ lam y1\ app x0 y1)
-c0 |- F c0 = (x0\ lam y1\ app x0 y1) c0 = lam y1\ app c0 y1
+c₀ c₁ ⊢ (y\ app c₀ y₀) c₁
 ```
 
 ```elpi
-of (lam F) (arr S T) :- pi c\ of c S ==> of (F c) T.
-
-c0 |- of (lam y1\ app c0 y1)
-c0 |- of (lam F            ) ... :-
-        pi c1\ of c1 S ==> of (F c1) T.
-
-c0 |- F = (y1\ app c0 y1)
-c0 c1 |- F c1 = (y1\ app c0 c1) c1 = app c0 c1
+c₀ c₁ ⊢ app c₀ c₁
 ```
 
 ````
 
-<v-clicks at="5">
+::right::
+
+#### $\beta$-reduction (with levels)
+
+
+$$
+\begin{array}{l}
+\lambda x.(\lambda y.\lambda z.f\ x_0\ y_1\ z_2)\ x_0\ \to_\beta\\
+\lambda x.\quad\;\;\,\lambda z.f\ x_0\ x_0\ z_1
+\end{array}
+$$
+
+<br/>
+
+#### Moving under a binder (with levels)
+
+```elpi
+⊢ lam x\ lam y\ app x₀ y₁
+```
+
+````md magic-move
+
+```
+```
+
+```elpi
+c₀ ⊢ (x\ lam y\ app x₀ y₁) c₀
+```
+
+```elpi
+c₀ ⊢ lam y\ app c₀ y₁
+```
+
+```elpi
+c₀ c₁ ⊢ (y\ app c₀ y₁) c₁
+```
+
+```elpi
+c₀ c₁ ⊢ app c₀ c₁
+```
+
+````
+
+<v-clicks at="9">
 
 #### Benefits
 - Crossing a binder is cheap
