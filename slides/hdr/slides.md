@@ -94,7 +94,7 @@ color: rocq
 
 ---
 layout: image
-image: coq-brain.svg
+image: coq-brain.png
 title: The arcitecture of an ITP
 backgroundSize: 40%
 #transition: slide-left
@@ -358,11 +358,12 @@ level: 2
 backgroundSize: 50%
 ---
 
+# Elpi's take on locally nameless
+
 <style>
 .slidev-code { font-size: 1.5em !important; }
 </style>
 
-# Elpi's take on locally nameless
 
 <br/>
 
