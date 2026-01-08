@@ -361,7 +361,8 @@ backgroundSize: 50%
 # Elpi's take on locally nameless
 
 <style>
-.slidev-code { font-size: 1.5em !important; }
+.slidev-code { font-size: 1.4em !important; }
+.slidev-code-magic-move { --slidev-code-font-size: 1.4em !important; }
 </style>
 
 
@@ -455,13 +456,13 @@ c₀ c₁ ⊢ app c₀ c₁
 
 ````
 
-<v-clicks at="9">
+<v-click at="9">
 
 #### Benefits
 - Crossing a binder is cheap
 - Indexing the context is easy
 
-</v-clicks>
+</v-click>
 
 
 
